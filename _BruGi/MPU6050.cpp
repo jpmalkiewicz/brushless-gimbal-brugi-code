@@ -1861,6 +1861,13 @@ void MPU6050::getRotation(int16_t* x, int16_t* y, int16_t* z) {
     *y = (((int16_t)buffer[2]) << 8) | buffer[3];
     *z = (((int16_t)buffer[4]) << 8) | buffer[5];
 }
+
+void MPU6050::getRotationXY(int16_t* x, int16_t* y) {
+    I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_XOUT_H, 4, buffer);
+    *x = (((int16_t)buffer[0]) << 8) | buffer[1];
+    *y = (((int16_t)buffer[2]) << 8) | buffer[3];
+}
+
 /** Get X-axis gyroscope reading.
  * @return X-axis rotation measurement in 16-bit 2's complement format
  * @see getMotion6()
@@ -2905,7 +2912,10 @@ void MPU6050::setDMPEnabled(bool enabled) {
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_EN_BIT, enabled);
 }
 void MPU6050::resetDMP() {
+//    I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_RESET_BIT, true);
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_RESET_BIT, true);
+    I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, 0x00, true);
+    I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, 0x80 | 0x40 | 0x08, true);
 }
 
 // BANK_SEL register
@@ -3140,3 +3150,9 @@ uint8_t MPU6050::getDMPConfig2() {
 void MPU6050::setDMPConfig2(uint8_t config) {
     I2Cdev::writeByte(devAddr, MPU6050_RA_DMP_CFG_2, config);
 }
+
+void MPU6050::setAddr (uint8_t address) {
+    devAddr = address;
+}
+
+

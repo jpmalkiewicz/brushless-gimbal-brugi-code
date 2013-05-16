@@ -38,13 +38,14 @@ THE SOFTWARE.
 #define _MPU6050_H_
 
 #include "I2Cdev.h"
+#include "definitions.h"
 #include <avr/pgmspace.h>
 
 
-
-#define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
-#define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
-#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_LOW
+// !!! Moved to config.h
+//#define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
+//#define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
+//#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_HIGH
 
 #define MPU6050_RA_XG_OFFS_TC       0x00 //[7] PWR_MODE, [6:1] XG_OFFS_TC, [0] OTP_BNK_VLD
 #define MPU6050_RA_YG_OFFS_TC       0x01 //[7] PWR_MODE, [6:1] YG_OFFS_TC, [0] OTP_BNK_VLD
@@ -405,6 +406,7 @@ class MPU6050 {
 
         void initialize();
         bool testConnection();
+        void setAddr(uint8_t source);
 
         // AUX_VDDIO register
         uint8_t getAuxVDDIOLevel();
@@ -588,6 +590,7 @@ class MPU6050 {
 
         // GYRO_*OUT_* registers
         void getRotation(int16_t* x, int16_t* y, int16_t* z);
+        void getRotationXY(int16_t* x, int16_t* y);
         int16_t getRotationX();
         int16_t getRotationY();
         int16_t getRotationZ();
@@ -775,7 +778,8 @@ class MPU6050 {
         // DMP_CFG_2 register
         uint8_t getDMPConfig2();
         void setDMPConfig2(uint8_t config);
-
+        
+ 
         // special methods for MotionApps 2.0 implementation
         #ifdef MPU6050_INCLUDE_DMP_MOTIONAPPS20
             uint8_t *dmpPacketBuffer;
@@ -875,6 +879,7 @@ class MPU6050 {
             uint32_t dmpGetAccelSumOfSquare();
             void dmpOverrideQuaternion(long *q);
             uint16_t dmpGetFIFOPacketSize();
+
         #endif
 
         // special methods for MotionApps 4.1 implementation
