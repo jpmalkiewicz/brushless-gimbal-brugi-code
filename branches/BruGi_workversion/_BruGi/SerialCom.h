@@ -59,8 +59,8 @@ void setRCAbsolute()
   if(temp==1)
   {
     config.rcAbsolute = true;
-    pitchSetpoint = 0.0;
-    rollSetpoint = 0.0;
+    PitchPhiSet = 0.0;
+    RollPhiSet = 0.0;
   }
   else
     config.rcAbsolute = false;
@@ -82,7 +82,8 @@ void writeEEPROM()
 void readEEPROM()
 {
   EEPROM_readAnything(0, config); 
-  recalcMotorStuff(); 
+  recalcMotorStuff();
+  initPIDs();
 }
 
 void transmitActiveConfig()
@@ -108,16 +109,16 @@ void transmitActiveConfig()
 void setPitchPID()
 {
   config.gyroPitchKp = atol(sCmd.next());
-  config.gyroPitchKi = atoi(sCmd.next());
-  config.gyroPitchKd = atoi(sCmd.next());
+  config.gyroPitchKi = atol(sCmd.next());
+  config.gyroPitchKd = atol(sCmd.next());
   initPIDs();
 }
 
 void setRollPID()
 {
   config.gyroRollKp = atol(sCmd.next());
-  config.gyroRollKi = atoi(sCmd.next());
-  config.gyroRollKd = atoi(sCmd.next());
+  config.gyroRollKi = atol(sCmd.next());
+  config.gyroRollKd = atol(sCmd.next());
   initPIDs();
 }
 

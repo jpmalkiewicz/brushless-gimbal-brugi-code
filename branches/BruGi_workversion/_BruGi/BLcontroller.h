@@ -131,11 +131,11 @@ void initBlController()
   OCR0B = 0;  //D5 
 }
 
-
-void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint8_t* pwmSin)
+// 3 lsb of MotorPos still reserved for precision improvement (TBD) 
+inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint8_t* pwmSin)
 {
   int posStep;
-  int delta; 
+
   if (motorNumber == 0)
   {
     posStep = MotorPos >> 3;
@@ -183,8 +183,8 @@ void calcSinusArray(uint8_t maxPWM, uint8_t *array)
 {
   for(int i=0; i<N_SIN; i++)
   {
-    array[i] = maxPWM / 2.0 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
-//    array[i] = 128 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
+//    array[i] = maxPWM / 2.0 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
+    array[i] = 128 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
   }  
 }
 
@@ -200,27 +200,22 @@ void recalcMotorStuff()
 /********************************/
 /* Motor Control IRQ Routine    */
 /********************************/
-// combined position/speed control (pitchMotorPos, rollMotorPos)
+// motor position control
 ISR( TIMER1_OVF_vect )
 {
-  int pitchMotorDrive;
-  int rollMotorDrive;
-  
-  freqCounter++;
-  if((freqCounter==(CC_FACTOR<<10/MOTORUPDATE_FREQ))&&(enableMotorUpdates))
-  {    
+  // 2.5 / 9.64us
+  freqCounter++;  
+  if((freqCounter==(CC_FACTOR*1000/MOTORUPDATE_FREQ)) && (enableMotorUpdates))
+  {
     freqCounter=0;
-    // move pitch motor
-    pitchMotorPos += pitchMotorSpeed;
-    pitchMotorPos &= 0x1ffff;
-    pitchMotorDrive = pitchMotorDamp + (pitchMotorPos >> 6);
-    MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
 
+    // move pitch motor
+    MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
     // move roll motor
-    rollMotorPos += rollMotorSpeed;
-    rollMotorPos &= 0x1ffff;
-    rollMotorDrive = rollMotorDamp + (rollMotorPos >> 6);
     MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, pwmSinMotorRoll);
+
+    // update event
+    motorUpdate = true;
   }
 }
 

@@ -932,6 +932,8 @@ proc rd_chid {chid} {
 					if {$chart_count >= 250} {
 						set chart_count 0
 					}
+					set ValX [expr $ValX/100.0]
+					set ValY [expr $ValY/100.0]
 					.motor.general.chart.chart1 delete "line_$chart_count"
 					.motor.general.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
 					.motor.general.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
@@ -1356,7 +1358,7 @@ pack .motor -side top -expand yes -fill x
 	labelframe .motor.pitch -text "Pitch"
 	pack .motor.pitch -side left -expand yes -fill both
 
-		gui_slider .motor.pitch.i gyroPitchKi 0 100 0.1 "Iacc" "Iacc-Value" "Iacc-Value"
+		gui_slider .motor.pitch.i gyroPitchKi 0 100 0.1 "I" "I-Value" "I-Value"
 		gui_slider .motor.pitch.p gyroPitchKp 0 100 0.1 "P" "P-Value" "adjust (increase) the P Term in 1.0 Steps stop when the movement is perfect if you go too far the motor will start to vibrate"
 		gui_slider .motor.pitch.d gyroPitchKd 0 100 0.1 "D" "D-Value" "D-Value"
 		gui_spin .motor.pitch.number motorPitchNumber 0 2 1   "Number"  "Output-Port-Number" "if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"
@@ -1369,7 +1371,7 @@ pack .motor -side top -expand yes -fill x
 	labelframe .motor.roll -text "Roll"
 	pack .motor.roll -side left -expand yes -fill both
 
-		gui_slider .motor.roll.i gyroRollKi 0 100 0.1 "Iacc" "Iacc-Value" "Iacc-Value"
+		gui_slider .motor.roll.i gyroRollKi 0 100 0.1 "I" "I-Value" "I-Value"
 		gui_slider .motor.roll.p gyroRollKp 0 100 0.1 "P" "P-Value" "adjust (increase) the P Term in 1.0 Steps stop when the movement is perfect if you go too far the motor will start to vibrate"
 		gui_slider .motor.roll.d gyroRollKd 0 100 0.1 "D" "D-Value" "D-Value"
 		gui_spin .motor.roll.number motorRollNumber 0 2 1   "Number"  "Output-Port-Number" "if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"

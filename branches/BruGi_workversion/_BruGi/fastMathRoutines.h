@@ -42,30 +42,6 @@ float fastAtan2(float y, float x) // in deg
   return z;
 }
 
-
-/*******************************************/
-/* Filter Utility Functions                */
-/* Copyright © 2011, 2012  Bill Nesbitt    */
-/*******************************************/
-
-void utilFilterReset(struct utilFilter *f, float setpoint) {
-    f->z1 = setpoint;
-}
-
-void utilFilterInit(struct utilFilter *f, float dt, float tau, float setpoint) {
-    f->tc = dt / tau;
-    utilFilterReset(f, setpoint);
-}
-
-inline float utilFilter(struct utilFilter *f, float signal) {
-    register float z1;
-
-    z1 = f->z1 + (signal - f->z1) * f->tc;
-    f->z1 = z1;
-
-    return z1;
-}
-
 int8_t sgn(int val) {
   if (val < 0) return -1;
   if (val==0) return 0;
