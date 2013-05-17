@@ -1,0 +1,46 @@
+[B][SIZE=6]Motor Richtig Wickeln ? !
+[/SIZE][/B]
+
+Hier möchte ich euch mit meinen gesamelten Erfahrungen beschreiben wie man einen Motor für die Brushless Gimbal richtig wickelt .
+
+Ich beschreibe es euch anhand meines Testmotors , der EMAX CF2822.
+Vom Prenzip her funktioniert es aber mit fast allen Motoren die 12Nuten haben .
+
+[U][B]Fangen wir mit dem Draht an :
+[/B][/U]   
+Als Draht muss ein Kupferlackdraht gewählt werden , da es nicht zu keinem Kurzschluss innerhalb der einzelnen Wicklugen kommen darf . 
+Ich habe einen 0.15mm Starken gewählt , man kann sich dazu merken : umso dünner der draht und umso mehr wicklungen man drauf bekommt , desto größer ist der Haltemoment vom Motor .
+Für den CF2822 habe ich 80 windungen genommen . Mit Anzahl der Windungen steigt der Innenwiderstand , der wiederrum möglichst hoch sein sollte , in meinem beispiel bin ich auf 16Ohm gekommen .
+
+[B][U]Das Wicklungsshema : 
+[/U][/B]
+Für meinen Motor mit 12 Nuten habe ich mich an folgendes Shema gehalten : 
+
+[url]http://penolet.ru/sites/default/files/imagecache/medium/node_images/12N14Pvoll1278cw.GIF[/url]
+
+Dieses ist von allen Tests das geeignetste für unsere Anwendung.
+
+[B][U]Nach dem Fertig Wickeln : 
+[/U][/B]
+Müssen nurnoch die Enden der jeweiligen Spule (Windung) zusammen gelötet/Verschaltet werden .
+Wenn alles richtig gemacht wurde , haben wir 3 Anfänge und 3 Enden .
+Für Brushless Motoren gibt es 2 verschiedene Verschaltmethoden : Stern und Dreieck/Delta 
+Wichtig ist das wir die Stern Verschaltung verwenden , da sonst der Motor ungleich und ruppig leuft : 
+
+Folgende Grafik zeit wie man es Richtig bzw. Falsch macht : 
+
+[url=http://www.bilder-hochladen.net/files/ka8c-1-c4ca-jpg.html][img]http://www.bilder-hochladen.net/files/thumbs/ka8c-1-c4ca.jpg[/img][/url] 
+
+Hierzu habe ich auch nochmal ein Vergleichsvideo gemacht , wo man deutlich den unterschied erkennen kann : 
+
+[B][U]Falsche Wicklung (Dreieck/Delta) : 
+
+[/U][/B][url]http://www.youtube.com/watch?v=whSrcFmgVzA[/url]
+
+[B][U]Richtige Wicklung (Stern) : 
+
+[/U][/B][url]http://www.youtube.com/watch?v=sXTe-bE0kHU[/url]
+
+Nachdem die Enden richtig Verschaltet wurden , muss nurnoch der Motor wieder zusammengebaut und getestet werden ;)
+
+Happy Winding :D
