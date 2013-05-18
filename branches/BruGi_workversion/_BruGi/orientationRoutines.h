@@ -46,12 +46,10 @@ void gyroOffsetCalibration()
   while(calibGCounter>0)
   {
     OCR2A = 0; OCR2B = 0; OCR1A = 0; OCR1B = 0; OCR0A = 0; OCR0B = 0; 
-    gyro[0] = mpu.getRotationX();  
-    gyro[1] = mpu.getRotationY();  
-    gyro[2] = mpu.getRotationZ();  
+    mpu.getRotation(&gyro[0], &gyro[1], &gyro[2]);  
     if(calibGCounter==2000)
     {
-      for (char i; i<3; i++) {
+      for (char i=0; i<3; i++) {
         fp_gyroOffset[i] = 0;
         prevGyro[i]=gyro[i];
       }
@@ -63,7 +61,7 @@ void gyroOffsetCalibration()
       prevGyro[0] = gyro[0]; prevGyro[1] = gyro[1]; prevGyro[2] = gyro[2];
     }
   
-    for (char i; i<3; i++) {
+    for (char i=0; i<3; i++) {
         fp_gyroOffset[i] += gyro[i]/2000.0;
         prevGyro[i]=gyro[i];
     }
@@ -78,7 +76,7 @@ void gyroOffsetCalibration()
   }
 
   // put result into integer
-  for (char i; i<3; i++) {
+  for (char i=0; i<3; i++) {
     gyroOffset[i] = fp_gyroOffset[i];
   }
 
