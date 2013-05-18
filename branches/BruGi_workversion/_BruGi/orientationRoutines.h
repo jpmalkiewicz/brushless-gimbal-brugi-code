@@ -35,9 +35,8 @@ void initResolutionDevider()
 void gyroOffsetCalibration()
 {
   #define TOL 256
-  int16_t prevGyroX,gyroX;
-  int16_t prevGyroY,gyroY;
-  int16_t prevGyroZ,gyroZ; 
+  int16_t prevGyro[3],gyro[3];
+  float fp_gyroOffset[3];
   uint8_t tiltDetected = 0;
   int calibGCounter = 2000;
   
@@ -47,25 +46,28 @@ void gyroOffsetCalibration()
   while(calibGCounter>0)
   {
     OCR2A = 0; OCR2B = 0; OCR1A = 0; OCR1B = 0; OCR0A = 0; OCR0B = 0; 
-    gyroX = mpu.getRotationX();  
-    gyroY = mpu.getRotationY();  
-    gyroZ = mpu.getRotationZ();  
+    gyro[0] = mpu.getRotationX();  
+    gyro[1] = mpu.getRotationY();  
+    gyro[2] = mpu.getRotationZ();  
     if(calibGCounter==2000)
     {
-      xGyroOffset=0; yGyroOffset=0; zGyroOffset=0;
-      prevGyroX = gyroX; prevGyroY = gyroY; prevGyroZ = gyroZ;
+      for (char i; i<3; i++) {
+        fp_gyroOffset[i] = 0;
+        prevGyro[i]=gyro[i];
+      }
     }
     
     if(calibGCounter % 10 == 0)
     { 
-      if((abs(prevGyroX-gyroX)>TOL)||(abs(prevGyroY-gyroY)>TOL)||(abs(prevGyroZ-gyroZ)>TOL)) tiltDetected++;
-      prevGyroX = gyroX; prevGyroY = gyroY; prevGyroZ = gyroZ;
+      if((abs(prevGyro[0]-gyro[0])>TOL)||(abs(prevGyro[1]-gyro[1])>TOL)||(abs(prevGyro[2]-gyro[2])>TOL)) tiltDetected++;
+      prevGyro[0] = gyro[0]; prevGyro[1] = gyro[1]; prevGyro[2] = gyro[2];
     }
-    
-    xGyroOffset += gyroX/2000.0;
-    yGyroOffset += gyroY/2000.0;
-    zGyroOffset += gyroZ/2000.0;
-
+  
+    for (char i; i<3; i++) {
+        fp_gyroOffset[i] += gyro[i]/2000.0;
+        prevGyro[i]=gyro[i];
+    }
+      
     calibGCounter--;
     if(tiltDetected>=1)
     {
@@ -74,6 +76,12 @@ void gyroOffsetCalibration()
       tiltDetected=0;
     }
   }
+
+  // put result into integer
+  for (char i; i<3; i++) {
+    gyroOffset[i] = fp_gyroOffset[i];
+  }
+
   enableMotorUpdates = true;
 }
        

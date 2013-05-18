@@ -1800,6 +1800,20 @@ int16_t MPU6050::getAccelerationY() {
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_YOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
+
+/** Get 1-axis accelerometer reading.
+ * @return 1-axis acceleration measurement in 16-bit 2's complement format
+ * @see getMotion6()
+ * @see MPU6050_RA_ACCEL_ZOUT_H
+ */
+int16_t MPU6050::getAccelerationN(char idx) {    
+    char idxa = idx<<1;
+    char idxb = idxa+1;
+    I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 6, buffer);
+    return (((int16_t)buffer[idxa]) << 8) | buffer[idxb];
+}
+
+
 /** Get Z-axis accelerometer reading.
  * @return Z-axis acceleration measurement in 16-bit 2's complement format
  * @see getMotion6()
@@ -1809,6 +1823,7 @@ int16_t MPU6050::getAccelerationZ() {
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_ZOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
+
 
 // TEMP_OUT_* registers
 

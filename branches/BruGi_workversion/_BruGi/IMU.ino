@@ -40,6 +40,73 @@
 #define ssin(val) (val)
 #define scos(val) 1.0f
 
+
+
+// set default sensor orientation (sensor upside)
+void initSensorOrientationDefault() {
+  
+  // channel assignment
+  sensorDef.Gyro[ROLL].idx = 0;
+  sensorDef.Gyro[PITCH].idx = 1;
+  sensorDef.Gyro[YAW].idx = 2;
+
+  sensorDef.Acc[ROLL].idx = 1;     // y
+  sensorDef.Acc[PITCH].idx = 0;    // x
+  sensorDef.Acc[YAW].idx = 2;      // z
+
+  // direction
+  sensorDef.Gyro[ROLL].dir = 1;
+  sensorDef.Gyro[PITCH].dir = 1;
+  sensorDef.Gyro[YAW].dir = 1;
+
+  sensorDef.Acc[ROLL].dir = 1;
+  sensorDef.Acc[PITCH].dir = 1;
+  sensorDef.Acc[YAW].dir = 1;
+  
+}
+
+// swap two char items
+void swap_char(char * a, char * b) {
+  char tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+// swap two int items
+void swap_int(int * a, int * b) {
+  int tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
+// set sensor orientation according config
+//
+//   config.axisReverseZ
+//        false ... sensor mounted on top
+//        true  ... sensor mounted upside down
+//   config.axisSwapXY
+//        false ... default XY axes
+//        true  ... swap XY (means exchange Roll/Pitch)
+
+void initSensorOrientation() {
+  
+  initSensorOrientationDefault();
+  
+  if (config.axisReverseZ) {
+    // flip over roll
+    sensorDef.Acc[YAW].dir *= -1;
+    sensorDef.Acc[ROLL].dir *= -1;
+    sensorDef.Gyro[PITCH].dir *= -1;
+  }
+  if (config.axisSwapXY) {
+    // swap gyro axis
+    swap_char(&sensorDef.Gyro[ROLL].idx, &sensorDef.Gyro[PITCH].idx); 
+    swap_int(&sensorDef.Gyro[ROLL].dir, &sensorDef.Gyro[PITCH].dir); sensorDef.Gyro[PITCH].dir *= -1;   // try and error ;-)
+    // swap acc axis
+    swap_char(&sensorDef.Acc[ROLL].idx, &sensorDef.Acc[PITCH].idx);
+    swap_int(&sensorDef.Acc[ROLL].dir, &sensorDef.Acc[PITCH].dir); sensorDef.Acc[ROLL].dir *= -1;
+  }
+}
+
 void initIMU() {
  
   // resolutionDevider=131, scale = 0.000133
@@ -49,7 +116,15 @@ void initIMU() {
 }
 
 
-int16_t _atan2(float y, float x){
+inline int16_t _atan2x(float y, float x) {
+  if (abs(x) > abs(y)) {
+    return _atan2(y,x);
+  } else {
+    return (9000 + _atan2(x,y));
+  }
+}
+
+inline int16_t _atan2(float y, float x){
   #define fp_is_neg(val) ((((uint8_t*)&val)[3] & 0x80) != 0)
   float z = y / x;
   int16_t zi = abs(int16_t(z * 100)); 
@@ -81,29 +156,35 @@ void rotateV(struct fp_vector *v,float* delta) {
 
 
 void readGyros() {
-  int16_t x,y,z;
+  int16_t axisRot[3];
+  char idx;
+  // 414 us
+
   // read gyros
-  // 456 us
-  mpu.getRotation(&x,&y,&z);
-  gyroADC[ROLL] = x-xGyroOffset;
-  gyroADC[PITCH] = -(y-yGyroOffset);
-  gyroADC[YAW] = z-zGyroOffset;
+  mpu.getRotation(&axisRot[0], &axisRot[1], &axisRot[2]);
+  idx = sensorDef.Gyro[0].idx;
+  gyroADC[ROLL] = axisRot[idx]-gyroOffset[idx];
+  gyroADC[ROLL] *= sensorDef.Gyro[0].dir;
+
+  idx = sensorDef.Gyro[1].idx;
+  gyroADC[PITCH] = -(axisRot[idx]-gyroOffset[idx]);
+  gyroADC[PITCH] *= sensorDef.Gyro[1].dir;
+
+  idx = sensorDef.Gyro[2].idx;
+  gyroADC[YAW] = axisRot[idx]-gyroOffset[idx];  
+  gyroADC[YAW] *= sensorDef.Gyro[2].dir;
+  
 }
 
 void readACC(axisDef axis) {
   // get acceleration
-  // 850/3 us for each axis
-  switch (axis) {
-  case ROLL: 
-    accADC[ROLL] = mpu.getAccelerationY(); 
-    break;
-  case PITCH:
-    accADC[PITCH] = mpu.getAccelerationX();
-    break;
-  case YAW:
-    accADC[YAW] = mpu.getAccelerationZ();
-    break;
-  }
+  // 382 us
+  char idx;
+  int16_t val;
+  idx = sensorDef.Acc[axis].idx;
+  val = mpu.getAccelerationN(idx);  // TODO: 370us 
+  val *= sensorDef.Acc[axis].dir;
+  accADC[axis] = val;
 }
 
 void updateGyroAttitude(){
@@ -219,10 +300,10 @@ void getEstimatedAttitude(){
     } 
   }
   
-  // Attitude of the estimated vector
+  // Attitude of the estimated vector  TODO: true angle calculation 
   // 280 us
-  angle[ROLL]  =  _atan2(EstG.V.X , EstG.V.Z);
-  angle[PITCH] =  _atan2(EstG.V.Y , EstG.V.Z);
+  angle[ROLL]  =  _atan2x(EstG.V.X , EstG.V.Z);
+  angle[PITCH] =  _atan2x(EstG.V.Y , EstG.V.Z);
 
 }
 

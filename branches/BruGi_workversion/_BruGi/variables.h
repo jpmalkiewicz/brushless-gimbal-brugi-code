@@ -31,6 +31,10 @@ bool rcAbsolute;
 bool useACC;
 bool accOutput;
 bool dmpOutput;
+bool enableGyro;
+bool enableACC;
+bool axisReverseZ;
+bool axisSwapXY;
 } config;
 
 void recalcMotorStuff();
@@ -65,6 +69,10 @@ void setDefaultParameters()
   config.useACC = true;
   config.accOutput=false;
   config.dmpOutput=false;
+  config.enableGyro=true;
+  config.enableACC=true;
+  config.axisReverseZ=true;
+  config.axisSwapXY=false;
   recalcMotorStuff();
   initPIDs();
 }
@@ -118,9 +126,9 @@ bool enableMotorUpdates = false;
 // Variables for MPU6050
 float gyroPitch;
 float gyroRoll; //in deg/s
-float xGyroOffset;
-float yGyroOffset;
-float zGyroOffset;
+//float xGyroOffset;
+//float yGyroOffset;
+//float zGyroOffset;
 float resolutionDevider;
 int16_t x_val;
 int16_t y_val;
@@ -170,7 +178,9 @@ float pitchRCSetpoint = 0.0;
 float rollRCSetpoint = 0.0;
 
 //*************************************
+//
 //  IMU
+//
 //*************************************
 struct flags_struct {
   uint8_t SMALL_ANGLES_25 :1 ;
@@ -193,6 +203,31 @@ typedef union {
   float   A[3];
   t_fp_vector_def V;
 } t_fp_vector;
+
+
+
+//********************
+// sensor orientation
+//********************
+typedef struct sensorAxisDef {
+  char idx;
+  int  dir;
+} t_sensorAxisDef;
+
+typedef struct sensorOrientationDef {
+  t_sensorAxisDef Gyro[3];
+  t_sensorAxisDef Acc[3];
+} t_sensorOrientationDef;
+
+t_sensorOrientationDef sensorDef = { 
+    {{0, 1}, {1, 1}, {2, 1}},    // Gyro
+    {{0, 1}, {1, 1}, {2, 1}}     // Acc
+  };
+
+int16_t gyroOffset[3] = {0, 0, 0};
+
+
+
 
 static float gyroScale=0;
 

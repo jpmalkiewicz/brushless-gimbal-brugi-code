@@ -37,8 +37,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 */
 
 
-#define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
-#define VERSION 48
+#define VERSION_STATUS A // A = Alpha; B = Beta , N = Normal Release
+#define VERSION 49
 
 
 /*************************/
@@ -114,6 +114,7 @@ void setup()
   // Init IMU varibles
   initIMU();
   
+  
   // Auto detect MPU address
   mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
   mpu.initialize();
@@ -128,6 +129,9 @@ void setup()
       Serial.println(F("MPU6050 falied"));  
     }
   }
+  
+  // set sensor orientation (from config)
+  initSensorOrientation();
   
   // Init MPU Stuff
   mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
@@ -212,8 +216,8 @@ void loop()
     // update IMU data            
     readGyros();
     
-    updateGyroAttitude();
-    updateACCAttitude(); 
+    if (config.enableGyro) updateGyroAttitude();
+    if (config.enableACC) updateACCAttitude(); 
 
     getAttiduteAngles();
    

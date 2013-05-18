@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION 48
+set VERSION 49
 
 #####################################################################################
 # Big hexdata
