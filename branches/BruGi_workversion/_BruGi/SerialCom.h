@@ -95,7 +95,7 @@ void transmitActiveConfig()
   Serial.println(config.gyroRollKp);
   Serial.println(config.gyroRollKi);
   Serial.println(config.gyroRollKd);
-  Serial.println(config.accelWeight);
+  Serial.println(config.accComplTC);
   Serial.println(config.nPolesMotorPitch);
   Serial.println(config.nPolesMotorRoll);
   Serial.println(config.dirMotorPitch);
@@ -108,6 +108,7 @@ void transmitActiveConfig()
 
 void transmitActiveConfig2()
 {
+  Serial.print("paramCount "); Serial.println("20");
   Serial.print("vers "); Serial.println(config.vers);
   Serial.print("gyroPitchKp "); Serial.println(config.gyroPitchKp);
   Serial.print("gyroPitchKi "); Serial.println(config.gyroPitchKi);
@@ -115,7 +116,7 @@ void transmitActiveConfig2()
   Serial.print("gyroRollKp "); Serial.println(config.gyroRollKp);
   Serial.print("gyroRollKi "); Serial.println(config.gyroRollKi);
   Serial.print("gyroRollKd "); Serial.println(config.gyroRollKd);
-  Serial.print("accelWeight "); Serial.println(config.accelWeight);
+  Serial.print("accComplTC "); Serial.println(config.accComplTC);
   Serial.print("nPolesMotorPitch "); Serial.println(config.nPolesMotorPitch);
   Serial.print("nPolesMotorRoll "); Serial.println(config.nPolesMotorRoll);
   Serial.print("dirMotorPitch "); Serial.println(config.dirMotorPitch);
@@ -147,9 +148,10 @@ void setRollPID()
   initPIDs();
 }
 
-void setAccelWeight()
+void setAccComplementaryTC()
 {
-  config.accelWeight = atoi(sCmd.next());
+  config.accComplTC = atoi(sCmd.next());
+  setComplementaryConstant(false);
 }
 
 void setMotorPWM()
@@ -208,7 +210,7 @@ void helpMe()
   Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("SP gyroPitchKp gyroPitchKi gyroPitchKd    (Set PID for Pitch)"));
   Serial.println(F("SR gyroRollKp gyroRollKi gyroRollKd    (Set PID for Roll)"));
-  Serial.println(F("SA accelWeight    (Set Weight in accelWeight/1000)"));
+  Serial.println(F("SA accLowPassTC   (Set LP time constant of complementary filter, sec)"));
   Serial.println(F("SF nPolesMotorPitch nPolesMotorRoll"));
   Serial.println(F("SE maxPWMmotorPitch maxPWMmotorRoll     (Used for Power limitiation on each motor 255=high, 1=low)"));
   Serial.println(F("SM dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll"));
@@ -222,7 +224,7 @@ void helpMe()
   Serial.println(F("UAC useACC (1 = true, ACC; 0 = false, DMP)"));
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
-  Serial.println(F("ODM dmpOutput  (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
+  Serial.println(F("ODM dmpOutput (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
   Serial.println(F("HE    (This output)"));
 }
 
@@ -242,7 +244,7 @@ void setSerialProtocol()
   sCmd.addCommand("SD", setDefaultParameters);   
   sCmd.addCommand("SP", setPitchPID);
   sCmd.addCommand("SR", setRollPID);
-  sCmd.addCommand("SA", setAccelWeight);
+  sCmd.addCommand("SA", setAccComplementaryTC);
   sCmd.addCommand("SF", setMotorParams);
   sCmd.addCommand("SE", setMotorPWM);
   sCmd.addCommand("SM", setMotorDirNo);

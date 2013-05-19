@@ -11,9 +11,7 @@ int32_t gyroPitchKd;
 int32_t gyroRollKp;
 int32_t gyroRollKi;
 int32_t gyroRollKd;
-int16_t accelWeight;
-uint16_t gyroPitchLP;
-uint16_t gyroRollLP;
+int16_t accComplTC;
 uint8_t nPolesMotorPitch;
 uint8_t nPolesMotorRoll;
 int8_t dirMotorPitch;
@@ -43,15 +41,13 @@ void initPIDs();
 void setDefaultParameters()
 {
   config.vers = VERSION;
-  config.gyroPitchKp = 10000;
-  config.gyroPitchKi = 500;
-  config.gyroPitchKd = 2000;
+  config.gyroPitchKp = 20000;
+  config.gyroPitchKi = 25000;
+  config.gyroPitchKd = 40000;
   config.gyroRollKp = 20000;
-  config.gyroRollKi = 500;
-  config.gyroRollKd = 6000;
-  config.accelWeight = 0;
-  config.gyroPitchLP = 1;
-  config.gyroRollLP = 1;
+  config.gyroRollKi = 25000;
+  config.gyroRollKd = 30000;
+  config.accComplTC = 7;
   config.nPolesMotorPitch = 14;
   config.nPolesMotorRoll = 14;
   config.dirMotorPitch = 1;
@@ -60,10 +56,10 @@ void setDefaultParameters()
   config.motorNumberRoll = 1;
   config.maxPWMmotorPitch = 80;
   config.maxPWMmotorRoll = 80;
-  config.minRCPitch = -45;
-  config.maxRCPitch = 45;
-  config.minRCRoll = -45;
-  config.maxRCRoll = 45;
+  config.minRCPitch = -30;
+  config.maxRCPitch = 30;
+  config.minRCRoll = -30;
+  config.maxRCRoll = 30;
   config.rcGain = 1;
   config.rcAbsolute = true;
   config.useACC = true;
@@ -228,7 +224,6 @@ int16_t gyroOffset[3] = {0, 0, 0};
 
 
 
-
 static float gyroScale=0;
 
 static int32_t accSmooth[3];
@@ -239,6 +234,8 @@ static t_fp_vector EstG;
 
 static float accLPF[3];
 static int32_t accMag = 0;
+
+static float AccComplFilterConst = 0;  // filter constant for complementary filter
 
 static int16_t acc_25deg = 25;      //** TODO: check
 

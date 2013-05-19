@@ -108,12 +108,23 @@ void initSensorOrientation() {
   }
 }
 
+void setComplementaryConstant (bool fastMode) {
+  if (fastMode) {
+    AccComplFilterConst = (float)DT_FLOAT/(1.0+DT_FLOAT);
+  } else {
+    AccComplFilterConst = (float)DT_FLOAT/(config.accComplTC+DT_FLOAT);
+  }
+
+}
+
 void initIMU() {
  
   // resolutionDevider=131, scale = 0.000133
   // 102us
   gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359;  // convert to radians
   
+  setComplementaryConstant(false);
+ 
 }
 
 // Rotate Estimated vector(s) with small angle approximation, according to the gyro data
@@ -206,7 +217,7 @@ void updateACCAttitude(){
   if ( ( 36 < accMag && accMag < 196 ) || f.SMALL_ANGLES_25 ) {
     for (axis = 0; axis < 3; axis++) {
       int32_t acc = accSmooth[axis];
-      EstG.A[axis] = EstG.A[axis] * (1.0 - GYR_CMPF_FACTOR) + acc * GYR_CMPF_FACTOR; // note: this is different from MultiWii ...
+      EstG.A[axis] = EstG.A[axis] * (1.0 - AccComplFilterConst) + acc * AccComplFilterConst; // note: this is different from MultiWii (wrong brackets postion in MultiWii ??.
     } 
   }
 }
