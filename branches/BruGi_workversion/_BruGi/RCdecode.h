@@ -51,8 +51,12 @@ void intDecodePWMPitch()
 
 void checkPWMRollTimeout()
 {
-  uint32_t microsNow = micros();
-  if (((microsNow - microsLastPWMRollUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  int32_t microsNow = micros();
+  int32_t microsLastUpdate;
+  cli();
+  microsLastUpdate = microsLastPWMRollUpdate;
+  sei();
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
   {
     pulseInPWMRoll = MID_RC;
     microsLastPWMRollUpdate = microsNow;
@@ -63,8 +67,12 @@ void checkPWMRollTimeout()
 
 void checkPWMPitchTimeout()
 {
-  uint32_t microsNow = micros();
-  if (((microsNow - microsLastPWMPitchUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  int32_t microsNow = micros();
+  int32_t microsLastUpdate;
+  cli();
+  microsLastUpdate = microsLastPWMPitchUpdate;
+  sei();
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
   {
     pulseInPWMPitch = MID_RC;
     microsLastPWMPitchUpdate = microsNow;

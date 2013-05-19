@@ -165,8 +165,8 @@ uint32_t microsRisingEdgePitch = 0;
 uint16_t pulseInPWMRoll = MID_RC;
 uint16_t pulseInPWMPitch = MID_RC;
 
-uint32_t microsLastPWMRollUpdate = 0;
-uint32_t microsLastPWMPitchUpdate = 0;
+int32_t microsLastPWMRollUpdate = 0;
+int32_t microsLastPWMPitchUpdate = 0;
 
 float pitchRCSpeed=0.0;
 float rollRCSpeed=0.0;

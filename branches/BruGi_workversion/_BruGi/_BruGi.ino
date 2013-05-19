@@ -168,9 +168,11 @@ void setup()
 int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int16_t Kp, int16_t Ki, int32_t Kd)
 {
   int32_t error = setPoint - in;
-
-  // Integrate Errors
-  *errorSum += error * Ki * DTms;
+  int32_t Ierr;
+   
+  Ierr = error * Ki * DTms;
+  Ierr = constrain_int32(Ierr, -(int32_t)1000*100, (int32_t)1000*100);
+  *errorSum += Ierr;
  
   /*Compute PID Output*/
   int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTms;
@@ -203,7 +205,6 @@ void loop()
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
     motorUpdate = false;
-    CH2_ON
     
     // Evaluate RC-Signals
     // 22us
@@ -257,7 +258,7 @@ void loop()
     case 7:
       if (validRCPitch) {
         if(config.rcAbsolute==1) {
-          PitchPhiSet = PitchPhiSet*0.99 + pitchRCSetpoint*0.01;
+          PitchPhiSet = PitchPhiSet*0.95 + pitchRCSetpoint*0.05;
         }
         else {
           if(abs(pitchRCSpeed)>0.01) {
@@ -271,7 +272,7 @@ void loop()
     case 8:
       if (validRCRoll){
         if(config.rcAbsolute==1){
-          RollPhiSet = RollPhiSet*0.99 + rollRCSetpoint*0.01;
+          RollPhiSet = RollPhiSet*0.95 + rollRCSetpoint*0.05;
         } else {
           if(abs(rollRCSpeed)>0.01) {
             RollPhiSet += rollRCSpeed;
@@ -282,10 +283,12 @@ void loop()
       }
       break;
     case 9:
-      // 1360 us
-      //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
       // 600 us
       if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
+      //if(config.accOutput==1){ Serial.print(pitchAngleSet); Serial.print(" ACC ");Serial.println(rollAngleSet);}     
+      //if(config.accOutput==1){ Serial.print(rollPIDVal); Serial.print(" ACC ");Serial.println(rollErrorOld);}     
+      // 1360 us
+      //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
       // 490 us
       //if(config.accOutput==1){ Serial.print(11); Serial.print(" ACC ");Serial.println(12);}     
       break;
@@ -306,9 +309,7 @@ void loop()
     //****************************
     // Evaluate Serial inputs 
     //****************************
-    sCmd.readSerial(); 
-    CH2_OFF
-    
+    sCmd.readSerial();    
   }
 
 }
