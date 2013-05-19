@@ -205,7 +205,7 @@ void loop()
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
     motorUpdate = false;
-    
+    CH2_ON
     // Evaluate RC-Signals
     // 22us
     if(config.rcAbsolute==1) {
@@ -286,7 +286,7 @@ void loop()
       // 600 us
       if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
       //if(config.accOutput==1){ Serial.print(pitchAngleSet); Serial.print(" ACC ");Serial.println(rollAngleSet);}     
-      //if(config.accOutput==1){ Serial.print(rollPIDVal); Serial.print(" ACC ");Serial.println(rollErrorOld);}     
+      //if(config.accOutput==1){ Serial.print(accMag); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
       // 1360 us
       //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
       // 490 us
@@ -309,7 +309,10 @@ void loop()
     //****************************
     // Evaluate Serial inputs 
     //****************************
-    sCmd.readSerial();    
+    sCmd.readSerial();
+
+    CH2_OFF    
+
   }
 
 }

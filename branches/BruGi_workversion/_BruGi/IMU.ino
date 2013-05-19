@@ -34,7 +34,7 @@
 
 #define INV_GYR_CMPF_FACTOR   (1.0f / (GYR_CMPF_FACTOR  + 1.0f))
 
-#define ACC_1G 15500.0f
+#define ACC_1G 16384.0f
 
 // Small angle approximation
 #define ssin(val) (val)
@@ -96,6 +96,7 @@ void initSensorOrientation() {
     sensorDef.Acc[YAW].dir *= -1;
     sensorDef.Acc[ROLL].dir *= -1;
     sensorDef.Gyro[PITCH].dir *= -1;
+    sensorDef.Gyro[YAW].dir *= -1;
   }
   if (config.axisSwapXY) {
     // swap gyro axis
@@ -123,7 +124,6 @@ void rotateV(struct fp_vector *v,float* delta) {
   v->X += delta[ROLL]  * v_tmp.Z - delta[YAW]   * v_tmp.Y;
   v->Y += delta[PITCH] * v_tmp.Z + delta[YAW]   * v_tmp.X;
 }
-
 
 void readGyros() {
   int16_t axisRot[3];
@@ -209,71 +209,15 @@ void updateACCAttitude(){
       EstG.A[axis] = EstG.A[axis] * (1.0 - GYR_CMPF_FACTOR) + acc * GYR_CMPF_FACTOR; // note: this is different from MultiWii ...
     } 
   }
-  
 }
 
 
 void getAttiduteAngles() {
 
   // attitude of the estimated vector
-  // 280 us
-  angle[ROLL]  =  _atan2(EstG.V.X , EstG.V.Z);
+  // 380 us
+  angle[ROLL]  =  _atan2(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
   angle[PITCH] =  _atan2(EstG.V.Y , EstG.V.Z);
-
-}
-
-
-
-void getEstimatedAttitude(){
-  uint8_t axis;
-  int32_t accMag = 0;
-  static t_fp_vector EstG;
-  
-  static float accLPF[3];
-
-  float deltaGyroAngle[3];
-
-  // Initialization
-  // 258 us
-  for (axis = 0; axis < 3; axis++) {
-    deltaGyroAngle[axis] = gyroADC[axis]  * gyroScale * DT_FLOAT;
-    accLPF[axis] = accLPF[axis] * (1.0f - (1.0f/ACC_LPF_FACTOR)) + accADC[axis] * (1.0f/ACC_LPF_FACTOR);
-    accSmooth[axis] = accLPF[axis];
-    accMag += (int32_t)accSmooth[axis]*accSmooth[axis] ;
-  }
-
-
-  //  accMag = accMag*100/((int32_t)ACC_1G*ACC_1G); 
-  // 17 us
-  // split operation to avoid 32-bit overflow, TODO: no division may happen !!!
-  accMag = accMag/(int32_t)ACC_1G;
-  accMag = accMag*100;
-  accMag = accMag/(int32_t)ACC_1G;
-
-  // 168 us
-  rotateV(&EstG.V,deltaGyroAngle);
-  // 15 us
-  if ( abs(accSmooth[ROLL])<acc_25deg && abs(accSmooth[PITCH])<acc_25deg && accSmooth[YAW]>0) {
-    f.SMALL_ANGLES_25 = 1;
-  } else {
-    f.SMALL_ANGLES_25 = 0;
-  }
-
-  // 255 us
-  // Apply complimentary filter (Gyro drift correction)
-  // If accel magnitude >1.4G or <0.6G and ACC vector outside of the limit range => we neutralize the effect of accelerometers in the angle estimation.
-  // To do that, we just skip filter, as EstV already rotated by Gyro
-  if ( ( 36 < accMag && accMag < 196 ) || f.SMALL_ANGLES_25 ) {
-    for (axis = 0; axis < 3; axis++) {
-      int32_t acc = accSmooth[axis];
-      EstG.A[axis] = (EstG.A[axis] * GYR_CMPF_FACTOR + acc) * INV_GYR_CMPF_FACTOR;
-    } 
-  }
-  
-  // Attitude of the estimated vector  TODO: true angle calculation 
-  // 280 us
-  angle[ROLL]  =  _atan2x(EstG.V.X , EstG.V.Z);
-  angle[PITCH] =  _atan2x(EstG.V.Y , EstG.V.Z);
 
 }
 
