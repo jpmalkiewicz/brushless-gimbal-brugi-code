@@ -37,8 +37,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 */
 
 
-#define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
-#define VERSION 48
+#define VERSION_STATUS A // A = Alpha; B = Beta , N = Normal Release
+#define VERSION 49
 
 
 /*************************/
@@ -70,6 +70,9 @@ SerialCommand sCmd;     // Create SerialCommand object
 void setup() 
 {
   LEDPIN_PINMODE
+  
+  CH2_PINMODE
+  CH3_PINMODE
     
   // Start Serial Port
   Serial.begin(115200);
@@ -103,8 +106,14 @@ void setup()
   TWBR = ((16000000L / I2C_SPEED) - 16) / 2; // change the I2C clock rate
   TWCR = 1<<TWEN;                            // enable twi module, no interrupt
  
+   // Init BL Controller
+  initBlController();
   // Initialize MPU 
   initResolutionDevider();
+  
+  // Init IMU varibles
+  initIMU();
+  
   
   // Auto detect MPU address
   mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
@@ -121,6 +130,9 @@ void setup()
     }
   }
   
+  // set sensor orientation (from config)
+  initSensorOrientation();
+  
   // Init MPU Stuff
   mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
   mpu.setFullScaleGyroRange(MPU6050_GYRO_FS);           // Set Gyro Sensitivity to config.h
@@ -135,78 +147,174 @@ void setup()
   
   LEDPIN_ON
   
- 
    // Init BL Controller
   initBlController();
-  motorTest();
+  // motorTest();
   
  // Initialize timer
   timer=micros();
 
   enableMotorUpdates = true;
   Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
+
+  CH2_OFF
+  CH3_OFF
+ 
 }
+
+/************************/
+/* PID Controller       */
+/************************/
+int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int16_t Kp, int16_t Ki, int32_t Kd)
+{
+  int32_t error = setPoint - in;
+  int32_t Ierr;
+   
+  Ierr = error * Ki * DTms;
+  Ierr = constrain_int32(Ierr, -(int32_t)1000*100, (int32_t)1000*100);
+  *errorSum += Ierr;
+ 
+  /*Compute PID Output*/
+  int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTms;
+  *errorOld = error;
+
+  return out / 4096;
+}
+
+
 
 /**********************************************/
 /* Main Loop                                  */
 /**********************************************/
 void loop() 
-{ 
-  if((micros()-timer)/CC_FACTOR>=1000) // Fixed loop length at 1000Hz
+{
+
+  int32_t pitchPIDVal;
+  int32_t rollPIDVal;
+  static int32_t pitchErrorSum;
+  static int32_t rollErrorSum;
+  static int32_t pitchErrorOld;
+  static int32_t rollErrorOld;
+  int32_t pitchAngleSet;
+  int32_t rollAngleSet;
+  
+  //actual perfomance
+  //  loop time = wc 1600us (OAC off)
+  //  loop time = wc 2000us (OAC on)
+  
+  if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
-    // Serial.println((micros()-timer)/CC_FACTOR);
-    timer = micros();
-   
-    // Evaluate RC-Signal
-    if(config.rcAbsolute==1)
+    motorUpdate = false;
+    CH2_ON
+    // Evaluate RC-Signals
+    // 22us
+    if(config.rcAbsolute==1) {
       evaluateRCSignalAbsolute();  // Gives rollRCSetPoint, pitchRCSetpoint
-    else
+    } else {
       evaluateRCSignalProportional(); // Gives rollRCSpeed, pitchRCSpeed
-      
-      // Update raw Gyro, switch axes for roll gyro to allow for 90 deg downward view 
-    updateRawGyroDataDecoupled(&gyroRoll,&gyroPitch,pitchAngleACC);
+    }
+    
+    // update IMU data            
+    readGyros();
+    
+    if (config.enableGyro) updateGyroAttitude();
+    if (config.enableACC) updateACCAttitude(); 
 
-    // Get Angles to compensate Drift from raw ACC, also included: I-Term
-    getOrientationAndDriftCompensation();
+    getAttiduteAngles();
+   
+    //****************************
+    // pitch PID
+    //****************************
+    pitchAngleSet = PitchPhiSet * 100;
+    
+    pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+    // motor control
+    pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
 
-    // Controller Loops
-    // Calculation of pitchAnglePID and rollAnglePID MOVED TO getOrientationAndDriftCompensation();, see Orientation Routines.h
+    //****************************
+    // roll PID
+    //****************************
+    rollAngleSet = RollPhiSet * 100;
+    
+    rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
 
-    // gyro PID, just P
-    pitchPID = pitchPIDpar.Kp * gyroPitch;
-    rollPID = rollPIDpar.Kp * gyroRoll;
+    // motor control
+    rollMotorDrive = rollPIDVal * config.dirMotorRoll;
+ 
+    //****************************
+    // slow rate actions
+    //****************************
+    switch (count) {
+    case 1:
+      readACC(ROLL); break;
+    case 2:
+      readACC(PITCH); break;
+    case 3:
+      readACC(YAW); break;
+    case 4:
+      updateACC(); break;
+    case 5:
+      break;
+    case 7:
+      if (validRCPitch) {
+        if(config.rcAbsolute==1) {
+          PitchPhiSet = PitchPhiSet*0.95 + pitchRCSetpoint*0.05;
+        }
+        else {
+          if(abs(pitchRCSpeed)>0.01) {
+            PitchPhiSet += pitchRCSpeed;
+          }
+        }
+      } else {
+        PitchPhiSet = 0;
+      }
+      break;
+    case 8:
+      if (validRCRoll){
+        if(config.rcAbsolute==1){
+          RollPhiSet = RollPhiSet*0.95 + rollRCSetpoint*0.05;
+        } else {
+          if(abs(rollRCSpeed)>0.01) {
+            RollPhiSet += rollRCSpeed;
+          }
+        }
+      } else {
+        RollPhiSet = 0;
+      }
+      break;
+    case 9:
+      // 600 us
+      if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
+      //if(config.accOutput==1){ Serial.print(pitchAngleSet); Serial.print(" ACC ");Serial.println(rollAngleSet);}     
+      //if(config.accOutput==1){ Serial.print(accMag); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
+      // 1360 us
+      //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
+      // 490 us
+      //if(config.accOutput==1){ Serial.print(11); Serial.print(" ACC ");Serial.println(12);}     
+      break;
+    case 10:
+      count=0;
+      break;
+    default:
+      break;
+    }
+    count++;
+       
+    //****************************
+    // check PPM timeouts
+    //****************************
+    checkPWMRollTimeout();
+    checkPWMPitchTimeout();
 
-    // gyro PID, just D, will be processed further in ISR, see BLcontroller.h
-    pitchGyroDamp = pitchPIDpar.Kd * gyroPitch;
-    rollGyroDamp = rollPIDpar.Kd * gyroRoll;
-
-    // avoid drift offset and reduce noise sensitivity, avoid highfreq oscillations
-    pitchPID = (abs(pitchPID) < 1.0) ? 0.0 : pitchPID; // 1.0 ist just a good guess
-    rollPID = (abs(rollPID) < 1.0) ? 0.0 : rollPID;
-
-    // add PIDs and set motor speed
-    pitchGyroDamp *= config.dirMotorPitch;
-    pitchPIDVal = pitchPID + pitchAnglePID + pitchRCSpeed * config.rcGain * 200;
-    pitchPIDVal = pitchPIDVal * config.dirMotorPitch;
-    cli();
-    pitchMotorDamp = pitchGyroDamp;
-    pitchMotorSpeed  = pitchPIDVal;
-    sei();
-  
-    rollGyroDamp *= config.dirMotorRoll;
-    rollPIDVal = rollPID + rollAnglePID + rollRCSpeed * config.rcGain * 200;
-    rollPIDVal = rollPIDVal * config.dirMotorRoll;
-    cli();
-    rollMotorDamp  = rollGyroDamp;
-    rollMotorSpeed  = rollPIDVal;
-    sei();
-  
+    //****************************
     // Evaluate Serial inputs 
-    sCmd.readSerial(); 
-    #if 0
-      Serial.println((micros()-timer)/CC_FACTOR);
-    #endif
+    //****************************
+    sCmd.readSerial();
+
+    CH2_OFF    
+
   }
+
 }
 
 

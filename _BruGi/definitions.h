@@ -13,12 +13,17 @@
 //#define PWM_4KHZ_PHASE   // Resolution 8 bit for PWM
 //#define NO_PWM_LOOP
 
-#define MOTORUPDATE_FREQ 32 //in kHz 1,2,4,8 for 32kHz, 1,2,4 for 4kHz
+#define MOTORUPDATE_FREQ 500 // in Hz, 1000 is default // 1,2,4,8 for 32kHz, 1,2,4 for 4kHz
+#define LOOPUPDATE_FREQ MOTORUPDATE_FREQ         // loop control sample rate equals motor update rate
+#define DT_FLOAT (1.0/LOOPUPDATE_FREQ)  // loop controller sample period dT
+#define DT_INT_MS (1000/MOTORUPDATE_FREQ) 
+
+// LP filter coefficient
+#define LOWPASS_K(TAU) (DT/(TAU+DT))
 
 // Do not change for now
 #define MPU6050_GYRO_FS MPU6050_GYRO_FS_250  // +-250,500,1000,2000 deg/s
-#define MPU6050_DLPF_BW MPU6050_DLPF_BW_188  // 5,10,20,42,98,188,256 Hz
-
+#define MPU6050_DLPF_BW MPU6050_DLPF_BW_256  // 5,10,20,42,98,188,256 Hz
 
 // Number of sinus values for full 360 deg.
 // NOW FIXED TO 256 !!!
@@ -35,6 +40,7 @@
 #define MIN_RC 1000
 #define MAX_RC 2000
 #define RC_DEADBAND 50
+#define RC_PPM_TIMEOUT 100000
 
 // I2C Frequency
 //#define I2C_SPEED 100000L     //100kHz normal mode
@@ -84,7 +90,14 @@
 #define LEDPIN_OFF                 digitalWrite(8, LOW);
 #define LEDPIN_ON                  digitalWrite(8, HIGH);
 
+// note: execution time for CH2_ON/CH2_OFF = 4 us
+#define CH2_PINMODE                pinMode (4, OUTPUT);
+#define CH2_OFF                    digitalWrite(4, LOW);
+#define CH2_ON                     digitalWrite(4, HIGH);
 
+#define CH3_PINMODE                pinMode (7, OUTPUT);
+#define CH3_OFF                    digitalWrite(7, LOW);
+#define CH3_ON                     digitalWrite(7, HIGH);
 
 
 
