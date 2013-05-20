@@ -151,7 +151,7 @@ void setup()
   initBlController();
   // motorTest();
   
- // Initialize timer
+  // Initialize timer
   timer=micros();
 
   enableMotorUpdates = true;
@@ -195,8 +195,6 @@ void loop()
   static int32_t rollErrorSum;
   static int32_t pitchErrorOld;
   static int32_t rollErrorOld;
-  int32_t pitchAngleSet;
-  int32_t rollAngleSet;
   
   //actual perfomance
   //  loop time = wc 1600us (OAC off)
@@ -222,11 +220,13 @@ void loop()
 
     getAttiduteAngles();
    
+    // filter and assign RC Setpoints
+    utilLP_float(&pitchAngleSet, PitchPhiSet, 0.003);
+    utilLP_float(&rollAngleSet, RollPhiSet, 0.003);
+   
     //****************************
     // pitch PID
     //****************************
-    pitchAngleSet = PitchPhiSet * 100;
-    
     pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
     // motor control
     pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
@@ -234,8 +234,6 @@ void loop()
     //****************************
     // roll PID
     //****************************
-    rollAngleSet = RollPhiSet * 100;
-    
     rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
 
     // motor control
@@ -258,7 +256,7 @@ void loop()
     case 7:
       if (validRCPitch) {
         if(config.rcAbsolute==1) {
-          PitchPhiSet = PitchPhiSet*0.95 + pitchRCSetpoint*0.05;
+            PitchPhiSet = pitchRCSetpoint*100;
         }
         else {
           if(abs(pitchRCSpeed)>0.01) {
@@ -272,7 +270,7 @@ void loop()
     case 8:
       if (validRCRoll){
         if(config.rcAbsolute==1){
-          RollPhiSet = RollPhiSet*0.95 + rollRCSetpoint*0.05;
+          RollPhiSet = rollRCSetpoint*100;
         } else {
           if(abs(rollRCSpeed)>0.01) {
             RollPhiSet += rollRCSpeed;
@@ -285,8 +283,22 @@ void loop()
     case 9:
       // 600 us
       if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
-      //if(config.accOutput==1){ Serial.print(pitchAngleSet); Serial.print(" ACC ");Serial.println(rollAngleSet);}     
-      //if(config.accOutput==1){ Serial.print(accMag); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
+      //if(config.accOutput==1){ Serial.print(PitchPhiSet); Serial.print(" ACC ");Serial.println(RollPhiSet);}     
+      //if(config.accOutput==1){ Serial.print(rollRCSpeed,4); Serial.print(" ACC ");Serial.println(RollPhiSet,4);}     
+#if 0
+      if(config.accOutput==1){ 
+          Serial.print(" validRCRoll="); Serial.print(validRCRoll);
+          Serial.print(" config.rcAbsolute="); Serial.print(config.rcAbsolute);
+          Serial.println("");
+          Serial.print(" pulseInPWMRoll="); Serial.print(pulseInPWMRoll);
+          Serial.print(" rollRCSetpoint="); Serial.print(rollRCSetpoint,4);
+          Serial.print(" RollPhiSet="); Serial.print(RollPhiSet,4);
+          Serial.print(" rollRCSpeed="); Serial.print(rollRCSpeed,4);
+          Serial.print(" rollAngleSet="); Serial.print(rollAngleSet,4);
+          Serial.println("");
+ 
+      }
+#endif
       // 1360 us
       //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
       // 490 us

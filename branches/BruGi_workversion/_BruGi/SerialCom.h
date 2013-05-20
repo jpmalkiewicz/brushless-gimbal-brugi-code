@@ -63,7 +63,16 @@ void setRCAbsolute()
     RollPhiSet = 0.0;
   }
   else
+  {
     config.rcAbsolute = false;
+    PitchPhiSet = 0;
+    RollPhiSet = 0;
+
+  }
+  pitchRCSpeed = 0;
+  rollRCSpeed = 0;
+  PitchPhiSet = 0.0;
+  RollPhiSet = 0.0;
 }
 
 void setRCConfig()
@@ -108,7 +117,7 @@ void transmitActiveConfig()
 
 void transmitActiveConfig2()
 {
-  Serial.print("paramCount "); Serial.println("20");
+  Serial.print("paramCount "); Serial.println("27");
   Serial.print("vers "); Serial.println(config.vers);
   Serial.print("gyroPitchKp "); Serial.println(config.gyroPitchKp);
   Serial.print("gyroPitchKi "); Serial.println(config.gyroPitchKi);
@@ -125,10 +134,17 @@ void transmitActiveConfig2()
   Serial.print("motorNumberRoll "); Serial.println(config.motorNumberRoll);
   Serial.print("maxPWMmotorPitch "); Serial.println(config.maxPWMmotorPitch);
   Serial.print("maxPWMmotorRoll "); Serial.println(config.maxPWMmotorRoll);
-  Serial.print("axisReverseZ "); Serial.println(config.axisReverseZ);
-  Serial.print("axisSwapXY "); Serial.println(config.axisSwapXY);
+  Serial.print("minRCPitch "); Serial.println(config.minRCPitch);
+  Serial.print("maxRCPitch "); Serial.println(config.maxRCPitch);
+  Serial.print("minRCRoll "); Serial.println(config.minRCRoll);
+  Serial.print("maxRCRoll "); Serial.println(config.maxRCRoll);
+  Serial.print("rcGain "); Serial.println(config.rcGain);
+  Serial.print("rcAbsolute "); Serial.println(config.rcAbsolute);
+  Serial.print("accOutput "); Serial.println(config.accOutput);
   Serial.print("enableGyro "); Serial.println(config.enableGyro);
   Serial.print("enableACC "); Serial.println(config.enableACC);
+  Serial.print("axisReverseZ "); Serial.println(config.axisReverseZ);
+  Serial.print("axisSwapXY "); Serial.println(config.axisSwapXY);
 }
 
 

@@ -88,3 +88,10 @@ inline int32_t constrain_int32(int32_t x , int32_t l, int32_t h) {
   }
 }
 
+/************************/
+/* LP Filter            */
+/************************/
+inline void utilLP_float(float * q, float i, float coeff) {
+  *q += (i-*q)*coeff;
+}
+

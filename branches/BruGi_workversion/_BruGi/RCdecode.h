@@ -107,9 +107,10 @@ void evaluateRCSignalProportional()
     }
     else pitchRCSpeed = 0.0;
     // if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCPitch-RCSTOP_ANGLE))) pitchRCSpeed = 0.0;
-    if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))&&(pitchRCSpeed > 0.0))pitchRCSpeed = 0.0;
-    if((angle[PITCH] >= (config.maxRCPitch-RCSTOP_ANGLE))&&(pitchRCSpeed < 0.0))pitchRCSpeed = 0.0;
+    if((angle[PITCH] <= 100*(config.minRCPitch+RCSTOP_ANGLE))&&(pitchRCSpeed > 0.0)) pitchRCSpeed = 0.0;
+    if((angle[PITCH] >= 100*(config.maxRCPitch-RCSTOP_ANGLE))&&(pitchRCSpeed < 0.0)) pitchRCSpeed = 0.0;
     updateRCPitch=false;
+    pitchRCSpeed *= config.rcGain;
   }
   if(updateRCRoll==true)
   {
@@ -124,8 +125,9 @@ void evaluateRCSignalProportional()
     }
     else rollRCSpeed = 0.0;
     //if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCRoll-RCSTOP_ANGLE))) rollRCSpeed = 0.0;
-    if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))&&(rollRCSpeed > 0.0))rollRCSpeed = 0.0;
-    if((angle[ROLL] >= (config.maxRCRoll-RCSTOP_ANGLE))&&(rollRCSpeed < 0.0))rollRCSpeed = 0.0;
+    if((angle[ROLL] <= 100*(config.minRCRoll+RCSTOP_ANGLE))&&(rollRCSpeed > 0.0)) rollRCSpeed = 0.0;
+    if((angle[ROLL] >= 100*(config.maxRCRoll-RCSTOP_ANGLE))&&(rollRCSpeed < 0.0)) rollRCSpeed = 0.0;
+    rollRCSpeed *= config.rcGain;
     updateRCRoll=false;
   }
 }

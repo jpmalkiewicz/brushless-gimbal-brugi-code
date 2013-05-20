@@ -26,9 +26,9 @@ int8_t minRCRoll;
 int8_t maxRCRoll;
 int16_t rcGain;
 bool rcAbsolute;
-bool useACC;
+bool useACC;         // TODO: parameter is obsolete
 bool accOutput;
-bool dmpOutput;
+bool dmpOutput;      // TODO: parameter is obsolete
 bool enableGyro;
 bool enableACC;
 bool axisReverseZ;
@@ -62,9 +62,9 @@ void setDefaultParameters()
   config.maxRCRoll = 30;
   config.rcGain = 1;
   config.rcAbsolute = true;
-  config.useACC = true;
+  config.useACC = true;   // TODO: parameter is obsolete
   config.accOutput=false;
-  config.dmpOutput=false;
+  config.dmpOutput=false;  // TODO: parameter is obsolete
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;
@@ -122,32 +122,16 @@ bool enableMotorUpdates = false;
 // Variables for MPU6050
 float gyroPitch;
 float gyroRoll; //in deg/s
-//float xGyroOffset;
-//float yGyroOffset;
-//float zGyroOffset;
+
 float resolutionDevider;
 int16_t x_val;
 int16_t y_val;
 int16_t z_val;
 
-#if 0
-float pitchSetpoint = 0;
-float pitchAngle = 0;
-float pitchAngleACC = 0;
-float pitchPID = 0;
-
-float pitchAnglePID = 0;
-
-float rollSetpoint = 0;
-float rollAngle = 0;
-float rollAngleACC = 0;
-float rollPID = 0;
-
-float rollAnglePID = 0;
-#endif
-
 float PitchPhiSet = 0;
 float RollPhiSet = 0;
+static float pitchAngleSet=0;
+static float rollAngleSet=0;
 
   
 //general purpuse timer
