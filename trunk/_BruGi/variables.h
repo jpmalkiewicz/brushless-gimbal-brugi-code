@@ -11,9 +11,7 @@ int32_t gyroPitchKd;
 int32_t gyroRollKp;
 int32_t gyroRollKi;
 int32_t gyroRollKd;
-int16_t accelWeight;
-uint16_t gyroPitchLP;
-uint16_t gyroRollLP;
+int16_t accComplTC;
 uint8_t nPolesMotorPitch;
 uint8_t nPolesMotorRoll;
 int8_t dirMotorPitch;
@@ -31,6 +29,10 @@ bool rcAbsolute;
 bool useACC;
 bool accOutput;
 bool dmpOutput;
+bool enableGyro;
+bool enableACC;
+bool axisReverseZ;
+bool axisSwapXY;
 } config;
 
 void recalcMotorStuff();
@@ -39,15 +41,13 @@ void initPIDs();
 void setDefaultParameters()
 {
   config.vers = VERSION;
-  config.gyroPitchKp = 10000;
-  config.gyroPitchKi = 500;
-  config.gyroPitchKd = 2000;
+  config.gyroPitchKp = 20000;
+  config.gyroPitchKi = 25000;
+  config.gyroPitchKd = 40000;
   config.gyroRollKp = 20000;
-  config.gyroRollKi = 500;
-  config.gyroRollKd = 6000;
-  config.accelWeight = 0;
-  config.gyroPitchLP = 1;
-  config.gyroRollLP = 1;
+  config.gyroRollKi = 25000;
+  config.gyroRollKd = 30000;
+  config.accComplTC = 7;
   config.nPolesMotorPitch = 14;
   config.nPolesMotorRoll = 14;
   config.dirMotorPitch = 1;
@@ -56,82 +56,81 @@ void setDefaultParameters()
   config.motorNumberRoll = 1;
   config.maxPWMmotorPitch = 80;
   config.maxPWMmotorRoll = 80;
-  config.minRCPitch = -45;
-  config.maxRCPitch = 45;
-  config.minRCRoll = -45;
-  config.maxRCRoll = 45;
+  config.minRCPitch = -30;
+  config.maxRCPitch = 30;
+  config.minRCRoll = -30;
+  config.maxRCRoll = 30;
   config.rcGain = 1;
   config.rcAbsolute = true;
   config.useACC = true;
   config.accOutput=false;
   config.dmpOutput=false;
+  config.enableGyro=true;
+  config.enableACC=true;
+  config.axisReverseZ=true;
+  config.axisSwapXY=false;
   recalcMotorStuff();
   initPIDs();
 }
 
 
 typedef struct PIDdata {
-  float   Kp, Ki, Kd;
+  int32_t   Kp, Ki, Kd;
 } PIDdata_t;
 
 PIDdata_t pitchPIDpar,rollPIDpar;
 
 void initPIDs(void)
 {
-  rollPIDpar.Kp = config.gyroRollKp/SCALE_PID_PARAMS;
-  rollPIDpar.Ki = config.gyroRollKi/SCALE_PID_PARAMS;
-  rollPIDpar.Kd = config.gyroRollKd/SCALE_PID_PARAMS;
+  rollPIDpar.Kp = config.gyroRollKp;
+  rollPIDpar.Ki = config.gyroRollKi/1000;
+  rollPIDpar.Kd = config.gyroRollKd;
 
-  pitchPIDpar.Kp = config.gyroPitchKp/SCALE_PID_PARAMS;
-  pitchPIDpar.Ki = config.gyroPitchKi/SCALE_PID_PARAMS;
-  pitchPIDpar.Kd = config.gyroPitchKd/SCALE_PID_PARAMS;
+  pitchPIDpar.Kp = config.gyroPitchKp;
+  pitchPIDpar.Ki = config.gyroPitchKi/1000;
+  pitchPIDpar.Kd = config.gyroPitchKd;
+  
 }
+
+
 
 /*************************/
 /* Variables             */
 /*************************/
 
 
+
+// motor drive
+
 uint8_t pwmSinMotorPitch[256];
 uint8_t pwmSinMotorRoll[256];
 
 int currentStepMotor0 = 0;
 int currentStepMotor1 = 0;
-
-int subCountMotor0 = 0;
-int subCountMotor1 = 0;
+bool motorUpdate = false; 
 
 int8_t pitchDirection = 1;
 int8_t rollDirection = 1;
 
-int freqCounter=0;
+int freqCounter=0; // TODO: back to char later ...
 
-uint32_t pitchMotorPos = 0;
-uint32_t rollMotorPos = 0;
-uint32_t pitchMotorDamp = 0;
-uint32_t rollMotorDamp = 0;
-uint32_t pitchGyroDamp = 0;
-int32_t rollGyroDamp = 0;
-
-int pitchMotorSpeed = 0;
-int rollMotorSpeed = 0;
+int pitchMotorDrive = 0;
+int rollMotorDrive = 0;
 
 bool enableMotorUpdates = false;
-
-
 
 // Variables for MPU6050
 float gyroPitch;
 float gyroRoll; //in deg/s
-float xGyroOffset;
-float yGyroOffset;
-float zGyroOffset;
+//float xGyroOffset;
+//float yGyroOffset;
+//float zGyroOffset;
 float resolutionDevider;
 int16_t x_val;
 int16_t y_val;
 int16_t z_val;
 
-
+#if 0
 float pitchSetpoint = 0;
 float pitchAngle = 0;
 float pitchAngleACC = 0;
@@ -145,12 +144,11 @@ float rollAngleACC = 0;
 float rollPID = 0;
 
 float rollAnglePID = 0;
+#endif
 
-float pitchPIDVal = 0;
-float rollPIDVal = 0;
+float PitchPhiSet = 0;
+float RollPhiSet = 0;
 
-float accelMagnitude;
-float accelWeight;
   
 //general purpuse timer
 unsigned long timer=0;   
@@ -162,33 +160,84 @@ uint32_t microsRisingEdgeRoll = 0;
 uint32_t microsRisingEdgePitch = 0;
 uint16_t pulseInPWMRoll = MID_RC;
 uint16_t pulseInPWMPitch = MID_RC;
+
+int32_t microsLastPWMRollUpdate = 0;
+int32_t microsLastPWMPitchUpdate = 0;
+
 float pitchRCSpeed=0.0;
 float rollRCSpeed=0.0;
-bool updateRCRoll=false;
+bool updateRCRoll=false;        // RC channel value got updated
 bool updateRCPitch=false;
+bool validRCRoll=false;         // RC inputs valid
+bool validRCPitch=false;
 float pitchRCSetpoint = 0.0;
 float rollRCSetpoint = 0.0;
 
+//*************************************
+//
+//  IMU
+//
+//*************************************
+struct flags_struct {
+  uint8_t SMALL_ANGLES_25 :1 ;
+  uint8_t CALIBRATE_MAG :1 ;
+} f;
+
+enum axisDef {
+  ROLL,
+  PITCH,
+  YAW
+};
+
+typedef struct fp_vector {
+  float X;
+  float Y;
+  float Z;
+} t_fp_vector_def;
+
+typedef union {
+  float   A[3];
+  t_fp_vector_def V;
+} t_fp_vector;
 
 
 
+//********************
+// sensor orientation
+//********************
+typedef struct sensorAxisDef {
+  char idx;
+  int  dir;
+} t_sensorAxisDef;
+
+typedef struct sensorOrientationDef {
+  t_sensorAxisDef Gyro[3];
+  t_sensorAxisDef Acc[3];
+} t_sensorOrientationDef;
+
+t_sensorOrientationDef sensorDef = { 
+    {{0, 1}, {1, 1}, {2, 1}},    // Gyro
+    {{0, 1}, {1, 1}, {2, 1}}     // Acc
+  };
+
+int16_t gyroOffset[3] = {0, 0, 0};
 
 
 
+static float gyroScale=0;
 
+static int32_t accSmooth[3];
+static int16_t gyroADC[3];
+static int16_t accADC[3];
 
-// UtilFilter: first order filter
-typedef struct utilFilter {
-    float tc;
-    float z1;
-} utilFilter_t;
+static t_fp_vector EstG;
 
-// gyro LP filter
-utilFilter_t pitchGyroFilter;
-utilFilter_t rollGyroFilter;
+static float accLPF[3];
+static int32_t accMag = 0;
 
+static float AccComplFilterConst = 0;  // filter constant for complementary filter
 
+static int16_t acc_25deg = 25;      //** TODO: check
 
-
-
+static int32_t angle[2]    = {0,0};  // absolute angle inclination in multiple of 0.01 degree    180 deg = 18000
 

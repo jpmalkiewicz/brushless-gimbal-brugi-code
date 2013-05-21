@@ -584,6 +584,7 @@ class MPU6050 {
         int16_t getAccelerationX();
         int16_t getAccelerationY();
         int16_t getAccelerationZ();
+        int16_t getAccelerationN(char idx);
 
         // TEMP_OUT_* registers
         int16_t getTemperature();

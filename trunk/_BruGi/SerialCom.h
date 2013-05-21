@@ -59,8 +59,8 @@ void setRCAbsolute()
   if(temp==1)
   {
     config.rcAbsolute = true;
-    pitchSetpoint = 0.0;
-    rollSetpoint = 0.0;
+    PitchPhiSet = 0.0;
+    RollPhiSet = 0.0;
   }
   else
     config.rcAbsolute = false;
@@ -82,7 +82,8 @@ void writeEEPROM()
 void readEEPROM()
 {
   EEPROM_readAnything(0, config); 
-  recalcMotorStuff(); 
+  recalcMotorStuff();
+  initPIDs();
 }
 
 void transmitActiveConfig()
@@ -94,7 +95,7 @@ void transmitActiveConfig()
   Serial.println(config.gyroRollKp);
   Serial.println(config.gyroRollKi);
   Serial.println(config.gyroRollKd);
-  Serial.println(config.accelWeight);
+  Serial.println(config.accComplTC);
   Serial.println(config.nPolesMotorPitch);
   Serial.println(config.nPolesMotorRoll);
   Serial.println(config.dirMotorPitch);
@@ -105,25 +106,52 @@ void transmitActiveConfig()
   Serial.println(config.maxPWMmotorRoll);
 }
 
+void transmitActiveConfig2()
+{
+  Serial.print("paramCount "); Serial.println("20");
+  Serial.print("vers "); Serial.println(config.vers);
+  Serial.print("gyroPitchKp "); Serial.println(config.gyroPitchKp);
+  Serial.print("gyroPitchKi "); Serial.println(config.gyroPitchKi);
+  Serial.print("gyroPitchKd "); Serial.println(config.gyroPitchKd);
+  Serial.print("gyroRollKp "); Serial.println(config.gyroRollKp);
+  Serial.print("gyroRollKi "); Serial.println(config.gyroRollKi);
+  Serial.print("gyroRollKd "); Serial.println(config.gyroRollKd);
+  Serial.print("accComplTC "); Serial.println(config.accComplTC);
+  Serial.print("nPolesMotorPitch "); Serial.println(config.nPolesMotorPitch);
+  Serial.print("nPolesMotorRoll "); Serial.println(config.nPolesMotorRoll);
+  Serial.print("dirMotorPitch "); Serial.println(config.dirMotorPitch);
+  Serial.print("dirMotorRoll "); Serial.println(config.dirMotorRoll);
+  Serial.print("motorNumberPitch "); Serial.println(config.motorNumberPitch);
+  Serial.print("motorNumberRoll "); Serial.println(config.motorNumberRoll);
+  Serial.print("maxPWMmotorPitch "); Serial.println(config.maxPWMmotorPitch);
+  Serial.print("maxPWMmotorRoll "); Serial.println(config.maxPWMmotorRoll);
+  Serial.print("axisReverseZ "); Serial.println(config.axisReverseZ);
+  Serial.print("axisSwapXY "); Serial.println(config.axisSwapXY);
+  Serial.print("enableGyro "); Serial.println(config.enableGyro);
+  Serial.print("enableACC "); Serial.println(config.enableACC);
+}
+
+
 void setPitchPID()
 {
   config.gyroPitchKp = atol(sCmd.next());
-  config.gyroPitchKi = atoi(sCmd.next());
-  config.gyroPitchKd = atoi(sCmd.next());
+  config.gyroPitchKi = atol(sCmd.next());
+  config.gyroPitchKd = atol(sCmd.next());
   initPIDs();
 }
 
 void setRollPID()
 {
   config.gyroRollKp = atol(sCmd.next());
-  config.gyroRollKi = atoi(sCmd.next());
-  config.gyroRollKd = atoi(sCmd.next());
+  config.gyroRollKi = atol(sCmd.next());
+  config.gyroRollKd = atol(sCmd.next());
   initPIDs();
 }
 
-void setAccelWeight()
+void setAccComplementaryTC()
 {
-  config.accelWeight = atoi(sCmd.next());
+  config.accComplTC = atoi(sCmd.next());
+  setComplementaryConstant(false);
 }
 
 void setMotorPWM()
@@ -154,6 +182,22 @@ void setMotorDirNo()
   config.motorNumberRoll = atoi(sCmd.next());
 }
 
+void setSensorOrientation()
+{
+  config.axisReverseZ = atoi(sCmd.next());
+  config.axisSwapXY = atoi(sCmd.next());
+
+  initSensorOrientation();
+  
+}
+
+void setSensorEnable()
+{
+  config.enableGyro= atoi(sCmd.next());
+  config.enableACC= atoi(sCmd.next());
+}
+
+
 void helpMe()
 {
   Serial.println(F("This gives you a list of all commands with usage:"));
@@ -162,13 +206,16 @@ void helpMe()
   Serial.println(F("WE    (Writes active config to eeprom)"));
   Serial.println(F("RE    (Restores values from eeprom to active config)"));  
   Serial.println(F("TC    (transmits all config values in eeprom save order)"));     
+  Serial.println(F("TC2   (transmits all config value pairs)"));     
   Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("SP gyroPitchKp gyroPitchKi gyroPitchKd    (Set PID for Pitch)"));
   Serial.println(F("SR gyroRollKp gyroRollKi gyroRollKd    (Set PID for Roll)"));
-  Serial.println(F("SA accelWeight    (Set Weight in accelWeight/1000)"));
+  Serial.println(F("SA accLowPassTC   (Set LP time constant of complementary filter, sec)"));
   Serial.println(F("SF nPolesMotorPitch nPolesMotorRoll"));
   Serial.println(F("SE maxPWMmotorPitch maxPWMmotorRoll     (Used for Power limitiation on each motor 255=high, 1=low)"));
   Serial.println(F("SM dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll"));
+  Serial.println(F("SSO reverseZ swapXY (set sensor orientation)"));
+  Serial.println(F("SSE enableGyro enableACC (set sensor enable)"));  
   Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
   Serial.println(F("TRC   (transmitts RC Config)"));
   Serial.println(F("SRC minRCPitch maxRCPitch minRCRoll maxRCRoll (angles -90..90)"));
@@ -177,7 +224,7 @@ void helpMe()
   Serial.println(F("UAC useACC (1 = true, ACC; 0 = false, DMP)"));
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
-  Serial.println(F("ODM dmpOutput  (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
+  Serial.println(F("ODM dmpOutput (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
   Serial.println(F("HE    (This output)"));
 }
 
@@ -192,14 +239,17 @@ void setSerialProtocol()
   // Setup callbacks for SerialCommand commands
   sCmd.addCommand("WE", writeEEPROM);   
   sCmd.addCommand("RE", readEEPROM); 
-  sCmd.addCommand("TC", transmitActiveConfig);      
+  sCmd.addCommand("TC", transmitActiveConfig);
+  sCmd.addCommand("TC2", transmitActiveConfig2);
   sCmd.addCommand("SD", setDefaultParameters);   
   sCmd.addCommand("SP", setPitchPID);
   sCmd.addCommand("SR", setRollPID);
-  sCmd.addCommand("SA", setAccelWeight);
+  sCmd.addCommand("SA", setAccComplementaryTC);
   sCmd.addCommand("SF", setMotorParams);
   sCmd.addCommand("SE", setMotorPWM);
   sCmd.addCommand("SM", setMotorDirNo);
+  sCmd.addCommand("SSO", setSensorOrientation);
+  sCmd.addCommand("SSE", setSensorEnable);
   sCmd.addCommand("GC", gyroRecalibrate);
   sCmd.addCommand("TRC", transmitRCConfig);
   sCmd.addCommand("SRC", setRCConfig);
