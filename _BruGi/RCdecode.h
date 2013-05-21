@@ -5,22 +5,78 @@
 // pinChange Int driven Functions
 void intDecodePWMRoll()
 { 
+  uint32_t microsNow = micros();
+  uint16_t pulseInPWMtmp;
+ 
   if (PCintPort::pinState==HIGH)
-    microsRisingEdgeRoll = micros();
+  {
+    microsRisingEdgeRoll = microsNow;
+  }
   else
   {
-    pulseInPWMRoll = (micros() - microsRisingEdgeRoll)/CC_FACTOR;
-    updateRCRoll=true;
+    pulseInPWMtmp = (microsNow - microsRisingEdgeRoll)/CC_FACTOR;
+    if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
+    {
+      // update if within expected RC range
+      pulseInPWMRoll = pulseInPWMtmp;
+      microsLastPWMRollUpdate = microsNow;
+      validRCRoll=true;
+      updateRCRoll=true;
+    }
   }
 }
 
 void intDecodePWMPitch()
 { 
+  uint32_t microsNow = micros();
+  uint16_t pulseInPWMtmp;
+
   if (PCintPort::pinState==HIGH)
-    microsRisingEdgePitch = micros();
+  {
+    microsRisingEdgePitch = microsNow;
+  }
   else
   {
-    pulseInPWMPitch = (micros() - microsRisingEdgePitch)/CC_FACTOR;
+    pulseInPWMtmp = (microsNow - microsRisingEdgePitch)/CC_FACTOR;
+    if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
+    {
+      // update if within expected RC range
+      pulseInPWMPitch = pulseInPWMtmp;
+      microsLastPWMPitchUpdate = microsNow;
+      validRCPitch=true;
+      updateRCPitch=true;
+    }
+  }
+}
+
+void checkPWMRollTimeout()
+{
+  int32_t microsNow = micros();
+  int32_t microsLastUpdate;
+  cli();
+  microsLastUpdate = microsLastPWMRollUpdate;
+  sei();
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  {
+    pulseInPWMRoll = MID_RC;
+    microsLastPWMRollUpdate = microsNow;
+    validRCRoll=false;
+    updateRCRoll=true;
+  }
+}
+
+void checkPWMPitchTimeout()
+{
+  int32_t microsNow = micros();
+  int32_t microsLastUpdate;
+  cli();
+  microsLastUpdate = microsLastPWMPitchUpdate;
+  sei();
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  {
+    pulseInPWMPitch = MID_RC;
+    microsLastPWMPitchUpdate = microsNow;
+    validRCPitch=false;
     updateRCPitch=true;
   }
 }
@@ -50,9 +106,9 @@ void evaluateRCSignalProportional()
       pitchRCSpeed = -0.1 * (float)((MID_RC - RC_DEADBAND) - pulseInPWMPitch)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
     }
     else pitchRCSpeed = 0.0;
-    // if((pitchAngleACC <= (config.minRCPitch+RCSTOP_ANGLE))||(rollAngleACC>=(config.maxRCPitch-RCSTOP_ANGLE))) pitchRCSpeed = 0.0;
-    if((pitchAngleACC <= (config.minRCPitch+RCSTOP_ANGLE))&&(pitchRCSpeed > 0.0))pitchRCSpeed = 0.0;
-    if((pitchAngleACC >= (config.maxRCPitch-RCSTOP_ANGLE))&&(pitchRCSpeed < 0.0))pitchRCSpeed = 0.0;
+    // if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCPitch-RCSTOP_ANGLE))) pitchRCSpeed = 0.0;
+    if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))&&(pitchRCSpeed > 0.0))pitchRCSpeed = 0.0;
+    if((angle[PITCH] >= (config.maxRCPitch-RCSTOP_ANGLE))&&(pitchRCSpeed < 0.0))pitchRCSpeed = 0.0;
     updateRCPitch=false;
   }
   if(updateRCRoll==true)
@@ -67,9 +123,9 @@ void evaluateRCSignalProportional()
       rollRCSpeed = -0.1 * (float)((MID_RC - RC_DEADBAND) - pulseInPWMRoll)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
     }
     else rollRCSpeed = 0.0;
-    //if((rollAngleACC <= (config.minRCRoll+RCSTOP_ANGLE))||(rollAngleACC>=(config.maxRCRoll-RCSTOP_ANGLE))) rollRCSpeed = 0.0;
-    if((rollAngleACC <= (config.minRCRoll+RCSTOP_ANGLE))&&(rollRCSpeed > 0.0))rollRCSpeed = 0.0;
-    if((rollAngleACC >= (config.maxRCRoll-RCSTOP_ANGLE))&&(rollRCSpeed < 0.0))rollRCSpeed = 0.0;
+    //if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCRoll-RCSTOP_ANGLE))) rollRCSpeed = 0.0;
+    if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))&&(rollRCSpeed > 0.0))rollRCSpeed = 0.0;
+    if((angle[ROLL] >= (config.maxRCRoll-RCSTOP_ANGLE))&&(rollRCSpeed < 0.0))rollRCSpeed = 0.0;
     updateRCRoll=false;
   }
 }
