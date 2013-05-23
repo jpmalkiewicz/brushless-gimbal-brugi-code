@@ -196,13 +196,15 @@ void recalcMotorStuff()
   sei();
 }
 
-
 /********************************/
 /* Motor Control IRQ Routine    */
 /********************************/
 // motor position control
 ISR( TIMER1_OVF_vect )
 {
+  // just for debugging
+  stackCheck();
+
   // 2.5 / 9.64us
   freqCounter++;  
   if((freqCounter==(CC_FACTOR*1000/MOTORUPDATE_FREQ)) && (enableMotorUpdates))

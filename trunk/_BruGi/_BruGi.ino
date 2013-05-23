@@ -69,6 +69,11 @@ SerialCommand sCmd;     // Create SerialCommand object
 /**********************************************/
 void setup() 
 {
+
+  // just for debugging
+  stackCheck();
+  heapCheck();
+
   LEDPIN_PINMODE
   
   CH2_PINMODE
@@ -96,10 +101,7 @@ void setup()
   
   // Init PIDs to reduce floating point operations.
   initPIDs();
-  
-  // Init RC-Input
-  initRCPins();
-  
+    
   // Start I2C and Configure Frequency
   Wire.begin();
   TWSR = 0;                                  // no prescaler => prescaler = 1
@@ -113,7 +115,6 @@ void setup()
   
   // Init IMU varibles
   initIMU();
-  
   
   // Auto detect MPU address
   mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
@@ -150,8 +151,11 @@ void setup()
    // Init BL Controller
   initBlController();
   // motorTest();
+
+  // Init RC-Input
+  initRCPins();
   
- // Initialize timer
+  // Initialize timer
   timer=micros();
 
   enableMotorUpdates = true;
@@ -187,25 +191,20 @@ int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum
 /* Main Loop                                  */
 /**********************************************/
 void loop() 
-{
-
+{    
   int32_t pitchPIDVal;
   int32_t rollPIDVal;
   static int32_t pitchErrorSum;
   static int32_t rollErrorSum;
   static int32_t pitchErrorOld;
   static int32_t rollErrorOld;
-  int32_t pitchAngleSet;
-  int32_t rollAngleSet;
-  
-  //actual perfomance
-  //  loop time = wc 1600us (OAC off)
-  //  loop time = wc 2000us (OAC on)
-  
+    
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
     motorUpdate = false;
+
     CH2_ON
+    
     // Evaluate RC-Signals
     // 22us
     if(config.rcAbsolute==1) {
@@ -222,11 +221,13 @@ void loop()
 
     getAttiduteAngles();
    
+    // filter and assign RC Setpoints
+    utilLP_float(&pitchAngleSet, PitchPhiSet, 0.003);
+    utilLP_float(&rollAngleSet, RollPhiSet, 0.003);
+   
     //****************************
     // pitch PID
     //****************************
-    pitchAngleSet = PitchPhiSet * 100;
-    
     pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
     // motor control
     pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
@@ -234,8 +235,6 @@ void loop()
     //****************************
     // roll PID
     //****************************
-    rollAngleSet = RollPhiSet * 100;
-    
     rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
 
     // motor control
@@ -258,7 +257,7 @@ void loop()
     case 7:
       if (validRCPitch) {
         if(config.rcAbsolute==1) {
-          PitchPhiSet = PitchPhiSet*0.95 + pitchRCSetpoint*0.05;
+            PitchPhiSet = pitchRCSetpoint*100;
         }
         else {
           if(abs(pitchRCSpeed)>0.01) {
@@ -268,11 +267,12 @@ void loop()
       } else {
         PitchPhiSet = 0;
       }
+      PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch*100, config.maxRCPitch*100);
       break;
     case 8:
       if (validRCRoll){
         if(config.rcAbsolute==1){
-          RollPhiSet = RollPhiSet*0.95 + rollRCSetpoint*0.05;
+          RollPhiSet = rollRCSetpoint*100;
         } else {
           if(abs(rollRCSpeed)>0.01) {
             RollPhiSet += rollRCSpeed;
@@ -281,18 +281,18 @@ void loop()
       } else {
         RollPhiSet = 0;
       }
+      RollPhiSet = constrain(RollPhiSet, config.minRCRoll*100, config.maxRCRoll*100);
       break;
     case 9:
       // 600 us
-      if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
-      //if(config.accOutput==1){ Serial.print(pitchAngleSet); Serial.print(" ACC ");Serial.println(rollAngleSet);}     
-      //if(config.accOutput==1){ Serial.print(accMag); Serial.print(" ACC ");Serial.println(angle[ROLL]);}     
+      if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
       // 1360 us
       //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
       // 490 us
       //if(config.accOutput==1){ Serial.print(11); Serial.print(" ACC ");Serial.println(12);}     
       break;
     case 10:
+      stackHeapEval();
       count=0;
       break;
     default:
