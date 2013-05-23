@@ -7,7 +7,9 @@ void intDecodePWMRoll()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
- 
+  
+  stackCheck(); // debugging purpose
+
   if (PCintPort::pinState==HIGH)
   {
     microsRisingEdgeRoll = microsNow;
@@ -30,6 +32,8 @@ void intDecodePWMPitch()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
+
+  stackCheck(); // debugging purpose
 
   if (PCintPort::pinState==HIGH)
   {
@@ -99,16 +103,17 @@ void evaluateRCSignalProportional()
     pulseInPWMPitch = constrain(pulseInPWMPitch,MIN_RC,MAX_RC);
     if(pulseInPWMPitch>=MID_RC+RC_DEADBAND)
     {
-      pitchRCSpeed = 0.1 * (float)(pulseInPWMPitch - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = config.rcGain * (float)(pulseInPWMPitch - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
     }
     else if(pulseInPWMPitch<=MID_RC-RC_DEADBAND)
     {
-      pitchRCSpeed = -0.1 * (float)((MID_RC - RC_DEADBAND) - pulseInPWMPitch)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - pulseInPWMPitch)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
     }
-    else pitchRCSpeed = 0.0;
-    // if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCPitch-RCSTOP_ANGLE))) pitchRCSpeed = 0.0;
-    if((angle[PITCH] <= (config.minRCPitch+RCSTOP_ANGLE))&&(pitchRCSpeed > 0.0))pitchRCSpeed = 0.0;
-    if((angle[PITCH] >= (config.maxRCPitch-RCSTOP_ANGLE))&&(pitchRCSpeed < 0.0))pitchRCSpeed = 0.0;
+    else
+    {
+      pitchRCSpeed = 0.0;
+    }
+    pitchRCSpeed = constrain(pitchRCSpeed, -200, +200);
     updateRCPitch=false;
   }
   if(updateRCRoll==true)
@@ -116,16 +121,17 @@ void evaluateRCSignalProportional()
     pulseInPWMRoll = constrain(pulseInPWMRoll,MIN_RC,MAX_RC);
     if(pulseInPWMRoll>=MID_RC+RC_DEADBAND)
     {
-      rollRCSpeed = 0.1 * (float)(pulseInPWMRoll - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * rollRCSpeed;
+      rollRCSpeed = config.rcGain * (float)(pulseInPWMRoll - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * rollRCSpeed;
     }
     else if(pulseInPWMRoll<=MID_RC-RC_DEADBAND)
     {
-      rollRCSpeed = -0.1 * (float)((MID_RC - RC_DEADBAND) - pulseInPWMRoll)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
+      rollRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - pulseInPWMRoll)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
     }
-    else rollRCSpeed = 0.0;
-    //if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))||(angle[ROLL]>=(config.maxRCRoll-RCSTOP_ANGLE))) rollRCSpeed = 0.0;
-    if((angle[ROLL] <= (config.minRCRoll+RCSTOP_ANGLE))&&(rollRCSpeed > 0.0))rollRCSpeed = 0.0;
-    if((angle[ROLL] >= (config.maxRCRoll-RCSTOP_ANGLE))&&(rollRCSpeed < 0.0))rollRCSpeed = 0.0;
+    else
+    {
+      rollRCSpeed = 0.0;
+    }
+    rollRCSpeed = constrain(rollRCSpeed, -200, +200);
     updateRCRoll=false;
   }
 }

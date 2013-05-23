@@ -88,3 +88,44 @@ inline int32_t constrain_int32(int32_t x , int32_t l, int32_t h) {
   }
 }
 
+/************************/
+/* LP Filter            */
+/************************/
+inline void utilLP_float(float * q, float i, float coeff) {
+  *q += (i-*q)*coeff;
+}
+
+
+/************************/
+/* Debugging            */
+/************************/
+// TODO: move functions to other file (utilities ?)
+
+inline void stackCheck() {
+#ifdef STACKHEAPCHECK_ENABLE;
+  int localVar;  
+  // stack limits
+  if ((uint32_t)&localVar < stackTop) stackTop = (uint32_t)&localVar;
+  if ((uint32_t)&localVar > stackBottom) stackBottom = (uint32_t)&localVar;
+#endif
+}
+
+inline void heapCheck() {
+#ifdef STACKHEAPCHECK_ENABLE;
+  uint32_t * memPtr;
+  // heap limits
+  memPtr = (uint32_t *)malloc(8);
+  if ((uint32_t)memPtr > heapTop) heapTop = (uint32_t)memPtr;
+  if ((uint32_t)memPtr < heapBottom) heapBottom = (uint32_t)memPtr;
+  free(memPtr);
+#endif
+}
+
+inline void stackHeapEval() {
+#ifdef STACKHEAPCHECK_ENABLE;
+if ((heapTop+16) > stackTop) {
+  Serial.print(F("WARNING: low stacksize < 16, stackTop=0x")); Serial.print(stackTop, HEX);
+  Serial.print(F("heapTop=0x")); Serial.println(heapTop, HEX);;
+}
+#endif
+} 

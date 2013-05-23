@@ -42,6 +42,10 @@ void gyroOffsetCalibration()
   
   // Set voltage on all motor phases to zero 
   enableMotorUpdates = false;
+  
+  // TODO: doublecheck delay values .... 5s sec ?
+  // allow motor to settle
+  delay(5000);
     
   while(calibGCounter>0)
   {
@@ -78,7 +82,10 @@ void gyroOffsetCalibration()
   // put result into integer
   for (char i=0; i<3; i++) {
     gyroOffset[i] = fp_gyroOffset[i];
-  }
+//    Serial.print(F("gyroOffset="));Serial.println(fp_gyroOffset[i], 3);
+}
+
+
 
   enableMotorUpdates = true;
 }
