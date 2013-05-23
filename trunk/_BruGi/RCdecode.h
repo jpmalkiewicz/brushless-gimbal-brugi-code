@@ -7,8 +7,6 @@ void intDecodePWMRoll()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
-  
-  stackCheck(); // debugging purpose
 
   if (PCintPort::pinState==HIGH)
   {
@@ -32,8 +30,6 @@ void intDecodePWMPitch()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
-
-  stackCheck(); // debugging purpose
 
   if (PCintPort::pinState==HIGH)
   {
@@ -113,7 +109,7 @@ void evaluateRCSignalProportional()
     {
       pitchRCSpeed = 0.0;
     }
-    pitchRCSpeed = constrain(pitchRCSpeed, -200, +200);
+    pitchRCSpeed = constrain(pitchRCSpeed, -200, +200);  // constrain for max speed
     updateRCPitch=false;
   }
   if(updateRCRoll==true)
@@ -131,7 +127,7 @@ void evaluateRCSignalProportional()
     {
       rollRCSpeed = 0.0;
     }
-    rollRCSpeed = constrain(rollRCSpeed, -200, +200);
+    rollRCSpeed = constrain(rollRCSpeed, -200, +200);  // constrain for max speed
     updateRCRoll=false;
   }
 }

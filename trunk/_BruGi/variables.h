@@ -117,6 +117,7 @@ int freqCounter=0; // TODO: back to char later ...
 int pitchMotorDrive = 0;
 int rollMotorDrive = 0;
 
+// control motor update in ISR
 bool enableMotorUpdates = false;
 
 // Variables for MPU6050
@@ -133,10 +134,6 @@ float RollPhiSet = 0;
 static float pitchAngleSet=0;
 static float rollAngleSet=0;
 
-  
-//general purpuse timer
-unsigned long timer=0;   
-unsigned long timerACC=0;
 int count=0;
 
 // Variables for RC Decoder
@@ -204,6 +201,7 @@ t_sensorOrientationDef sensorDef = {
     {{0, 1}, {1, 1}, {2, 1}}     // Acc
   };
 
+// gyro calibration value
 int16_t gyroOffset[3] = {0, 0, 0};
 
 

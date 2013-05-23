@@ -178,6 +178,25 @@ void fastMoveMotor(uint8_t motorNumber, int dirStep,uint8_t* pwmSin)
   }
 }
 
+// switch off motor power
+// TODO: for some reason motor control gets noisy, if call from ISR
+inline void MotorOff(uint8_t motorNumber, uint8_t* pwmSin)
+{
+  if (motorNumber == 0)
+  {
+    PWM_A_MOTOR0 = pwmSin[0];
+    PWM_B_MOTOR0 = pwmSin[0];
+    PWM_C_MOTOR0 = pwmSin[0];
+  }
+ 
+  if (motorNumber == 1)
+  {
+    PWM_A_MOTOR1 = pwmSin[0];
+    PWM_B_MOTOR1 = pwmSin[0];
+    PWM_C_MOTOR1 = pwmSin[0];
+  }
+}
+
 
 void calcSinusArray(uint8_t maxPWM, uint8_t *array)
 {
@@ -202,20 +221,18 @@ void recalcMotorStuff()
 // motor position control
 ISR( TIMER1_OVF_vect )
 {
-  // just for debugging
-  stackCheck();
-
-  // 2.5 / 9.64us
+  // 0.88us / 8.1us
   freqCounter++;  
-  if((freqCounter==(CC_FACTOR*1000/MOTORUPDATE_FREQ)) && (enableMotorUpdates))
+  if(freqCounter==(CC_FACTOR*1000/MOTORUPDATE_FREQ))
   {
     freqCounter=0;
-
-    // move pitch motor
-    MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
-    // move roll motor
-    MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, pwmSinMotorRoll);
-
+    if (enableMotorUpdates)
+    {
+      // move pitch motor
+      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
+      // move roll motor
+      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, pwmSinMotorRoll);
+    }
     // update event
     motorUpdate = true;
   }

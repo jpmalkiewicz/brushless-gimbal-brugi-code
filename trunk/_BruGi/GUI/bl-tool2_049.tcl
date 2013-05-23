@@ -1416,7 +1416,7 @@ pack .motor.general -side top -expand yes -fill x
 			frame .motor.general.chart.fr1.scale
 			pack .motor.general.chart.fr1.scale -side top -expand no -fill both
 
-				scale .motor.general.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 10.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
+				scale .motor.general.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 10.0 -showvalue 1 -resolution 0.1 -variable CHART_SCALE
 				pack .motor.general.chart.fr1.scale.slider -side left -expand no -fill x
 				setTooltip .motor.general.chart.fr1.scale.slider "Y-Scale for the chart"
 

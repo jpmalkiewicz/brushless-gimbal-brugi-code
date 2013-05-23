@@ -71,8 +71,10 @@ void setup()
 {
 
   // just for debugging
+#ifdef STACKHEAPCHECK_ENABLE
   stackCheck();
   heapCheck();
+#endif
 
   LEDPIN_PINMODE
   
@@ -143,6 +145,7 @@ void setup()
   mpu.setSleepEnabled(false); 
   
   // Gyro Offset calibration
+  Serial.println(F("Gyro calibration: do not move"));
   gyroOffsetCalibration();
   Serial.println(F("Gyro calibration: done"));
   
@@ -155,11 +158,9 @@ void setup()
   // Init RC-Input
   initRCPins();
   
-  // Initialize timer
-  timer=micros();
+  Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
 
   enableMotorUpdates = true;
-  Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
 
   CH2_OFF
   CH3_OFF
@@ -202,8 +203,6 @@ void loop()
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
     motorUpdate = false;
-
-    CH2_ON
     
     // Evaluate RC-Signals
     // 22us
@@ -286,13 +285,11 @@ void loop()
     case 9:
       // 600 us
       if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
-      // 1360 us
-      //if(config.accOutput==1){ Serial.print((float)(angle[PITCH]/100.0),2); Serial.print(" ACC ");Serial.println((float)(angle[ROLL]/100.0),2);}     
-      // 490 us
-      //if(config.accOutput==1){ Serial.print(11); Serial.print(" ACC ");Serial.println(12);}     
       break;
-    case 10:
+    case 10:    
+#ifdef STACKHEAPCHECK_ENABLE
       stackHeapEval();
+#endif
       count=0;
       break;
     default:
@@ -310,8 +307,6 @@ void loop()
     // Evaluate Serial inputs 
     //****************************
     sCmd.readSerial();
-
-    CH2_OFF    
 
   }
 
