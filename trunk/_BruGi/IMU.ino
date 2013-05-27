@@ -225,10 +225,13 @@ void updateACCAttitude(){
 
 void getAttiduteAngles() {
 
-  // attitude of the estimated vector
-  // 380 us
-  angle[ROLL]  =  _atan2(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
-  angle[PITCH] =  _atan2(EstG.V.Y , EstG.V.Z);
+  // attitude of the estimated vector  
 
+  // 200 us
+  angle[ROLL]  =  _atan2(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
+ 
+  // 192 us
+   angle[PITCH] = Rajan_FastArcTan2_deg100(EstG.V.Y , EstG.V.Z);  
 }
+
 

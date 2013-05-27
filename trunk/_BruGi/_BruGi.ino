@@ -204,6 +204,8 @@ void loop()
   {
     motorUpdate = false;
     
+    CH2_ON
+    
     // Evaluate RC-Signals
     // 22us
     if(config.rcAbsolute==1) {
@@ -308,6 +310,7 @@ void loop()
     //****************************
     sCmd.readSerial();
 
+    CH2_OFF
   }
 
 }
