@@ -125,6 +125,10 @@ void initIMU() {
   
   setComplementaryConstant(false);
  
+  // initialize coordinate system in EstG
+  EstG.V.X = 0;
+  EstG.V.Y = 0;
+  EstG.V.Z = ACC_1G;
 }
 
 // Rotate Estimated vector(s) with small angle approximation, according to the gyro data
