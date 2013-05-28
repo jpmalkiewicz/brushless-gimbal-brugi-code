@@ -80,7 +80,9 @@ void setup()
   
   CH2_PINMODE
   CH3_PINMODE
-    
+  
+  CH3_ON
+  
   // Start Serial Port
   Serial.begin(115200);
 
@@ -160,7 +162,7 @@ void setup()
   
   Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
 
-  enableMotorUpdates = true;
+  gimState = GIM_UNLOCKED;
 
   CH2_OFF
   CH3_OFF
@@ -201,21 +203,14 @@ void loop()
   static int32_t rollErrorOld;
   
   static char pOutCnt = 0;
-    
+  static int stateCount = 0;
+  
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
     motorUpdate = false;
     
     CH2_ON
-    
-    // Evaluate RC-Signals
-    // 22us
-    if(config.rcAbsolute==1) {
-      evaluateRCSignalAbsolute();  // Gives rollRCSetPoint, pitchRCSetpoint
-    } else {
-      evaluateRCSignalProportional(); // Gives rollRCSpeed, pitchRCSpeed
-    }
-    
+   
     // update IMU data            
     readGyros();
     
@@ -223,11 +218,19 @@ void loop()
     if (config.enableACC) updateACCAttitude(); 
 
     getAttiduteAngles();
-   
-    // filter and assign RC Setpoints
-    utilLP_float(&pitchAngleSet, PitchPhiSet, 0.003);
-    utilLP_float(&rollAngleSet, RollPhiSet, 0.003);
-   
+    
+    // Evaluate RC-Signals
+    if(config.rcAbsolute==1) {
+      evaluateRCSignalAbsolute();  // Gives rollRCSetPoint, pitchRCSetpoint
+      // filter and assign RC Setpoints
+      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.0005);
+      utilLP_float(&rollAngleSet, RollPhiSet, 0.0005);
+    } else {
+      evaluateRCSignalProportional(); // Gives rollRCSpeed, pitchRCSpeed
+      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
+      utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
+    }
+       
     //****************************
     // pitch PID
     //****************************
@@ -257,7 +260,40 @@ void loop()
       updateACC(); break;
     case 5:
       break;
+    case 6:
+      // gimbal state transitions 
+      switch (gimState)
+      {
+        case GIM_IDLE :
+          break;
+        case GIM_UNLOCKED :
+          stateCount++;
+          if (stateCount >= LOOPUPDATE_FREQ/10*LOCK_TIME_SEC) 
+          {
+            gimState = GIM_LOCKED;
+            stateCount = 0;
+          }
+          break;
+        case GIM_LOCKED :
+          break;
+      }
+      // gimbal state actions 
+      switch (gimState) {
+        case GIM_IDLE :
+          enableMotorUpdates = false;
+          break;
+        case GIM_UNLOCKED :
+          enableMotorUpdates = true;
+          setACCFastMode(true);
+          break;
+        case GIM_LOCKED :
+          enableMotorUpdates = true;
+          setACCFastMode(false);
+          break;
+      }
+      break;
     case 7:
+      // RC pitch control
       if (validRCPitch) {
         if(config.rcAbsolute==1) {
             PitchPhiSet = pitchRCSetpoint*100;
@@ -273,6 +309,7 @@ void loop()
       PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch*100, config.maxRCPitch*100);
       break;
     case 8:
+      // RC roll control
       if (validRCRoll){
         if(config.rcAbsolute==1){
           RollPhiSet = rollRCSetpoint*100;

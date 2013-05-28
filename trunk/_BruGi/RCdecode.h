@@ -140,13 +140,13 @@ void evaluateRCSignalAbsolute()
   if(updateRCPitch==true)
   {
     pulseInPWMPitch = constrain(pulseInPWMPitch,MIN_RC,MAX_RC);
-    pitchRCSetpoint = 0.1 * (config.minRCPitch + (float)(pulseInPWMPitch - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCPitch - config.minRCPitch)) + 0.9 * pitchRCSetpoint;
+    utilLP_float(&pitchRCSetpoint, (config.minRCPitch + (float)(pulseInPWMPitch - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCPitch - config.minRCPitch)), 0.05);
     updateRCPitch=false;
   }
   if(updateRCRoll==true)
   {
     pulseInPWMRoll = constrain(pulseInPWMRoll,MIN_RC,MAX_RC);
-    rollRCSetpoint = 0.1 * (config.minRCRoll + (float)(pulseInPWMRoll - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCRoll - config.minRCRoll)) + 0.9 * rollRCSetpoint;
+    utilLP_float(&rollRCSetpoint, (float)(config.minRCRoll + (float)(pulseInPWMRoll - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCRoll - config.minRCRoll)), 0.05);
     updateRCRoll=false;
   }
 }

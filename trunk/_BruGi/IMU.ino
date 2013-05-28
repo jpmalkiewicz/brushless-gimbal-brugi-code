@@ -108,13 +108,12 @@ void initSensorOrientation() {
   }
 }
 
-void setComplementaryConstant (bool fastMode) {
+void setACCFastMode (bool fastMode) {
   if (fastMode) {
-    AccComplFilterConst = (float)DT_FLOAT/(1.0+DT_FLOAT);
+    AccComplFilterConst = (float)DT_FLOAT/(2.0+DT_FLOAT); // 2 sec
   } else {
     AccComplFilterConst = (float)DT_FLOAT/(config.accComplTC+DT_FLOAT);
   }
-
 }
 
 void initIMU() {
@@ -123,12 +122,13 @@ void initIMU() {
   // 102us
   gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359;  // convert to radians
   
-  setComplementaryConstant(false);
+  setACCFastMode(false);
  
   // initialize coordinate system in EstG
   EstG.V.X = 0;
   EstG.V.Y = 0;
   EstG.V.Z = ACC_1G;
+
 }
 
 // Rotate Estimated vector(s) with small angle approximation, according to the gyro data
@@ -203,9 +203,9 @@ void updateACC(){
 
   // 11 us
   if ( abs(accSmooth[ROLL])<acc_25deg && abs(accSmooth[PITCH])<acc_25deg && accSmooth[YAW]>0) {
-    f.SMALL_ANGLES_25 = 1;
+    flags.SMALL_ANGLES_25 = 1;
   } else {
-    f.SMALL_ANGLES_25 = 0;
+    flags.SMALL_ANGLES_25 = 0;
   }
 
 }
@@ -218,7 +218,7 @@ void updateACCAttitude(){
   // Apply complimentary filter (Gyro drift correction)
   // If accel magnitude >1.4G or <0.6G and ACC vector outside of the limit range => we neutralize the effect of accelerometers in the angle estimation.
   // To do that, we just skip filter, as EstV already rotated by Gyro
-  if ( ( 36 < accMag && accMag < 196 ) || f.SMALL_ANGLES_25 ) {
+  if ( ( 36 < accMag && accMag < 196 ) || flags.SMALL_ANGLES_25 ) {
     for (axis = 0; axis < 3; axis++) {
       int32_t acc = accSmooth[axis];
       EstG.A[axis] = EstG.A[axis] * (1.0 - AccComplFilterConst) + acc * AccComplFilterConst; // note: this is different from MultiWii (wrong brackets postion in MultiWii ??.
