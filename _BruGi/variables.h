@@ -154,15 +154,23 @@ bool validRCPitch=false;
 float pitchRCSetpoint = 0.0;
 float rollRCSetpoint = 0.0;
 
+// Gimbal State
+enum gimStateType {
+ GIM_IDLE=0,      // no PID
+ GIM_UNLOCKED,    // PID on, fast ACC
+ GIM_LOCKED       // PID on, slow ACC
+};
+
+gimStateType gimState = GIM_IDLE;
+
 //*************************************
 //
 //  IMU
 //
 //*************************************
 struct flags_struct {
-  uint8_t SMALL_ANGLES_25 :1 ;
-  uint8_t CALIBRATE_MAG :1 ;
-} f;
+  uint8_t SMALL_ANGLES_25 : 1;
+} flags;
 
 enum axisDef {
   ROLL,

@@ -170,7 +170,7 @@ void setRollPID()
 void setAccComplementaryTC()
 {
   config.accComplTC = atoi(sCmd.next());
-  setComplementaryConstant(false);
+  setACCFastMode(false);
 }
 
 void setMotorPWM()
