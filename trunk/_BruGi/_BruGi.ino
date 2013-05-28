@@ -199,6 +199,8 @@ void loop()
   static int32_t rollErrorSum;
   static int32_t pitchErrorOld;
   static int32_t rollErrorOld;
+  
+  static char pOutCnt = 0;
     
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
@@ -285,8 +287,14 @@ void loop()
       RollPhiSet = constrain(RollPhiSet, config.minRCRoll*100, config.maxRCRoll*100);
       break;
     case 9:
-      // 600 us
-      if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
+      // regular ACC output
+      pOutCnt++;
+      if (pOutCnt == (LOOPUPDATE_FREQ/10/POUT_FREQ))
+      {
+        // 600 us
+        if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
+        pOutCnt = 0;
+      }
       break;
     case 10:    
 #ifdef STACKHEAPCHECK_ENABLE
