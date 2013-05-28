@@ -13,10 +13,12 @@
 //#define PWM_4KHZ_PHASE   // Resolution 8 bit for PWM
 //#define NO_PWM_LOOP
 
-#define MOTORUPDATE_FREQ 500 // in Hz, 1000 is default // 1,2,4,8 for 32kHz, 1,2,4 for 4kHz
-#define LOOPUPDATE_FREQ MOTORUPDATE_FREQ         // loop control sample rate equals motor update rate
-#define DT_FLOAT (1.0/LOOPUPDATE_FREQ)  // loop controller sample period dT
+#define MOTORUPDATE_FREQ 500                // in Hz, 1000 is default // 1,2,4,8 for 32kHz, 1,2,4 for 4kHz
+#define LOOPUPDATE_FREQ MOTORUPDATE_FREQ    // loop control sample rate equals motor update rate
+#define DT_FLOAT (1.0/LOOPUPDATE_FREQ)      // loop controller sample period dT
 #define DT_INT_MS (1000/MOTORUPDATE_FREQ) 
+
+#define POUT_FREQ 25 // rate of ACC print output in Hz, 25 Hz is default
 
 // LP filter coefficient
 #define LOWPASS_K(TAU) (DT/(TAU+DT))
