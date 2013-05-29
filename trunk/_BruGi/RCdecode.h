@@ -3,151 +3,226 @@
 /*************************/
 
 // pinChange Int driven Functions
-void intDecodePWMRoll()
+
+// RC Channel 0
+void intDecodePWM_Ch0()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
 
+  char chIdx=0;
+
   if (PCintPort::pinState==HIGH)
   {
-    microsRisingEdgeRoll = microsNow;
+    microsRisingEdge[chIdx]= microsNow;
   }
   else
   {
-    pulseInPWMtmp = (microsNow - microsRisingEdgeRoll)/CC_FACTOR;
+    pulseInPWMtmp = (microsNow - microsRisingEdge[chIdx])/CC_FACTOR;
     if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
     {
       // update if within expected RC range
-      pulseInPWMRoll = pulseInPWMtmp;
-      microsLastPWMRollUpdate = microsNow;
-      validRCRoll=true;
-      updateRCRoll=true;
+      rcRxChannel[chIdx] = pulseInPWMtmp;
+      microsLastPWMUpdate[chIdx] = microsNow;
+      validRC[chIdx]=true;
+      updateRC[chIdx]=true;
     }
   }
 }
 
-void intDecodePWMPitch()
+// RC Channel 1
+void intDecodePWM_Ch1()
 { 
   uint32_t microsNow = micros();
   uint16_t pulseInPWMtmp;
 
+  char chIdx=1;
+
   if (PCintPort::pinState==HIGH)
   {
-    microsRisingEdgePitch = microsNow;
+    microsRisingEdge[chIdx]= microsNow;
   }
   else
   {
-    pulseInPWMtmp = (microsNow - microsRisingEdgePitch)/CC_FACTOR;
+    pulseInPWMtmp = (microsNow - microsRisingEdge[chIdx])/CC_FACTOR;
     if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
     {
       // update if within expected RC range
-      pulseInPWMPitch = pulseInPWMtmp;
-      microsLastPWMPitchUpdate = microsNow;
-      validRCPitch=true;
-      updateRCPitch=true;
+      rcRxChannel[chIdx] = pulseInPWMtmp;
+      microsLastPWMUpdate[chIdx] = microsNow;
+      validRC[chIdx]=true;
+      updateRC[chIdx]=true;
     }
   }
 }
 
-void checkPWMRollTimeout()
+// check for RC timout
+void checkPWMTimeout(char channelNum)
 {
   int32_t microsNow = micros();
   int32_t microsLastUpdate;
   cli();
-  microsLastUpdate = microsLastPWMRollUpdate;
+  microsLastUpdate = microsLastPWMUpdate[channelNum];
   sei();
-  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_TIMEOUT) 
   {
-    pulseInPWMRoll = MID_RC;
-    microsLastPWMRollUpdate = microsNow;
-    validRCRoll=false;
-    updateRCRoll=true;
+    microsLastPWMUpdate[channelNum] = microsNow;
+    rcRxChannel[channelNum] = MID_RC;
+    validRC[channelNum]=false;
+    updateRC[channelNum]=true;
   }
 }
 
-void checkPWMPitchTimeout()
+
+//******************************************
+// PPM Decoder
+//******************************************
+void intDecodePPM()
+{ 
+  int32_t microsNow = micros();
+  
+  static int32_t microsPPMLastEdge = 0;
+  uint16_t pulseInPPM;
+
+  static char channel_idx = 0;
+  static bool rxPPMvalid = false;
+
+  // PinChangeInt prolog = pin till here = 17 us 
+  CH2_ON
+  
+  // 45us
+  pulseInPPM = (microsNow - microsPPMLastEdge)/CC_FACTOR;
+  microsPPMLastEdge = microsNow;
+
+  if (pulseInPPM > RC_PPM_GUARD_TIME) 
+  {
+    // sync detected 
+    channel_idx = 0;
+    if (rxPPMvalid)
+    {
+      microsLastPPMupdate = microsNow;
+    }
+    rxPPMvalid = false;
+  }
+  else if (channel_idx < RC_PPM_RX_MAX_CHANNELS-1)
+  {      
+    if ((pulseInPPM >= MIN_RC) && (pulseInPPM <= MAX_RC)) 
+    {
+      rcRxChannel[channel_idx] = pulseInPPM;
+      validRC[channel_idx] = true;
+      updateRC[channel_idx] = true;
+      channel_idx++;
+    }  
+    else
+    {
+      rxPPMvalid = false;
+    }
+  }
+  CH2_OFF
+}
+
+void checkPPMTimeout()
 {
   int32_t microsNow = micros();
   int32_t microsLastUpdate;
   cli();
-  microsLastUpdate = microsLastPWMPitchUpdate;
+  microsLastUpdate = microsLastPPMupdate;
   sei();
-  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_PPM_TIMEOUT) 
+  if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_TIMEOUT) 
   {
-    pulseInPWMPitch = MID_RC;
-    microsLastPWMPitchUpdate = microsNow;
-    validRCPitch=false;
-    updateRCPitch=true;
+    for (char i=0; i<RC_PPM_RX_MAX_CHANNELS; i++)
+    {
+      rcRxChannel[i] = MID_RC;
+      validRC[i] = false;
+      updateRC[i] = true;
+    }
+    microsLastPPMupdate = microsNow;
   }
 }
 
+
+// initialize RC Pin mode
 void initRCPins()
 {  
-  pinMode(RC_PIN_ROLL, INPUT); digitalWrite(RC_PIN_ROLL, HIGH);
-  PCintPort::attachInterrupt(RC_PIN_ROLL, &intDecodePWMRoll, CHANGE);
-  pinMode(RC_PIN_PITCH, INPUT); digitalWrite(RC_PIN_PITCH, HIGH);
-  PCintPort::attachInterrupt(RC_PIN_PITCH, &intDecodePWMPitch, CHANGE);
+  if (config.rcModePPM)
+  {
+    pinMode(RC_PIN_ROLL, INPUT); digitalWrite(RC_PIN_ROLL, HIGH);
+    PCintPort::attachInterrupt(RC_PIN_ROLL, &intDecodePPM, RISING);
+  }
+  else
+  {
+    pinMode(RC_PIN_ROLL, INPUT); digitalWrite(RC_PIN_ROLL, HIGH);
+    PCintPort::attachInterrupt(RC_PIN_ROLL, &intDecodePWM_Ch0, CHANGE);
+    pinMode(RC_PIN_PITCH, INPUT); digitalWrite(RC_PIN_PITCH, HIGH);
+    PCintPort::attachInterrupt(RC_PIN_PITCH, &intDecodePWM_Ch1, CHANGE);
+  }
 }
 
 // Proportional RC control
 void evaluateRCSignalProportional()
 {
+  int16_t rxData;
+  
   #define RCSTOP_ANGLE 5.0
 
-  if(updateRCPitch==true)
+  rxData = rcRxChannel[config.rcChannelPitch];
+  if(updateRC[config.rcChannelPitch]==true)
   {
-    pulseInPWMPitch = constrain(pulseInPWMPitch,MIN_RC,MAX_RC);
-    if(pulseInPWMPitch>=MID_RC+RC_DEADBAND)
+    if(rxData >= MID_RC+RC_DEADBAND)
     {
-      pitchRCSpeed = config.rcGain * (float)(pulseInPWMPitch - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = config.rcGain * (float)(rxData - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
     }
-    else if(pulseInPWMPitch<=MID_RC-RC_DEADBAND)
+    else if(rxData <= MID_RC-RC_DEADBAND)
     {
-      pitchRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - pulseInPWMPitch)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - rxData)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
     }
     else
     {
       pitchRCSpeed = 0.0;
     }
     pitchRCSpeed = constrain(pitchRCSpeed, -200, +200);  // constrain for max speed
-    updateRCPitch=false;
+    updateRC[config.rcChannelPitch] = false;
   }
-  if(updateRCRoll==true)
-  {
-    pulseInPWMRoll = constrain(pulseInPWMRoll,MIN_RC,MAX_RC);
-    if(pulseInPWMRoll>=MID_RC+RC_DEADBAND)
+  
+  rxData = rcRxChannel[config.rcChannelRoll];
+  if(updateRC[config.rcChannelRoll]==true)  {
+    if(rxData >= MID_RC+RC_DEADBAND)
     {
-      rollRCSpeed = config.rcGain * (float)(pulseInPWMRoll - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * rollRCSpeed;
+      rollRCSpeed = config.rcGain * (float)(rxData - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * rollRCSpeed;
     }
-    else if(pulseInPWMRoll<=MID_RC-RC_DEADBAND)
+    else if(rxData <= MID_RC-RC_DEADBAND)
     {
-      rollRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - pulseInPWMRoll)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
+      rollRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - rxData)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
     }
     else
     {
       rollRCSpeed = 0.0;
     }
     rollRCSpeed = constrain(rollRCSpeed, -200, +200);  // constrain for max speed
-    updateRCRoll=false;
+    updateRC[config.rcChannelRoll] = false;
   }
 }
 
 // Absolute RC control
 void evaluateRCSignalAbsolute()
 {
+    int16_t rxData;
+    
   // Get Setpoint from RC-Channel if available.
   // LPF on pitchSetpoint
-  if(updateRCPitch==true)
+  rxData = rcRxChannel[config.rcChannelPitch];
+  if(updateRC[config.rcChannelPitch]==true)
   {
-    pulseInPWMPitch = constrain(pulseInPWMPitch,MIN_RC,MAX_RC);
-    utilLP_float(&pitchRCSetpoint, (config.minRCPitch + (float)(pulseInPWMPitch - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCPitch - config.minRCPitch)), 0.05);
-    updateRCPitch=false;
+    utilLP_float(&pitchRCSetpoint, (config.minRCPitch + (float)(rxData - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCPitch - config.minRCPitch)), 0.05);
+    updateRC[config.rcChannelPitch] = false;
   }
-  if(updateRCRoll==true)
+
+  // LPF on rollSetpoint
+  rxData = rcRxChannel[config.rcChannelRoll];
+  if(updateRC[config.rcChannelRoll]==true)
   {
-    pulseInPWMRoll = constrain(pulseInPWMRoll,MIN_RC,MAX_RC);
-    utilLP_float(&rollRCSetpoint, (float)(config.minRCRoll + (float)(pulseInPWMRoll - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCRoll - config.minRCRoll)), 0.05);
-    updateRCRoll=false;
+    utilLP_float(&rollRCSetpoint, (float)(config.minRCRoll + (float)(rxData - MIN_RC)/(float)(MAX_RC - MIN_RC) * (config.maxRCRoll - config.minRCRoll)), 0.05);
+    updateRC[config.rcChannelRoll] = false;
   }
 }
 

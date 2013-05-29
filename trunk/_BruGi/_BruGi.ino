@@ -134,6 +134,8 @@ void setup()
       Serial.println(F("MPU6050 falied"));  
     }
   }
+ 
+  CH2_ON
   
   // set sensor orientation (from config)
   initSensorOrientation();
@@ -221,8 +223,8 @@ void loop()
     if(config.rcAbsolute==1) {
       evaluateRCSignalAbsolute();  // Gives rollRCSetPoint, pitchRCSetpoint
       // filter and assign RC Setpoints
-      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.0005);
-      utilLP_float(&rollAngleSet, RollPhiSet, 0.0005);
+      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.0008);
+      utilLP_float(&rollAngleSet, RollPhiSet, 0.0008);
     } else {
       evaluateRCSignalProportional(); // Gives rollRCSpeed, pitchRCSpeed
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
@@ -301,8 +303,8 @@ void loop()
       }
       break;
     case 7:
-      // RC pitch control
-      if (validRCPitch) {
+      // RC Pitch function
+      if (validRC[config.rcChannelPitch]) {
         if(config.rcAbsolute==1) {
             PitchPhiSet = pitchRCSetpoint*100;
         }
@@ -317,8 +319,8 @@ void loop()
       PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch*100, config.maxRCPitch*100);
       break;
     case 8:
-      // RC roll control
-      if (validRCRoll){
+      // RC roll function
+      if (validRC[config.rcChannelRoll]){
         if(config.rcAbsolute==1){
           RollPhiSet = rollRCSetpoint*100;
         } else {
@@ -353,10 +355,17 @@ void loop()
     count++;
        
     //****************************
-    // check PPM timeouts
+    // check RC channel timeouts
     //****************************
-    checkPWMRollTimeout();
-    checkPWMPitchTimeout();
+    if (config.rcModePPM)
+    {
+      checkPPMTimeout();
+    }
+    else
+    {
+      checkPWMTimeout(0);
+      checkPWMTimeout(1);
+    }
 
     //****************************
     // Evaluate Serial inputs 

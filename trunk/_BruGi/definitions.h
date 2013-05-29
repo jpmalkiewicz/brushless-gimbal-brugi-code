@@ -44,7 +44,12 @@
 #define MIN_RC 1000
 #define MAX_RC 2000
 #define RC_DEADBAND 50
-#define RC_PPM_TIMEOUT 100000
+#define RC_TIMEOUT 100000
+
+// PPM Decoder
+#define RC_PPM_GUARD_TIME 4000
+#define RC_PPM_RX_MAX_CHANNELS 8
+#define RC_CHANNELS 2
 
 // I2C Frequency
 //#define I2C_SPEED 100000L     //100kHz normal mode

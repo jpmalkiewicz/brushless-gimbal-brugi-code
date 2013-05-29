@@ -110,9 +110,9 @@ void initSensorOrientation() {
 
 void setACCFastMode (bool fastMode) {
   if (fastMode) {
-    AccComplFilterConst = (float)DT_FLOAT/(2.0+DT_FLOAT); // 2 sec
+    AccComplFilterConst = (float)DT_FLOAT/(2.0 + DT_FLOAT); // 2 sec
   } else {
-    AccComplFilterConst = (float)DT_FLOAT/(config.accComplTC+DT_FLOAT);
+    AccComplFilterConst = (float)DT_FLOAT/(config.accTimeConstant + DT_FLOAT);
   }
 }
 

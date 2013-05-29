@@ -69,16 +69,6 @@ int8_t sgn(int val) {
 }
 
 
-// TDO: quadrants
-inline int16_t _atan2x(float y, float x) {
-  if (abs(x) > abs(y)) {
-    return _atan2(y,x);
-  } else {
-    return (9000 + _atan2(x,y));
-  }
-}
-
-
 inline int32_t constrain_int32(int32_t x , int32_t l, int32_t h) {
   if (x <= l) {
     return l;
