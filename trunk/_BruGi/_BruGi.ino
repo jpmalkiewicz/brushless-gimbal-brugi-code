@@ -162,8 +162,6 @@ void setup()
   
   Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
 
-  gimState = GIM_UNLOCKED;
-
   CH2_OFF
   CH3_OFF
  
@@ -265,8 +263,16 @@ void loop()
       switch (gimState)
       {
         case GIM_IDLE :
+          // wait 2 sec to settle ACC, before PID controlerbecomes active 
+          stateCount++;
+          if (stateCount >= LOOPUPDATE_FREQ/10*2)  
+          {
+            gimState = GIM_UNLOCKED;
+            stateCount = 0;
+          }
           break;
         case GIM_UNLOCKED :
+          // allow PID controller to settle on ACC position
           stateCount++;
           if (stateCount >= LOOPUPDATE_FREQ/10*LOCK_TIME_SEC) 
           {
@@ -275,12 +281,14 @@ void loop()
           }
           break;
         case GIM_LOCKED :
+          // normal operation
           break;
       }
       // gimbal state actions 
       switch (gimState) {
         case GIM_IDLE :
           enableMotorUpdates = false;
+          setACCFastMode(true);
           break;
         case GIM_UNLOCKED :
           enableMotorUpdates = true;
