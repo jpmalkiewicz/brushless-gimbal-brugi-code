@@ -1,6 +1,6 @@
-void transmitUseACC()
+void transmitUseACC()  // TODO: remove obsolete command
 {
-  Serial.println(config.useACC);
+   Serial.println(1);  // dummy for bl_tool compatibility ;-)
 }
 
 void toggleACCOutput()
@@ -12,22 +12,14 @@ void toggleACCOutput()
     config.accOutput = false;
 }
 
-void toggleDMPOutput()
+void toggleDMPOutput() // TODO: remove obsolete command
 {
   int temp = atoi(sCmd.next());
-  if(temp==1)
-    config.dmpOutput = true;
-  else
-    config.dmpOutput = false;
 }
 
-void setUseACC()
+void setUseACC() // TODO: remove obsolete command
 {
   int temp = atoi(sCmd.next());
-  if(temp==1)
-    config.useACC = true;
-  else
-    config.useACC = false;
 }
 
 void transmitRCConfig()
@@ -51,6 +43,20 @@ void setRCGain()
 void transmitRCGain()
 {
   Serial.println(config.rcGain);
+}
+
+void setRcMode()
+{
+    config.rcModePPM = atoi(sCmd.next());
+    config.rcChannelPitch = atoi(sCmd.next());
+    config.rcChannelRoll = atoi(sCmd.next());
+}
+
+void transmitRcMode()
+{
+  Serial.println(config.rcModePPM);
+  Serial.println(config.rcChannelPitch);
+  Serial.println(config.rcChannelRoll);
 }
 
 void setRCAbsolute()
@@ -107,7 +113,7 @@ void transmitActiveConfig()
   Serial.println(config.gyroRollKp);
   Serial.println(config.gyroRollKi);
   Serial.println(config.gyroRollKd);
-  Serial.println(config.accComplTC);
+  Serial.println(config.accTimeConstant);
   Serial.println(config.nPolesMotorPitch);
   Serial.println(config.nPolesMotorRoll);
   Serial.println(config.dirMotorPitch);
@@ -128,7 +134,7 @@ void transmitActiveConfig2()
   Serial.print(F("gyroRollKp ")); Serial.println(config.gyroRollKp);
   Serial.print(F("gyroRollKi ")); Serial.println(config.gyroRollKi);
   Serial.print(F("gyroRollKd ")); Serial.println(config.gyroRollKd);
-  Serial.print(F("accComplTC ")); Serial.println(config.accComplTC);
+  Serial.print(F("accTimeConstant ")); Serial.println(config.accTimeConstant);
   Serial.print(F("nPolesMotorPitch ")); Serial.println(config.nPolesMotorPitch);
   Serial.print(F("nPolesMotorRoll ")); Serial.println(config.nPolesMotorRoll);
   Serial.print(F("dirMotorPitch ")); Serial.println(config.dirMotorPitch);
@@ -142,6 +148,9 @@ void transmitActiveConfig2()
   Serial.print(F("minRCRoll ")); Serial.println(config.minRCRoll);
   Serial.print(F("maxRCRoll ")); Serial.println(config.maxRCRoll);
   Serial.print(F("rcGain ")); Serial.println(config.rcGain);
+  Serial.print(F("rcModePPM ")); Serial.println(config.rcModePPM);
+  Serial.print(F("rcChannelPitch ")); Serial.println(config.rcChannelPitch);
+  Serial.print(F("rcChannelRoll ")); Serial.println(config.rcChannelRoll);
   Serial.print(F("rcAbsolute ")); Serial.println(config.rcAbsolute);
   Serial.print(F("accOutput ")); Serial.println(config.accOutput);
   Serial.print(F("enableGyro ")); Serial.println(config.enableGyro);
@@ -169,7 +178,7 @@ void setRollPID()
 
 void setAccComplementaryTC()
 {
-  config.accComplTC = atoi(sCmd.next());
+  config.accTimeConstant = atoi(sCmd.next());
   setACCFastMode(false);
 }
 
@@ -234,15 +243,17 @@ void helpMe()
   Serial.println(F("SE maxPWMmotorPitch maxPWMmotorRoll     (Used for Power limitiation on each motor 255=high, 1=low)"));
   Serial.println(F("SM dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll"));
   Serial.println(F("SSO reverseZ swapXY (set sensor orientation)"));
-  Serial.println(F("TSO   (Transmit sensor orientation)"));
   Serial.println(F("SSE enableGyro enableACC (set sensor enable)"));  
+  Serial.println(F("TSO   (Transmit sensor orientation)"));
   Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
   Serial.println(F("TRC   (transmitts RC Config)"));
   Serial.println(F("SRC minRCPitch maxRCPitch minRCRoll maxRCRoll (angles -90..90)"));
   Serial.println(F("SCA rcAbsolute (1 = true, RC control is absolute; 0 = false, RC control is proportional)"));
   Serial.println(F("SRG rcGain (set RC gain)"));
+  Serial.println(F("SRM modePPM channelPitch channelRoll (set RC mode: modePPM 1=PPM 0=single channels, channelPitch/Roll = channel assignment 0..7)"));
   Serial.println(F("TCA   (Transmit RC control absolute or not)"));
   Serial.println(F("TRG   (Transmit RC gain)"));
+  Serial.println(F("TRM   (Transmit RC mode"));
   Serial.println(F("UAC useACC (1 = true, ACC; 0 = false, DMP)"));
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
@@ -277,6 +288,8 @@ void setSerialProtocol()
   sCmd.addCommand("TRC", transmitRCConfig);
   sCmd.addCommand("SRC", setRCConfig);
   sCmd.addCommand("SRG", setRCGain);
+  sCmd.addCommand("SRM", setRcMode);  
+  sCmd.addCommand("TRM", transmitRcMode);  
   sCmd.addCommand("SCA", setRCAbsolute);
   sCmd.addCommand("TCA", transmitRCAbsolute);
   sCmd.addCommand("TRG", transmitRCGain);

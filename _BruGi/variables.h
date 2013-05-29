@@ -11,7 +11,7 @@ int32_t gyroPitchKd;
 int32_t gyroRollKp;
 int32_t gyroRollKi;
 int32_t gyroRollKd;
-int16_t accComplTC;
+int16_t accTimeConstant;
 uint8_t nPolesMotorPitch;
 uint8_t nPolesMotorRoll;
 int8_t dirMotorPitch;
@@ -25,10 +25,11 @@ int8_t maxRCPitch;
 int8_t minRCRoll;
 int8_t maxRCRoll;
 int16_t rcGain;
+bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
+int8_t rcChannelPitch;     // input channel for pitch
+int8_t rcChannelRoll;      // input channel for roll
 bool rcAbsolute;
-bool useACC;         // TODO: parameter is obsolete
 bool accOutput;
-bool dmpOutput;      // TODO: parameter is obsolete
 bool enableGyro;
 bool enableACC;
 bool axisReverseZ;
@@ -47,7 +48,7 @@ void setDefaultParameters()
   config.gyroRollKp = 20000;
   config.gyroRollKi = 25000;
   config.gyroRollKd = 30000;
-  config.accComplTC = 7;
+  config.accTimeConstant = 7;
   config.nPolesMotorPitch = 14;
   config.nPolesMotorRoll = 14;
   config.dirMotorPitch = 1;
@@ -61,10 +62,11 @@ void setDefaultParameters()
   config.minRCRoll = -30;
   config.maxRCRoll = 30;
   config.rcGain = 5;
+  config.rcModePPM = false;
+  config.rcChannelRoll = 0;
+  config.rcChannelPitch = 1;
   config.rcAbsolute = true;
-  config.useACC = true;   // TODO: parameter is obsolete
   config.accOutput=false;
-  config.dmpOutput=false;  // TODO: parameter is obsolete
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;
@@ -136,21 +138,19 @@ static float rollAngleSet=0;
 
 int count=0;
 
-// Variables for RC Decoder
-uint32_t microsRisingEdgeRoll = 0;
-uint32_t microsRisingEdgePitch = 0;
-uint16_t pulseInPWMRoll = MID_RC;
-uint16_t pulseInPWMPitch = MID_RC;
+// RC single channel decoder
+int32_t microsRisingEdge[RC_CHANNELS] = {0,};
+int32_t microsLastPWMUpdate[RC_CHANNELS] = {0,};
 
-int32_t microsLastPWMRollUpdate = 0;
-int32_t microsLastPWMPitchUpdate = 0;
+// RC PPM decoder
+uint16_t rcRxChannel[RC_PPM_RX_MAX_CHANNELS] = {MID_RC,};
+bool updateRC[RC_PPM_RX_MAX_CHANNELS] = {false,};      // RC channel value got updated
+bool validRC[RC_PPM_RX_MAX_CHANNELS] = {false, };    // RC inputs valid
 
+int32_t microsLastPPMupdate = 0;
+bool rxPPMvalid = false;
 float pitchRCSpeed=0.0;
 float rollRCSpeed=0.0;
-bool updateRCRoll=false;        // RC channel value got updated
-bool updateRCPitch=false;
-bool validRCRoll=false;         // RC inputs valid
-bool validRCPitch=false;
 float pitchRCSetpoint = 0.0;
 float rollRCSetpoint = 0.0;
 
