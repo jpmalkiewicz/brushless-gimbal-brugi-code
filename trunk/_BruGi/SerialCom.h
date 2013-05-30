@@ -1,3 +1,199 @@
+//************************************************************************************
+// general config parameter access routines
+//************************************************************************************
+
+// types of config parameters
+enum confType {
+  BOOL,
+  INT8,
+  INT16,
+  INT32,
+  UINT8,
+  UINT16,
+  UINT32
+};
+
+#define CONFIGNAME_MAX_LEN 17
+typedef struct configDef {
+  char name[CONFIGNAME_MAX_LEN];  // name of config parameter
+  confType type;                  // type of config parameters
+  void * address;                 // address of config parameter
+  void (* updateFunction)();      // function is called when parameter update happens
+} t_configDef;
+
+t_configDef configDef;
+
+// access decriptor as arry of bytes as well
+typedef union {
+  t_configDef   c;
+  char          bytes[sizeof(t_configDef)];
+} t_configUnion;
+
+t_configUnion configUnion;
+
+//
+// list of all config parameters
+// to be accessed by par command
+//
+// descriptor is stored in PROGMEN to preserve RAM space
+// see http://www.arduino.cc/en/Reference/PROGMEM
+// and http://jeelabs.org/2011/05/23/saving-ram-space/
+const t_configDef PROGMEM configListPGM[] = {
+  {"vers",             UINT8, &config.vers,             NULL},
+
+  {"gyroPitchKp",      INT32, &config.gyroPitchKp,      &initPIDs},
+  {"gyroPitchKi",      INT32, &config.gyroPitchKi,      &initPIDs},
+  {"gyroPitchKd",      INT32, &config.gyroPitchKd,      &initPIDs},
+  {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
+  {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
+  {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
+  
+  {"dirMotorPitch",    INT8,  &config.dirMotorPitch,    NULL},
+  {"dirMotorRoll",     INT8,  &config.dirMotorRoll,     NULL},
+  {"motorNumberPitch", UINT8, &config.motorNumberPitch, NULL},
+  {"motorNumberRoll",  UINT8, &config.motorNumberRoll,  NULL},
+  {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, &recalcMotorStuff},
+  {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  &recalcMotorStuff},
+
+  {"minRCPitch",       INT8, &config.minRCPitch,        NULL},
+  {"maxRCPitch",       INT8, &config.maxRCPitch,        NULL},
+  {"minRCRoll",        INT8, &config.minRCRoll,         NULL},
+  {"maxRCRoll",        INT8, &config.maxRCRoll,         NULL},
+  {"rcGain",           INT16, &config.rcGain,           NULL},
+  {"rcChannelPitch",   INT8, &config.rcChannelPitch,    NULL},
+  {"rcChannelRoll",    INT8, &config.rcChannelRoll,     NULL},
+  {"rcAbsolute",       BOOL, &config.rcAbsolute,        NULL},
+  
+  {"accOutput",        BOOL, &config.accOutput,         NULL},
+
+  {"enableGyro",       BOOL, &config.enableGyro,        NULL},
+  {"enableACC",        BOOL, &config.enableACC,         NULL},
+
+  {"axisReverseZ",     BOOL, &config.axisReverseZ,      &initSensorOrientation},
+  {"axisSwapXY",       BOOL, &config.axisSwapXY,        &initSensorOrientation},
+  
+  {NULL, BOOL, NULL, NULL} // terminating NULL required !!
+};
+
+// read bytes from program memory
+void getPGMstring (PGM_P s, char * d, int numBytes) {
+  char c;
+  for (int i=0; i<numBytes; i++) {
+    *d++ = pgm_read_byte(s++);
+  }
+}
+
+// find Config Definition for named parameter
+t_configDef * getConfigDef(char * name) {
+
+  void * addr = NULL;
+  bool found = false;  
+  t_configDef * p = (t_configDef *)configListPGM;
+
+  while (true) {
+    getPGMstring ((PGM_P)p, configUnion.bytes, sizeof(configDef)); // read structure from program memory
+    if (configUnion.c.address == NULL) break;
+    if (strncmp(configUnion.c.name, name, CONFIGNAME_MAX_LEN) == 0) {
+      addr = configUnion.c.address;
+      found = true;
+      break;
+   }
+   p++; 
+  }
+  if (found) 
+      return &configUnion.c;
+  else 
+      return NULL;
+}
+
+
+// print single parameter value
+void printConfig(t_configDef * def) {
+  if (def != NULL) {
+    Serial.print(def->name);
+    Serial.print(F(" "));
+    switch (def->type) {
+      case BOOL   : Serial.print(*(bool *)(def->address)); break;
+      case UINT8  : Serial.print(*(uint8_t *)(def->address)); break;
+      case UINT16 : Serial.print(*(uint16_t *)(def->address)); break;
+      case UINT32 : Serial.print(*(uint32_t *)(def->address)); break;
+      case INT8   : Serial.print(*(int8_t *)(def->address)); break;
+      case INT16  : Serial.print(*(int16_t *)(def->address)); break;
+      case INT32  : Serial.print(*(int32_t *)(def->address)); break;
+    }
+    Serial.println("");
+  } else {
+    Serial.println("ERROR: illegal parameter");    
+  }
+}
+
+// write single parameter with value
+void writeConfig(t_configDef * def, int32_t val) {
+  if (def != NULL) {
+    switch (def->type) {
+      case BOOL   : *(bool *)(def->address)     = val; break;
+      case UINT8  : *(uint8_t *)(def->address)  = val; break;
+      case UINT16 : *(uint16_t *)(def->address) = val; break;
+      case UINT32 : *(uint32_t *)(def->address) = val; break;
+      case INT8   : *(int8_t *)(def->address)   = val; break;
+      case INT16  : *(int16_t *)(def->address)  = val; break;
+      case INT32  : *(int32_t *)(def->address)  = val; break;
+    }
+    // call update function
+    def->updateFunction();
+  } else {
+    Serial.println("ERROR: illegal parameter");    
+  }
+}
+
+
+// print all parameters
+void printConfigAll(t_configDef * p) {
+  while (true) {
+    getPGMstring ((PGM_P)p, configUnion.bytes, sizeof(configDef)); // read structure from program memory
+    if (configUnion.c.address == NULL) break;
+    printConfig(&configUnion.c);
+    p++; 
+  }
+}
+
+//******************************************************************************
+// general parameter modification function
+//      par                           print all parameters
+//      par <parameter_name>          print parameter <parameter_name>
+//      par <parameter_name> <value>  set parameter <parameter_name>=<value>
+//*****************************************************************************
+void parameterMod() {
+
+  char * token = NULL;
+  char * paraName = NULL;
+  char * paraValue = NULL;
+  
+  int32_t val = 0;
+
+  if ((paraName = sCmd.next()) == NULL) {
+    // no command parameter, print all config parameters
+    printConfigAll((t_configDef *)configListPGM);
+  } else if ((paraValue = sCmd.next()) == NULL) {
+    // one parameter, print single parameter
+    printConfig(getConfigDef(paraName));
+  } else {
+    // two parameters, set specified parameter
+    val = atol(paraValue);
+    writeConfig(getConfigDef(paraName), val);
+  }
+}
+//************************************************************************************
+
+
+void setDefaultParametersAndUpdate() {
+  setDefaultParameters();
+  recalcMotorStuff();
+  initPIDs();
+  initIMU();
+  initSensorOrientation();
+}
+
 void transmitUseACC()  // TODO: remove obsolete command
 {
    Serial.println(1);  // dummy for bl_tool compatibility ;-)
@@ -124,41 +320,6 @@ void transmitActiveConfig()
   Serial.println(config.maxPWMmotorRoll);
 }
 
-void transmitActiveConfig2()
-{
-  Serial.print(F("paramCount ")); Serial.println(F("27"));
-  Serial.print(F("vers ")); Serial.println(config.vers);
-  Serial.print(F("gyroPitchKp ")); Serial.println(config.gyroPitchKp);
-  Serial.print(F("gyroPitchKi ")); Serial.println(config.gyroPitchKi);
-  Serial.print(F("gyroPitchKd ")); Serial.println(config.gyroPitchKd);
-  Serial.print(F("gyroRollKp ")); Serial.println(config.gyroRollKp);
-  Serial.print(F("gyroRollKi ")); Serial.println(config.gyroRollKi);
-  Serial.print(F("gyroRollKd ")); Serial.println(config.gyroRollKd);
-  Serial.print(F("accTimeConstant ")); Serial.println(config.accTimeConstant);
-  Serial.print(F("nPolesMotorPitch ")); Serial.println(config.nPolesMotorPitch);
-  Serial.print(F("nPolesMotorRoll ")); Serial.println(config.nPolesMotorRoll);
-  Serial.print(F("dirMotorPitch ")); Serial.println(config.dirMotorPitch);
-  Serial.print(F("dirMotorRoll ")); Serial.println(config.dirMotorRoll);
-  Serial.print(F("motorNumberPitch ")); Serial.println(config.motorNumberPitch);
-  Serial.print(F("motorNumberRoll ")); Serial.println(config.motorNumberRoll);
-  Serial.print(F("maxPWMmotorPitch ")); Serial.println(config.maxPWMmotorPitch);
-  Serial.print(F("maxPWMmotorRoll ")); Serial.println(config.maxPWMmotorRoll);
-  Serial.print(F("minRCPitch ")); Serial.println(config.minRCPitch);
-  Serial.print(F("maxRCPitch ")); Serial.println(config.maxRCPitch);
-  Serial.print(F("minRCRoll ")); Serial.println(config.minRCRoll);
-  Serial.print(F("maxRCRoll ")); Serial.println(config.maxRCRoll);
-  Serial.print(F("rcGain ")); Serial.println(config.rcGain);
-  Serial.print(F("rcModePPM ")); Serial.println(config.rcModePPM);
-  Serial.print(F("rcChannelPitch ")); Serial.println(config.rcChannelPitch);
-  Serial.print(F("rcChannelRoll ")); Serial.println(config.rcChannelRoll);
-  Serial.print(F("rcAbsolute ")); Serial.println(config.rcAbsolute);
-  Serial.print(F("accOutput ")); Serial.println(config.accOutput);
-  Serial.print(F("enableGyro ")); Serial.println(config.enableGyro);
-  Serial.print(F("enableACC ")); Serial.println(config.enableACC);
-  Serial.print(F("axisReverseZ ")); Serial.println(config.axisReverseZ);
-  Serial.print(F("axisSwapXY ")); Serial.println(config.axisSwapXY);
-}
-
 
 void setPitchPID()
 {
@@ -234,7 +395,6 @@ void helpMe()
   Serial.println(F("WE    (Writes active config to eeprom)"));
   Serial.println(F("RE    (Restores values from eeprom to active config)"));  
   Serial.println(F("TC    (transmits all config values in eeprom save order)"));     
-  Serial.println(F("TC2   (transmits all config value pairs)"));     
   Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("SP gyroPitchKp gyroPitchKi gyroPitchKd    (Set PID for Pitch)"));
   Serial.println(F("SR gyroRollKp gyroRollKi gyroRollKd    (Set PID for Roll)"));
@@ -258,6 +418,8 @@ void helpMe()
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
   Serial.println(F("ODM dmpOutput (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
+  Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
+  
   Serial.println(F("HE    (This output)"));
 }
 
@@ -273,8 +435,7 @@ void setSerialProtocol()
   sCmd.addCommand("WE", writeEEPROM);   
   sCmd.addCommand("RE", readEEPROM); 
   sCmd.addCommand("TC", transmitActiveConfig);
-  sCmd.addCommand("TC2", transmitActiveConfig2);
-  sCmd.addCommand("SD", setDefaultParameters);   
+  sCmd.addCommand("SD", setDefaultParametersAndUpdate);   
   sCmd.addCommand("SP", setPitchPID);
   sCmd.addCommand("SR", setRollPID);
   sCmd.addCommand("SA", setAccComplementaryTC);
@@ -297,6 +458,7 @@ void setSerialProtocol()
   sCmd.addCommand("TAC", transmitUseACC);
   sCmd.addCommand("OAC", toggleACCOutput);
   sCmd.addCommand("ODM", toggleDMPOutput);
+  sCmd.addCommand("par", parameterMod);
   sCmd.addCommand("HE", helpMe);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't matched  (says "What?")
 }
