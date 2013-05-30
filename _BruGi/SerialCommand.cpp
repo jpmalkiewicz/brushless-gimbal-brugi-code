@@ -112,6 +112,7 @@ void SerialCommand::readSerial() {
           (*defaultHandler)(command);
         }
       }
+      // Serial.println(F("BruGi> ")); // TODO: BruGi prompt string 
       clearBuffer();
     }
     else if (isprint(inChar)) {     // Only printable characters into the buffer

@@ -30,8 +30,8 @@ int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
 bool rcAbsolute;
 bool accOutput;
-bool enableGyro;
-bool enableACC;
+bool enableGyro;           // enable gyro attitude update
+bool enableACC;            // enable acc attitude update
 bool axisReverseZ;
 bool axisSwapXY;
 } config;
@@ -71,8 +71,6 @@ void setDefaultParameters()
   config.enableACC=true;
   config.axisReverseZ=true;
   config.axisSwapXY=false;
-  recalcMotorStuff();
-  initPIDs();
 }
 
 
