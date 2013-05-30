@@ -172,7 +172,7 @@ void setup()
 /************************/
 /* PID Controller       */
 /************************/
-int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int16_t Kp, int16_t Ki, int32_t Kd)
+int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
 {
   int32_t error = setPoint - in;
   int32_t Ierr;
