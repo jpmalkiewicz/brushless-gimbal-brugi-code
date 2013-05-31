@@ -123,7 +123,7 @@ void printConfig(t_configDef * def) {
     }
     Serial.println("");
   } else {
-    Serial.println("ERROR: illegal parameter");    
+    Serial.println(F("ERROR: illegal parameter"));    
   }
 }
 
@@ -142,7 +142,7 @@ void writeConfig(t_configDef * def, int32_t val) {
     // call update function
     def->updateFunction();
   } else {
-    Serial.println("ERROR: illegal parameter");    
+    Serial.println(F("ERROR: illegal parameter"));    
   }
 }
 
@@ -155,6 +155,7 @@ void printConfigAll(t_configDef * p) {
     printConfig(&configUnion.c);
     p++; 
   }
+  Serial.println(F("done."));
 }
 
 //******************************************************************************
@@ -206,11 +207,6 @@ void toggleACCOutput()
     config.accOutput = true;
   else
     config.accOutput = false;
-}
-
-void toggleDMPOutput() // TODO: remove obsolete command
-{
-  int temp = atoi(sCmd.next());
 }
 
 void setUseACC() // TODO: remove obsolete command
@@ -337,23 +333,10 @@ void setRollPID()
   initPIDs();
 }
 
-void setAccComplementaryTC()
-{
-  config.accTimeConstant = atoi(sCmd.next());
-  setACCFastMode(false);
-}
-
 void setMotorPWM()
 {
   config.maxPWMmotorPitch = atoi(sCmd.next());
   config.maxPWMmotorRoll = atoi(sCmd.next());
-  recalcMotorStuff();
-}
-
-void setMotorParams()
-{
-  config.nPolesMotorPitch = atoi(sCmd.next());
-  config.nPolesMotorRoll = atoi(sCmd.next());
   recalcMotorStuff();
 }
 
@@ -380,13 +363,6 @@ void setSensorOrientation()
   
 }
 
-void setSensorEnable()
-{
-  config.enableGyro= atoi(sCmd.next());
-  config.enableACC= atoi(sCmd.next());
-}
-
-
 void helpMe()
 {
   Serial.println(F("This gives you a list of all commands with usage:"));
@@ -398,12 +374,9 @@ void helpMe()
   Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("SP gyroPitchKp gyroPitchKi gyroPitchKd    (Set PID for Pitch)"));
   Serial.println(F("SR gyroRollKp gyroRollKi gyroRollKd    (Set PID for Roll)"));
-  Serial.println(F("SA accLowPassTC   (Set LP time constant of complementary filter, sec)"));
-  Serial.println(F("SF nPolesMotorPitch nPolesMotorRoll"));
   Serial.println(F("SE maxPWMmotorPitch maxPWMmotorRoll     (Used for Power limitiation on each motor 255=high, 1=low)"));
   Serial.println(F("SM dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll"));
   Serial.println(F("SSO reverseZ swapXY (set sensor orientation)"));
-  Serial.println(F("SSE enableGyro enableACC (set sensor enable)"));  
   Serial.println(F("TSO   (Transmit sensor orientation)"));
   Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
   Serial.println(F("TRC   (transmitts RC Config)"));
@@ -417,7 +390,6 @@ void helpMe()
   Serial.println(F("UAC useACC (1 = true, ACC; 0 = false, DMP)"));
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
-  Serial.println(F("ODM dmpOutput (Toggle Angle output in DMP mode: 1 = true, 0 = false)"));
   Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
   
   Serial.println(F("HE    (This output)"));
@@ -438,13 +410,10 @@ void setSerialProtocol()
   sCmd.addCommand("SD", setDefaultParametersAndUpdate);   
   sCmd.addCommand("SP", setPitchPID);
   sCmd.addCommand("SR", setRollPID);
-  sCmd.addCommand("SA", setAccComplementaryTC);
-  sCmd.addCommand("SF", setMotorParams);
   sCmd.addCommand("SE", setMotorPWM);
   sCmd.addCommand("SM", setMotorDirNo);
   sCmd.addCommand("SSO", setSensorOrientation);
   sCmd.addCommand("TSO", transmitSensorOrientation);
-  sCmd.addCommand("SSE", setSensorEnable);
   sCmd.addCommand("GC", gyroRecalibrate);
   sCmd.addCommand("TRC", transmitRCConfig);
   sCmd.addCommand("SRC", setRCConfig);
@@ -457,7 +426,6 @@ void setSerialProtocol()
   sCmd.addCommand("UAC", setUseACC);
   sCmd.addCommand("TAC", transmitUseACC);
   sCmd.addCommand("OAC", toggleACCOutput);
-  sCmd.addCommand("ODM", toggleDMPOutput);
   sCmd.addCommand("par", parameterMod);
   sCmd.addCommand("HE", helpMe);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't matched  (says "What?")
