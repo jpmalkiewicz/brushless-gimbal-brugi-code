@@ -12,6 +12,7 @@ int32_t gyroRollKp;
 int32_t gyroRollKi;
 int32_t gyroRollKd;
 int16_t accTimeConstant;
+int8_t  mpuLPF;             // mpu LPF 0..6, 0=fastest(256Hz) 6=slowest(5Hz)
 int16_t angleOffsetPitch;   // angle offset, deg*100
 int16_t angleOffsetRoll;
 uint8_t nPolesMotorPitch;
@@ -52,6 +53,7 @@ void setDefaultParameters()
   config.gyroRollKi = 25000;
   config.gyroRollKd = 30000;
   config.accTimeConstant = 7;
+  config.mpuLPF = 0;
   config.angleOffsetPitch = 0;
   config.angleOffsetRoll = 0;
   config.nPolesMotorPitch = 14;

@@ -64,6 +64,20 @@ SerialCommand sCmd;     // Create SerialCommand object
 #include "SerialCom.h"            // Serial Protocol for Configuration and Communication
 
 
+void initMPUlpf() {
+  // Set Gyro Low Pass Filter(0..6, 0=fastest, 6=slowest)
+  switch (config.mpuLPF) {
+    case 0:  mpu.setDLPFMode(MPU6050_DLPF_BW_256);  break;
+    case 1:  mpu.setDLPFMode(MPU6050_DLPF_BW_188);  break;
+    case 2:  mpu.setDLPFMode(MPU6050_DLPF_BW_98);   break;
+    case 3:  mpu.setDLPFMode(MPU6050_DLPF_BW_42);   break;
+    case 4:  mpu.setDLPFMode(MPU6050_DLPF_BW_20);   break;
+    case 5:  mpu.setDLPFMode(MPU6050_DLPF_BW_10);   break;
+    case 6:  mpu.setDLPFMode(MPU6050_DLPF_BW_5);    break;
+    default: mpu.setDLPFMode(MPU6050_DLPF_BW_256);  break;
+  }
+}
+  
 /**********************************************/
 /* Initialization                             */
 /**********************************************/
@@ -117,7 +131,7 @@ void setup()
   // Initialize MPU 
   initResolutionDevider();
   
-  // Init IMU varibles
+  // Init IMU variables
   initIMU();
   
   // Auto detect MPU address
@@ -144,7 +158,7 @@ void setup()
   mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
   mpu.setFullScaleGyroRange(MPU6050_GYRO_FS);           // Set Gyro Sensitivity to config.h
   mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);       //+- 2G
-  mpu.setDLPFMode(MPU6050_DLPF_BW);                     // Set Gyro Low Pass Filter to config.h
+  initMPUlpf();                                         // Set Gyro Low Pass Filter
   mpu.setRate(0);                                       // 0=1kHz, 1=500Hz, 2=333Hz, 3=250Hz, 4=200Hz
   mpu.setSleepEnabled(false); 
   
