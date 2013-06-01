@@ -47,6 +47,8 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
+  {"mpuLPF",           INT8,  &config.mpuLPF,           &initMPUlpf},
+  
   {"angleOffsetPitch", INT16, &config.angleOffsetPitch, NULL},
   {"angleOffsetRoll",  INT16, &config.angleOffsetRoll,  NULL},
   
@@ -195,6 +197,7 @@ void setDefaultParametersAndUpdate() {
   recalcMotorStuff();
   initPIDs();
   initIMU();
+  initMPUlpf();
   initSensorOrientation();
 }
 
