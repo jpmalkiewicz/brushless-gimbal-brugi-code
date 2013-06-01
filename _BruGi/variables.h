@@ -12,6 +12,8 @@ int32_t gyroRollKp;
 int32_t gyroRollKi;
 int32_t gyroRollKd;
 int16_t accTimeConstant;
+int16_t angleOffsetPitch;   // angle offset, deg*100
+int16_t angleOffsetRoll;
 uint8_t nPolesMotorPitch;
 uint8_t nPolesMotorRoll;
 int8_t dirMotorPitch;
@@ -28,6 +30,7 @@ int16_t rcGain;
 bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
 int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
+int16_t rcMid;             // rc channel center ms
 bool rcAbsolute;
 bool accOutput;
 bool enableGyro;           // enable gyro attitude update
@@ -49,6 +52,8 @@ void setDefaultParameters()
   config.gyroRollKi = 25000;
   config.gyroRollKd = 30000;
   config.accTimeConstant = 7;
+  config.angleOffsetPitch = 0;
+  config.angleOffsetRoll = 0;
   config.nPolesMotorPitch = 14;
   config.nPolesMotorRoll = 14;
   config.dirMotorPitch = 1;
@@ -65,6 +70,7 @@ void setDefaultParameters()
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
+  config.rcMid = 1500;
   config.rcAbsolute = true;
   config.accOutput=false;
   config.enableGyro=true;
@@ -137,11 +143,11 @@ static float rollAngleSet=0;
 int count=0;
 
 // RC single channel decoder
-int32_t microsRisingEdge[RC_CHANNELS] = {0,};
-int32_t microsLastPWMUpdate[RC_CHANNELS] = {0,};
+int32_t microsRisingEdge[RC_PWM_CHANNELS] = {0,};
+int32_t microsLastPWMUpdate[RC_PWM_CHANNELS] = {0,};
 
 // RC PPM decoder
-uint16_t rcRxChannel[RC_PPM_RX_MAX_CHANNELS] = {MID_RC,};
+uint16_t rcRxChannel[RC_PPM_RX_MAX_CHANNELS] = {0,};
 bool updateRC[RC_PPM_RX_MAX_CHANNELS] = {false,};      // RC channel value got updated
 bool validRC[RC_PPM_RX_MAX_CHANNELS] = {false, };    // RC inputs valid
 
@@ -228,8 +234,6 @@ static float AccComplFilterConst = 0;  // filter constant for complementary filt
 static int16_t acc_25deg = 25;      //** TODO: check
 
 static int32_t angle[2]    = {0,0};  // absolute angle inclination in multiple of 0.01 degree    180 deg = 18000
-
-
 
 // DEBUG only
 uint32_t stackTop = 0xffffffff;
