@@ -18,7 +18,7 @@ typedef struct configDef {
   char name[CONFIGNAME_MAX_LEN];  // name of config parameter
   confType type;                  // type of config parameters
   void * address;                 // address of config parameter
-  void (* updateFunction)();      // function is called when parameter update happens
+  void (* updateFunction)(void);  // function is called when parameter update happens
 } t_configDef;
 
 t_configDef configDef;
@@ -140,7 +140,7 @@ void writeConfig(t_configDef * def, int32_t val) {
       case INT32  : *(int32_t *)(def->address)  = val; break;
     }
     // call update function
-    def->updateFunction();
+    if (def->updateFunction != NULL) def->updateFunction();
   } else {
     Serial.println(F("ERROR: illegal parameter"));    
   }
