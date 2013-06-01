@@ -40,7 +40,7 @@
 // RC Pins
 #define RC_PIN_ROLL A2
 #define RC_PIN_PITCH A1
-#define MID_RC 1500
+#define RC_PWM_CHANNELS 2
 #define MIN_RC 1000
 #define MAX_RC 2000
 #define RC_DEADBAND 50
@@ -49,7 +49,6 @@
 // PPM Decoder
 #define RC_PPM_GUARD_TIME 4000
 #define RC_PPM_RX_MAX_CHANNELS 8
-#define RC_CHANNELS 2
 
 // I2C Frequency
 //#define I2C_SPEED 100000L     //100kHz normal mode

@@ -47,6 +47,8 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
+  {"angleOffsetPitch", INT16, &config.angleOffsetPitch, NULL},
+  {"angleOffsetRoll",  INT16, &config.angleOffsetRoll,  NULL},
   
   {"dirMotorPitch",    INT8,  &config.dirMotorPitch,    NULL},
   {"dirMotorRoll",     INT8,  &config.dirMotorRoll,     NULL},
@@ -62,6 +64,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcGain",           INT16, &config.rcGain,           NULL},
   {"rcChannelPitch",   INT8, &config.rcChannelPitch,    NULL},
   {"rcChannelRoll",    INT8, &config.rcChannelRoll,     NULL},
+  {"rcMid",            INT16, &config.rcMid,            NULL},
   {"rcAbsolute",       BOOL, &config.rcAbsolute,        NULL},
   
   {"accOutput",        BOOL, &config.accOutput,         NULL},

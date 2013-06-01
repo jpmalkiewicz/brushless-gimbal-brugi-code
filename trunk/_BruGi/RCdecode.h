@@ -67,7 +67,7 @@ void checkPWMTimeout(char channelNum)
   if (((microsNow - microsLastUpdate)/CC_FACTOR) > RC_TIMEOUT) 
   {
     microsLastPWMUpdate[channelNum] = microsNow;
-    rcRxChannel[channelNum] = MID_RC;
+    rcRxChannel[channelNum] = config.rcMid;
     validRC[channelNum]=false;
     updateRC[channelNum]=true;
   }
@@ -88,7 +88,6 @@ void intDecodePPM()
   static bool rxPPMvalid = false;
 
   // PinChangeInt prolog = pin till here = 17 us 
-  CH2_ON
   
   // 45us
   pulseInPPM = (microsNow - microsPPMLastEdge)/CC_FACTOR;
@@ -118,7 +117,6 @@ void intDecodePPM()
       rxPPMvalid = false;
     }
   }
-  CH2_OFF
 }
 
 void checkPPMTimeout()
@@ -132,7 +130,7 @@ void checkPPMTimeout()
   {
     for (char i=0; i<RC_PPM_RX_MAX_CHANNELS; i++)
     {
-      rcRxChannel[i] = MID_RC;
+      rcRxChannel[i] = config.rcMid;
       validRC[i] = false;
       updateRC[i] = true;
     }
@@ -168,13 +166,13 @@ void evaluateRCSignalProportional()
   rxData = rcRxChannel[config.rcChannelPitch];
   if(updateRC[config.rcChannelPitch]==true)
   {
-    if(rxData >= MID_RC+RC_DEADBAND)
+    if(rxData >= config.rcMid+RC_DEADBAND)
     {
-      pitchRCSpeed = config.rcGain * (float)(rxData - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = config.rcGain * (float)(rxData - (config.rcMid + RC_DEADBAND))/ (float)(MAX_RC - (config.rcMid + RC_DEADBAND)) + 0.9 * pitchRCSpeed;
     }
-    else if(rxData <= MID_RC-RC_DEADBAND)
+    else if(rxData <= config.rcMid-RC_DEADBAND)
     {
-      pitchRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - rxData)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
+      pitchRCSpeed = -config.rcGain * (float)((config.rcMid - RC_DEADBAND) - rxData)/ (float)((config.rcMid - RC_DEADBAND)-MIN_RC) + 0.9 * pitchRCSpeed;
     }
     else
     {
@@ -186,13 +184,13 @@ void evaluateRCSignalProportional()
   
   rxData = rcRxChannel[config.rcChannelRoll];
   if(updateRC[config.rcChannelRoll]==true)  {
-    if(rxData >= MID_RC+RC_DEADBAND)
+    if(rxData >= config.rcMid+RC_DEADBAND)
     {
-      rollRCSpeed = config.rcGain * (float)(rxData - (MID_RC + RC_DEADBAND))/ (float)(MAX_RC - (MID_RC + RC_DEADBAND)) + 0.9 * rollRCSpeed;
+      rollRCSpeed = config.rcGain * (float)(rxData - (config.rcMid + RC_DEADBAND))/ (float)(MAX_RC - (config.rcMid + RC_DEADBAND)) + 0.9 * rollRCSpeed;
     }
-    else if(rxData <= MID_RC-RC_DEADBAND)
+    else if(rxData <= config.rcMid-RC_DEADBAND)
     {
-      rollRCSpeed = -config.rcGain * (float)((MID_RC - RC_DEADBAND) - rxData)/ (float)((MID_RC - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
+      rollRCSpeed = -config.rcGain * (float)((config.rcMid - RC_DEADBAND) - rxData)/ (float)((config.rcMid - RC_DEADBAND)-MIN_RC) + 0.9 * rollRCSpeed;
     }
     else
     {

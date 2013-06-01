@@ -23,17 +23,6 @@
   #define ACC_LPF_FACTOR 40
 #endif
 
-
-/* Set the Gyro Weight for Gyro/Acc complementary filter */
-/* Increasing this value would reduce and delay Acc influence on the output of the filter*/
-#ifndef GYR_CMPF_FACTOR
-  #define GYR_CMPF_FACTOR (1.0f/2000.0f)
-#endif
-
-//****** end of advanced users settings *************
-
-#define INV_GYR_CMPF_FACTOR   (1.0f / (GYR_CMPF_FACTOR  + 1.0f))
-
 #define ACC_1G 16384.0f
 
 // Small angle approximation
@@ -232,10 +221,10 @@ void getAttiduteAngles() {
   // attitude of the estimated vector  
 
   // 200 us
-  angle[ROLL]  =  _atan2(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
+  angle[ROLL]  = config.angleOffsetRoll +  _atan2(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
  
   // 192 us
-   angle[PITCH] = Rajan_FastArcTan2_deg100(EstG.V.Y , EstG.V.Z);  
+   angle[PITCH] = config.angleOffsetPitch + Rajan_FastArcTan2_deg100(EstG.V.Y , EstG.V.Z);  
 }
 
 
