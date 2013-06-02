@@ -37,7 +37,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 */
 
 
-#define VERSION_STATUS A // A = Alpha; B = Beta , N = Normal Release
+#define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
 
 
@@ -94,8 +94,6 @@ void setup()
   
   CH2_PINMODE
   CH3_PINMODE
-  
-  CH3_ON
   
   // Start Serial Port
   Serial.begin(115200);
@@ -167,7 +165,9 @@ void setup()
   
   // Gyro Offset calibration
   Serial.println(F("Gyro calibration: do not move"));
+  mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
+  initMPUlpf();
   Serial.println(F("Gyro calibration: done"));
   
   LEDPIN_ON
@@ -361,7 +361,7 @@ void loop()
       break;
     case 10:    
 #ifdef STACKHEAPCHECK_ENABLE
-      stackHeapEval();
+      stackHeapEval(false);
 #endif
       count=0;
       break;

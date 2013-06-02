@@ -72,7 +72,7 @@ void SerialCommand::setDefaultHandler(void (*function)(const char *)) {
  */
 void SerialCommand::readSerial() {
   while (Serial.available() > 0) {
-    char inChar = Serial.read();   // Read single available character, there may be more waiting
+    char inChar = toLowerCase(Serial.read());   // Read single available character, there may be more waiting
     #ifdef SERIALCOMMAND_DEBUG
       Serial.print(inChar);   // Echo back to serial stream
     #endif

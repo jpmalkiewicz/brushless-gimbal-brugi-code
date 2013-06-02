@@ -169,10 +169,19 @@ inline void heapCheck() {
   free(memPtr);
 }
 
-inline void stackHeapEval() {
+inline void stackHeapEval(bool doPrint) {
 
-if ((heapTop+16) > stackTop) {
-  Serial.print(F("WARNING: low stacksize < 16, stackTop=0x")); Serial.print(stackTop, HEX);
-  Serial.print(F("heapTop=0x")); Serial.println(heapTop, HEX);;
+  int diff = stackTop - heapTop;
+  if (diff < 64) {
+    Serial.println(F("WARNING: low memory < 64"));
+  }
+  if ((diff <64) || doPrint) {
+    Serial.print(F("free memory = ")); Serial.println(diff);
+    Serial.print(F("stackSize   = ")); Serial.println(stackBottom-stackTop);
+    Serial.print(F("stackBottom = 0x")); Serial.println(stackBottom, HEX);
+    Serial.print(F("stackTop    = 0x")); Serial.println(stackTop, HEX);
+    Serial.print(F("heapSize    = ")); Serial.println(heapTop-heapBottom);
+    Serial.print(F("heapTop     = 0x")); Serial.println(heapTop, HEX);
+    Serial.print(F("heapBottom  = 0x")); Serial.println(heapBottom, HEX);
+  }
 }
-} 
