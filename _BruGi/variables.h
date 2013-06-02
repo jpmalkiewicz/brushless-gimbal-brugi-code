@@ -130,6 +130,7 @@ int rollMotorDrive = 0;
 // control motor update in ISR
 bool enableMotorUpdates = false;
 
+
 // Variables for MPU6050
 float gyroPitch;
 float gyroRoll; //in deg/s
@@ -174,6 +175,8 @@ enum gimStateType {
 };
 
 gimStateType gimState = GIM_IDLE;
+int stateCount = 0;
+
 
 //*************************************
 //

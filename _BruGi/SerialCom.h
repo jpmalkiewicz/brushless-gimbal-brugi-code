@@ -351,7 +351,9 @@ void setMotorPWM()
 
 void gyroRecalibrate()
 {
+  mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
+  initMPUlpf();
   Serial.println(F("recalibration: done"));
 }
 
@@ -375,19 +377,28 @@ void setSensorOrientation()
 void helpMe()
 {
   Serial.println(F("This gives you a list of all commands with usage:"));
-  Serial.println(F("Explanation in brackets(), use Integers only !"));
+  Serial.println(F("Explanations are in brackets(), use integer values only !"));
   Serial.println(F(""));
+  Serial.println(F("these are the preferred commands, use them for new GUIs !!"));
+  Serial.println(F(""));
+  Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("WE    (Writes active config to eeprom)"));
   Serial.println(F("RE    (Restores values from eeprom to active config)"));  
+  Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
+  Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
+  Serial.println(F("    example usage:"));
+  Serial.println(F("       par                     ... list all config parameters"));
+  Serial.println(F("       par gyroPitchKi         ... list gyroPitchKi"));
+  Serial.println(F("       par gyroPitchKi 12000   ... set gyroPitchKi to 12000"));
+  Serial.println(F(""));
+  Serial.println(F("these commands are intendend for commandline users and compatibilty with 049 GUI"));
   Serial.println(F("TC    (transmits all config values in eeprom save order)"));     
-  Serial.println(F("SD    (Set Defaults)"));
   Serial.println(F("SP gyroPitchKp gyroPitchKi gyroPitchKd    (Set PID for Pitch)"));
   Serial.println(F("SR gyroRollKp gyroRollKi gyroRollKd    (Set PID for Roll)"));
   Serial.println(F("SE maxPWMmotorPitch maxPWMmotorRoll     (Used for Power limitiation on each motor 255=high, 1=low)"));
   Serial.println(F("SM dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll"));
   Serial.println(F("SSO reverseZ swapXY (set sensor orientation)"));
   Serial.println(F("TSO   (Transmit sensor orientation)"));
-  Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
   Serial.println(F("TRC   (transmitts RC Config)"));
   Serial.println(F("SRC minRCPitch maxRCPitch minRCRoll maxRCRoll (angles -90..90)"));
   Serial.println(F("SCA rcAbsolute (1 = true, RC control is absolute; 0 = false, RC control is proportional)"));
@@ -399,9 +410,11 @@ void helpMe()
   Serial.println(F("UAC useACC (1 = true, ACC; 0 = false, DMP)"));
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
-  Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
-  
+  Serial.println(F(""));
   Serial.println(F("HE    (This output)"));
+  Serial.println(F(""));
+  Serial.println(F("Note: command input is case insensitive, upper/lower case is not checked"));
+
 }
 
 void unrecognized(const char *command) 
@@ -413,29 +426,31 @@ void unrecognized(const char *command)
 void setSerialProtocol()
 {
   // Setup callbacks for SerialCommand commands
-  sCmd.addCommand("WE", writeEEPROM);   
-  sCmd.addCommand("RE", readEEPROM); 
-  sCmd.addCommand("TC", transmitActiveConfig);
-  sCmd.addCommand("SD", setDefaultParametersAndUpdate);   
-  sCmd.addCommand("SP", setPitchPID);
-  sCmd.addCommand("SR", setRollPID);
-  sCmd.addCommand("SE", setMotorPWM);
-  sCmd.addCommand("SM", setMotorDirNo);
-  sCmd.addCommand("SSO", setSensorOrientation);
-  sCmd.addCommand("TSO", transmitSensorOrientation);
-  sCmd.addCommand("GC", gyroRecalibrate);
-  sCmd.addCommand("TRC", transmitRCConfig);
-  sCmd.addCommand("SRC", setRCConfig);
-  sCmd.addCommand("SRG", setRCGain);
-  sCmd.addCommand("SRM", setRcMode);  
-  sCmd.addCommand("TRM", transmitRcMode);  
-  sCmd.addCommand("SCA", setRCAbsolute);
-  sCmd.addCommand("TCA", transmitRCAbsolute);
-  sCmd.addCommand("TRG", transmitRCGain);
-  sCmd.addCommand("UAC", setUseACC);
-  sCmd.addCommand("TAC", transmitUseACC);
-  sCmd.addCommand("OAC", toggleACCOutput);
+  sCmd.addCommand("sd", setDefaultParametersAndUpdate);   
+  sCmd.addCommand("we", writeEEPROM);   
+  sCmd.addCommand("re", readEEPROM); 
   sCmd.addCommand("par", parameterMod);
-  sCmd.addCommand("HE", helpMe);
+  sCmd.addCommand("gc", gyroRecalibrate);
+
+  sCmd.addCommand("tc", transmitActiveConfig);
+  sCmd.addCommand("sp", setPitchPID);
+  sCmd.addCommand("sr", setRollPID);
+  sCmd.addCommand("se", setMotorPWM);
+  sCmd.addCommand("sm", setMotorDirNo);
+  sCmd.addCommand("sso", setSensorOrientation);
+  sCmd.addCommand("tso", transmitSensorOrientation);
+  sCmd.addCommand("trc", transmitRCConfig);
+  sCmd.addCommand("src", setRCConfig);
+  sCmd.addCommand("srg", setRCGain);
+  sCmd.addCommand("srm", setRcMode);  
+  sCmd.addCommand("trm", transmitRcMode);  
+  sCmd.addCommand("sca", setRCAbsolute);
+  sCmd.addCommand("tca", transmitRCAbsolute);
+  sCmd.addCommand("trc", transmitRCGain);
+  sCmd.addCommand("uac", setUseACC);
+  sCmd.addCommand("tac", transmitUseACC);
+  sCmd.addCommand("oac", toggleACCOutput);
+
+  sCmd.addCommand("he", helpMe);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't matched  (says "What?")
 }
