@@ -2,6 +2,15 @@
 /* RC-Decoder            */
 /*************************/
 
+// init RC config variables
+void initRC() {
+  rcLPF_tc = LOWPASS_K_FLOAT(config.rcLPF*0.1);
+  Serial.print(F("config.rcLPF "));
+  Serial.println(config.rcLPF);
+  Serial.print(F("rcLPF_tc "));
+  Serial.println(rcLPF_tc,5);
+}
+
 // pinChange Int driven Functions
 
 // RC Channel 0

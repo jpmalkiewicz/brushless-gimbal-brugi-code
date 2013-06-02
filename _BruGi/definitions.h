@@ -23,7 +23,7 @@
 #define LOCK_TIME_SEC 5  // gimbal fast lock time at startup 
 
 // LP filter coefficient
-#define LOWPASS_K(TAU) (DT/(TAU+DT))
+#define LOWPASS_K_FLOAT(TAU) (DT_FLOAT/(TAU+DT_FLOAT))
 
 // Do not change for now
 #define MPU6050_GYRO_FS MPU6050_GYRO_FS_250  // +-250,500,1000,2000 deg/s
