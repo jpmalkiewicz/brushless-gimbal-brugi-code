@@ -31,39 +31,56 @@ void initResolutionDevider()
 
 // This functions performs an initial gyro offset calibration
 // INCLUDING motion detection
-// Board should be still for some seconds 
+// Board should be still for some seconds
 void gyroOffsetCalibration()
 {
-  #define TOL 256
+  int i;
+  #define TOL 64
+  #define GYRO_INTERATIONS 2000
   int16_t prevGyro[3],gyro[3];
   float fp_gyroOffset[3];
   uint8_t tiltDetected = 0;
-  int calibGCounter = 8000;
+  int calibGCounter = GYRO_INTERATIONS;
   
   // Set voltage on all motor phases to zero 
   enableMotorUpdates = false;
-  delay(3000*CC_FACTOR); // 3 sec 
+
+  // wait 1 second
+  for (i=0; i<100; i++) {
+    delayMicroseconds(10000); // 1 ms 
+  }
   
   while(calibGCounter>0)
   {
-    OCR2A = 0; OCR2B = 0; OCR1A = 0; OCR1B = 0; OCR0A = 0; OCR0B = 0; 
-    mpu.getRotation(&gyro[0], &gyro[1], &gyro[2]);  
-    if(calibGCounter==8000)
+
+    if(calibGCounter==GYRO_INTERATIONS)
     {
-      for (char i=0; i<3; i++) {
+      for (i=0; i<70; i++) { // wait 0.7sec if calibration failed
+        delayMicroseconds(10000); // 10 ms 
+      }
+      mpu.getRotation(&gyro[0], &gyro[1], &gyro[2]); 
+      for (i=0; i<3; i++) {
         fp_gyroOffset[i] = 0;
         prevGyro[i]=gyro[i];
       }
     }
     
-    if(calibGCounter % 10 == 0)
-    { 
-      if((abs(prevGyro[0]-gyro[0])>TOL)||(abs(prevGyro[1]-gyro[1])>TOL)||(abs(prevGyro[2]-gyro[2])>TOL)) tiltDetected++;
-      prevGyro[0] = gyro[0]; prevGyro[1] = gyro[1]; prevGyro[2] = gyro[2];
-    }
+    mpu.getRotation(&gyro[0], &gyro[1], &gyro[2]);  
+
+    for (i=0; i<3; i++) {
+      if(abs(prevGyro[i] - gyro[i]) > TOL) {
+        tiltDetected++;
+        //Serial.print(F(" i="));Serial.print(i);
+        //Serial.print(F(" calibGCounter="));Serial.print(calibGCounter);
+        //Serial.print(F(" diff="));Serial.print(prevGyro[i] - gyro[i]);
+        //Serial.print(F(" gyroi="));Serial.print(gyro[i]);
+        //Serial.print(F(" prevgyroi="));Serial.println(prevGyro[i]);
+        break;
+      }
+    } 
      
-    for (char i=0; i<3; i++) {
-        fp_gyroOffset[i] += gyro[i]/8000.0;
+    for (i=0; i<3; i++) {
+        fp_gyroOffset[i] += (float)gyro[i]/GYRO_INTERATIONS;
         prevGyro[i]=gyro[i];
     }
       
@@ -71,18 +88,16 @@ void gyroOffsetCalibration()
     if(tiltDetected>=1)
     {
       Serial.println(F("Motion detected during Gyro calibration. Starting over!"));
-      calibGCounter=8000;
+      calibGCounter=GYRO_INTERATIONS;
       tiltDetected=0;
     }
   }
 
   // put result into integer
-  for (char i=0; i<3; i++) {
+  for (i=0; i<3; i++) {
     gyroOffset[i] = fp_gyroOffset[i];
     //Serial.print(F("gyroOffset="));Serial.println(fp_gyroOffset[i], 3);
   }
-
-
 
   enableMotorUpdates = true;
 }
