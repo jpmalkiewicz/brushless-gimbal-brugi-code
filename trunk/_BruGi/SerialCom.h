@@ -46,6 +46,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroPitchKd",      INT32, &config.gyroPitchKd,      &initPIDs},
   {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
+  {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
   {"mpuLPF",           INT8,  &config.mpuLPF,           &initMPUlpf},
   
