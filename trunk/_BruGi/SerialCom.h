@@ -64,6 +64,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"minRCRoll",        INT8, &config.minRCRoll,         NULL},
   {"maxRCRoll",        INT8, &config.maxRCRoll,         NULL},
   {"rcGain",           INT16, &config.rcGain,           NULL},
+  {"rcLPF",            INT16, &config.rcLPF,            &initRC},
   {"rcChannelPitch",   INT8, &config.rcChannelPitch,    NULL},
   {"rcChannelRoll",    INT8, &config.rcChannelRoll,     NULL},
   {"rcMid",            INT16, &config.rcMid,            NULL},
@@ -199,6 +200,7 @@ void setDefaultParametersAndUpdate() {
   initIMU();
   initMPUlpf();
   initSensorOrientation();
+  initRC();
 }
 
 void transmitUseACC()  // TODO: remove obsolete command

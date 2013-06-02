@@ -28,6 +28,7 @@ int8_t maxRCPitch;
 int8_t minRCRoll;
 int8_t maxRCRoll;
 int16_t rcGain;
+int16_t rcLPF;             // low pass filter for RC absolute mode, units=1/10 sec
 bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
 int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
@@ -69,6 +70,7 @@ void setDefaultParameters()
   config.minRCRoll = -30;
   config.maxRCRoll = 30;
   config.rcGain = 5;
+  config.rcLPF = 20;              // 2 sec
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
@@ -144,7 +146,7 @@ static float rollAngleSet=0;
 
 int count=0;
 
-// RC single channel decoder
+// RC single channel PWM decoder
 int32_t microsRisingEdge[RC_PWM_CHANNELS] = {0,};
 int32_t microsLastPWMUpdate[RC_PWM_CHANNELS] = {0,};
 
@@ -155,10 +157,14 @@ bool validRC[RC_PPM_RX_MAX_CHANNELS] = {false, };    // RC inputs valid
 
 int32_t microsLastPPMupdate = 0;
 bool rxPPMvalid = false;
+
+
+// RC control
 float pitchRCSpeed=0.0;
 float rollRCSpeed=0.0;
 float pitchRCSetpoint = 0.0;
 float rollRCSetpoint = 0.0;
+float rcLPF_tc = 1.0;
 
 // Gimbal State
 enum gimStateType {

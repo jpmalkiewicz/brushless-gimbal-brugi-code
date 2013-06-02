@@ -119,7 +119,10 @@ void setup()
   
   // Init PIDs to reduce floating point operations.
   initPIDs();
-    
+
+  // init RC variables
+  initRC();
+  
   // Start I2C and Configure Frequency
   Wire.begin();
   TWSR = 0;                                  // no prescaler => prescaler = 1
@@ -235,12 +238,11 @@ void loop()
     
     // Evaluate RC-Signals
     if(config.rcAbsolute==1) {
-      evaluateRCSignalAbsolute();  // Gives rollRCSetPoint, pitchRCSetpoint
-      // filter and assign RC Setpoints
-      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.0008);
-      utilLP_float(&rollAngleSet, RollPhiSet, 0.0008);
+      evaluateRCSignalAbsolute();  // gives rollRCSetPoint, pitchRCSetpoint
+      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc);
+      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc);
     } else {
-      evaluateRCSignalProportional(); // Gives rollRCSpeed, pitchRCSpeed
+      evaluateRCSignalProportional(); // gives rollRCSpeed, pitchRCSpeed
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
     }
