@@ -46,7 +46,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroPitchKd",      INT32, &config.gyroPitchKd,      &initPIDs},
   {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
-  {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
+  {"gyroRollKd",       INT32, &config.gyroRollKd,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
   {"mpuLPF",           INT8,  &config.mpuLPF,           &initMPUlpf},
   
@@ -446,7 +446,7 @@ void setSerialProtocol()
   sCmd.addCommand("trm", transmitRcMode);  
   sCmd.addCommand("sca", setRCAbsolute);
   sCmd.addCommand("tca", transmitRCAbsolute);
-  sCmd.addCommand("trc", transmitRCGain);
+  sCmd.addCommand("trg", transmitRCGain);
   sCmd.addCommand("uac", setUseACC);
   sCmd.addCommand("tac", transmitUseACC);
   sCmd.addCommand("oac", toggleACCOutput);
