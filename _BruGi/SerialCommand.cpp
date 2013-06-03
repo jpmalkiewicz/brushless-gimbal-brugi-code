@@ -72,7 +72,7 @@ void SerialCommand::setDefaultHandler(void (*function)(const char *)) {
  */
 void SerialCommand::readSerial() {
   while (Serial.available() > 0) {
-    char inChar = toLowerCase(Serial.read());   // Read single available character, there may be more waiting
+    char inChar = Serial.read();   // Read single available character, there may be more waiting
     #ifdef SERIALCOMMAND_DEBUG
       Serial.print(inChar);   // Echo back to serial stream
     #endif
@@ -96,6 +96,8 @@ void SerialCommand::readSerial() {
           #endif
 
           // Compare the found command against the list of known commands for a match
+          for (int i = 0; command[i] != '\0'; i++)   // as no strnicmp exists ...
+            command[i] = (char)tolower(command[i]);
           if (strncmp(command, commandList[i].command, SERIALCOMMAND_MAXCOMMANDLENGTH) == 0) {
             #ifdef SERIALCOMMAND_DEBUG
               Serial.print(F("Matched Command: "));
