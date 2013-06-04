@@ -60,24 +60,26 @@ const t_configDef PROGMEM configListPGM[] = {
   {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, &recalcMotorStuff},
   {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  &recalcMotorStuff},
 
-  {"minRCPitch",       INT8, &config.minRCPitch,        NULL},
-  {"maxRCPitch",       INT8, &config.maxRCPitch,        NULL},
-  {"minRCRoll",        INT8, &config.minRCRoll,         NULL},
-  {"maxRCRoll",        INT8, &config.maxRCRoll,         NULL},
-  {"rcGain",           INT16, &config.rcGain,           NULL},
-  {"rcLPF",            INT16, &config.rcLPF,            &initRC},
-  {"rcChannelPitch",   INT8, &config.rcChannelPitch,    NULL},
-  {"rcChannelRoll",    INT8, &config.rcChannelRoll,     NULL},
-  {"rcMid",            INT16, &config.rcMid,            NULL},
-  {"rcAbsolute",       BOOL, &config.rcAbsolute,        NULL},
+  {"minRCPitch",       INT8,  &config.minRCPitch,        NULL},
+  {"maxRCPitch",       INT8,  &config.maxRCPitch,        NULL},
+  {"minRCRoll",        INT8,  &config.minRCRoll,         NULL},
+  {"maxRCRoll",        INT8,  &config.maxRCRoll,         NULL},
+  {"rcGain",           INT16, &config.rcGain,            NULL},
+  {"rcLPF",            INT16, &config.rcLPF,             &initRC},
+
+  {"rcModePPM",        BOOL,  &config.rcModePPM,         &initRC},
+  {"rcChannelPitch",   INT8,  &config.rcChannelPitch,    NULL},
+  {"rcChannelRoll",    INT8,  &config.rcChannelRoll,     NULL},
+  {"rcMid",            INT16, &config.rcMid,             NULL},
+  {"rcAbsolute",       BOOL,  &config.rcAbsolute,        NULL},
   
-  {"accOutput",        BOOL, &config.accOutput,         NULL},
+  {"accOutput",        BOOL,  &config.accOutput,         NULL},
 
-  {"enableGyro",       BOOL, &config.enableGyro,        NULL},
-  {"enableACC",        BOOL, &config.enableACC,         NULL},
+  {"enableGyro",       BOOL,  &config.enableGyro,        NULL},
+  {"enableACC",        BOOL,  &config.enableACC,         NULL},
 
-  {"axisReverseZ",     BOOL, &config.axisReverseZ,      &initSensorOrientation},
-  {"axisSwapXY",       BOOL, &config.axisSwapXY,        &initSensorOrientation},
+  {"axisReverseZ",     BOOL,  &config.axisReverseZ,      &initSensorOrientation},
+  {"axisSwapXY",       BOOL,  &config.axisSwapXY,        &initSensorOrientation},
   
   {NULL, BOOL, NULL, NULL} // terminating NULL required !!
 };
@@ -173,7 +175,6 @@ void printConfigAll(t_configDef * p) {
 //*****************************************************************************
 void parameterMod() {
 
-  char * token = NULL;
   char * paraName = NULL;
   char * paraValue = NULL;
   
@@ -374,7 +375,7 @@ void setSensorOrientation()
   
 }
 
-void helpMe()
+void printHelpUsage()
 {
   Serial.println(F("This gives you a list of all commands with usage:"));
   Serial.println(F("Explanations are in brackets(), use integer values only !"));
@@ -411,11 +412,98 @@ void helpMe()
   Serial.println(F("TAC   (Transmit ACC status)"));
   Serial.println(F("OAC accOutput (Toggle Angle output in ACC mode: 1 = true, 0 = false)"));
   Serial.println(F(""));
-  Serial.println(F("HE    (This output)"));
+  Serial.println(F("HE     (print this output)"));
+  Serial.println(F("HE par (print config paramter description)"));
   Serial.println(F(""));
-  Serial.println(F("Note: command input is case insensitive, upper/lower case is not checked"));
-
+  Serial.println(F("Note: command input is case-insensitive, commands are accepted in both upper/lower case"));
 }
+
+void printHelpParameters () {
+  Serial.println(F("description of config paramters:"));
+  Serial.println(F(""));
+  Serial.println(F("vers"));
+  Serial.println(F("  firmware version"));
+  Serial.println(F(""));
+  Serial.println(F("gyroPitchKp/gyroRollKp"));
+  Serial.println(F("  pid controller P-value"));
+  Serial.println(F("gyroPitchKi/gyroRollKi"));
+  Serial.println(F("  pid controller I-value"));
+  Serial.println(F("gyroPitchKd/gyroRollKd"));
+  Serial.println(F("  pid controller D-value"));
+  Serial.println(F("accTimeConstant"));
+  Serial.println(F("  time constant of ACC complementary filter."));
+  Serial.println(F("  controls how fast the gimbal follows ACC."));
+  Serial.println(F("  unit = 1 sec, e.g. 7 = 7 seconds"));
+  Serial.println(F("mpuLPF"));
+  Serial.println(F("  low pass filter of gyro (DLPFMode)"));
+  Serial.println(F("  legal values are 0...6, 0=fastest 6=slowest"));
+  Serial.println(F("  use slow values if high frequency oscillations occur (still experimental)"));
+  Serial.println(F(""));
+  Serial.println(F("angleOffsetPitch/angleOffsetRoll"));
+  Serial.println(F("  offset of gimbal zero position"));
+  Serial.println(F("  unit = 0.01 deg, e.g. 500 = 5.00 deg"));
+  Serial.println(F(""));
+  Serial.println(F("dirMotorPitch/dirMotorRoll"));
+  Serial.println(F("  motor direction"));
+  Serial.println(F("  1 = normal, -1 = reverse direction"));
+  Serial.println(F("motorNumberPitch/motorNumberRoll"));
+  Serial.println(F("  assign motor output for pitch and roll, legal values are 0 or 1"));
+  Serial.println(F("maxPWMmotorPitch/maxPWMmotorRoll"));
+  Serial.println(F("  motor power, legal range 0 to 255"));
+  Serial.println(F(""));
+  Serial.println(F("minRCPitch/minRCRoll"));
+  Serial.println(F("  RC minimum set point angle, unit = 1 deg"));
+  Serial.println(F("maxRCPitch/maxRCRoll"));
+  Serial.println(F("  RC maximum set point angle, unit = 1 deg"));
+  Serial.println(F("rcGain"));
+  Serial.println(F("  RC gain in Relative mode, specifies speed of gimbal movement"));
+  Serial.println(F("rcLPF"));
+  Serial.println(F("  RC low pass filter in Absolute mode, specified speed of gimbal movement"));
+  Serial.println(F("  unit = 0.1 sec, e.g. 20 = 2.0 seconds"));
+  Serial.println(F(""));
+  Serial.println(F("rcModePPM"));
+  Serial.println(F("  0 ... use two RC PWM inputs on A0 and A1"));
+  Serial.println(F("  1 ... use PPM sum input on A0"));
+  Serial.println(F(""));
+  Serial.println(F("rcChannelPitch"));
+  Serial.println(F("   RC channel assignment for RC pitch, legal values are 0 to 7 in PPM mode"));
+  Serial.println(F("rcChannelRoll"));
+  Serial.println(F("   RC channel assignment for RC roll, legal values are 0 to 7 in PPM mode"));
+  Serial.println(F(""));
+  Serial.println(F("rcMid"));
+  Serial.println(F("   RC center position, unit = 1 msec, default=1500"));
+  Serial.println(F("rcAbsolute"));
+  Serial.println(F("   0 ... RC Relative Mode, gimbal position is incremented/decremented by RC"));
+  Serial.println(F("   1 ... RC Absolute Mode, RC controls gimbal directly"));
+  Serial.println(F(""));
+  Serial.println(F("accOutput"));
+  Serial.println(F("   1 ... enable ACC printout for GUI chart display"));
+  Serial.println(F("enableGyro/enableACC"));
+  Serial.println(F("   1 ... enable Gyro/ACC update in control loop"));
+  Serial.println(F("         just for test and adjustment purposes"));
+  Serial.println(F(""));
+  Serial.println(F("axisReverseZ"));
+  Serial.println(F("   0 ... sensor is mounted with component side up"));
+  Serial.println(F("   1 ... sensor is mounted with component side down"));
+  Serial.println(F("axisSwapXY"));
+  Serial.println(F("   0 ... standard X/Y sensor orientation"));
+  Serial.println(F("   1 ... swap X/Y, exchange roll/pitch function, when sensor is rotated 90 degrees"));
+  Serial.println(F(""));
+}
+
+void helpMe() {
+  char * paraName = NULL;
+  if ((paraName = sCmd.next()) == NULL) {
+    // no command parameter, print usage
+    printHelpUsage();
+  } else if (strncmp(paraName, "par", CONFIGNAME_MAX_LEN) == 0) {
+    // print parameter help
+    printHelpParameters();
+  } else {
+    printHelpUsage();
+  }
+}
+
 
 void unrecognized(const char *command) 
 {
