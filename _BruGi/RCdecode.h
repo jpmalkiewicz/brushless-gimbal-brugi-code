@@ -108,7 +108,7 @@ void intDecodePPM()
     }
     rxPPMvalid = false;
   }
-  else if (channel_idx < RC_PPM_RX_MAX_CHANNELS-1)
+  else if (channel_idx < RC_PPM_RX_MAX_CHANNELS)
   {      
     if ((pulseInPPM >= MIN_RC) && (pulseInPPM <= MAX_RC)) 
     {
