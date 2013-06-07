@@ -1,23 +1,14 @@
-049 r63
-
-these are the preferred commands, use them for new GUIs !!
-
-SD    (Set Defaults)
-WE    (Writes active config to eeprom)
-RE    (Restores values from eeprom to active config)
-GC    (Recalibrates the Gyro Offsets)
-par <parName> <parValue>   (general parameter read/set command)
-    example usage:
-       par                     ... list all config parameters
-       par gyroPitchKi         ... list gyroPitchKi
-       par gyroPitchKi 12000   ... set gyroPitchKi to 12000
-
-HE     (print this output)
-HE par (print config paramter description)	   
-	   
+7.6.2013
+049B r69
+  * GUI updates by meister
+  * minor bug fixes
+  * updated release history and readme.txt
+	  
+3.6.2013	  
 049 r61:
 - minor bug fix: "par" command did not accept all names 
 
+2.6.2013
 049 r58:
 IMPORTANT: a known issue exist in "par" command handling (it does not accept all parameter names)
 use 049 r61 instead
@@ -33,16 +24,19 @@ use 049 r61 instead
 * unified config parameter setting with new "par" command
 * minor fixes
 
+28.5.2013
 049 r45:
 - RC +/-45 degree glitch fixed at pitch, roll still unchanged
 - faster lock at startup
 - OAC output runs at 25Hz, is same rate as used by 046...
 - RC low pass filters have been set slower in absolute mode
 
+23.5.2013
 049 r40:
 - RC functionality has been refined, runs smoothly now
 - gyro calibration improved, still calibration is unprecise occasionally
 
+20.5.2013
 049 ALPHA r34:
 - major rework, with new IMU calculation and PID controller.
   (the actual numbers for P,I and D have no relation to previous versions, see example screenshots in GUI dir for reference)
