@@ -147,24 +147,21 @@ static float rollAngleSet=0;
 
 int count=0;
 
-// RC single channel PWM decoder
-int32_t microsRisingEdge[RC_PWM_CHANNELS] = {0,};
-int32_t microsLastPWMUpdate[RC_PWM_CHANNELS] = {0,};
-
-// RC PPM decoder
-uint16_t rcRxChannel[RC_PPM_RX_MAX_CHANNELS] = {0,};
-bool updateRC[RC_PPM_RX_MAX_CHANNELS] = {false,};      // RC channel value got updated
-bool validRC[RC_PPM_RX_MAX_CHANNELS] = {false, };    // RC inputs valid
-
-int32_t microsLastPPMupdate = 0;
-bool rxPPMvalid = false;
-
-
 // RC control
-float pitchRCSpeed=0.0;
-float rollRCSpeed=0.0;
-float pitchRCSetpoint = 0.0;
-float rollRCSetpoint = 0.0;
+
+struct rcData_t
+{
+ uint32_t microsRisingEdge;
+ uint32_t microsLastUpdate;
+ uint16_t rx;
+ bool     update;
+ bool     valid;
+ float    rcSpeed;
+ float    setpoint;
+};
+
+rcData_t rcData[RC_DATA_SIZE];
+
 float rcLPF_tc = 1.0;
 
 // Gimbal State

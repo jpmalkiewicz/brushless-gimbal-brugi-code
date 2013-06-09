@@ -1259,11 +1259,11 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.general.settings.rc -text "RC"
 		pack .note.general.settings.rc -side left -expand yes -fill both
 
-			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC Mode PPM/PWM" "PPM" "ppm-sum oder single pwm rc-input" ""
-			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "absolute or incremental rc input" "Absolute or Proportional mode is for RC Channel, Proportional is when you are using a second RC Transmitter to control your Gimbal, Absolute for normal Pot control on your RC Transmitter"
-			gui_slider .note.general.settings.rc.rcGain rcGain 0.0 200.0 0.1 "rcGain" "rc gain" "the RC Gain, how fast it react when you are change you RC channel you have it connected to"
-			gui_slider .note.general.settings.rc.rcLPF rcLPF 1 20 0.1 "rcLPF" "RC low pass filter" "RC low pass filter in Absolute mode, specified speed of gimbal movement"
-			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "rcMid" "RC-Mid" ""
+			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A1/A2: PPM sum input on A1 or single RC PWM inputs on A1=Ch0, A2=Ch1"
+			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+			gui_slider .note.general.settings.rc.rcGain rcGain 0.0 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.general.settings.rc.rcLPF rcLPF 1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"
 
 		labelframe .note.general.settings.sensor -text "Sensor"
 		pack .note.general.settings.sensor -side left -expand yes -fill both
@@ -1272,12 +1272,12 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			frame .note.general.settings.sensor.set
 			pack .note.general.settings.sensor.set -side left -expand yes -fill both
 
-				gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "axisReverseZ" "reversed" "Set Sensor Orientation: Z" "Sensor - Orientation"
-				gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "axisSwapXY" "swapped" "Set Sensor Orientation: XY" "Sensor - Orientation"
-				gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 0 20 1 "accTimeConstant"  "accTimeConstant" "time constant of ACC complementary filter.  controls how fast the gimbal follows ACC.  unit = 1 sec, e.g. 7 = 7 seconds"
-				gui_slider .note.general.settings.sensor.set.mpuLPF mpuLPF 0 6 1 "mpuLPF" "low pass filter of gyro" "low pass filter of gyro (DLPFMode)   legal values are 0...6, 0=fastest 6=slowest   use slow values if high frequency oscillations occur (still experimental)"
-				gui_check .note.general.settings.sensor.set.enableGyro enableGyro "enableGyro" "enabled" "Gyro update in control loop" "Gyro update in control loop, just for test and adjustment purposes"
-				gui_check .note.general.settings.sensor.set.enableACC enableACC "enableACC" "enabled" "ACC update in control loop" "ACC update in control loop, just for test and adjustment purposes"
+				gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "Reverse Z-axis" "reversed" "config.axisReverseZ: Set Sensor Orientation: 0=sensor mounted with component side up, 1=sensor mounted upside down" "Set Sensor Orientation Z-Axis: 0=sensor mounted with component side up, 1=sensor mounted upside down"
+				gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "Swap XY-axis" "swapped" "config.axisSwapXY: Set Sensor Orientation XY-Axis: 0=normal, 1=swap X/Y axis" "Set Sensor Orientation XY-Axis: 0=normal, 1=functions of X/Y axis are exchanged"
+				gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 1 20 1 "ACC Time Const"  "ACC Time Constant(sec)" "tconfig.accTimeConstant: time constant of ACC complementary filter.  Controls how fast the gimbal follows ACC (sec)"
+				gui_slider .note.general.settings.sensor.set.mpuLPF mpuLPF 0 6 1 "MPU LPF" "low pass filter of gyro" "config.mpuLPF: low pass filter of gyro (DLPFMode)   legal values are 0...6, 0=fastest(default) 6=slowest   use slow values if high frequency oscillations occur (still experimental)"
+				gui_check .note.general.settings.sensor.set.enableGyro enableGyro "Gyro Update" "enabled" "Gyro update" "config.enableGyro: enable gyro update: 0=do not use gyro for attitude calcualtion, just for test and adjustment purposes"
+				gui_check .note.general.settings.sensor.set.enableACC enableACC "ACC Update" "enabled" "ACC update" "config.enableACC: enable ACC update: 0=do not use ACC for attitude calculation, just for test and adjustment purposes"
 
 
 			frame .note.general.settings.sensor.img
@@ -1327,24 +1327,24 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.pitch.pid -text "PID" -padx 10 -pady 10
 		pack .note.pitch.pid -side top -expand no -fill x
 
-			gui_slider .note.pitch.pid.p gyroPitchKp 0 100 0.01 "P" "P-Value" "adjust (increase) the P Term in 1.0 Steps stop when the movement is perfect if you go too far the motor will start to vibrate"
-			gui_slider .note.pitch.pid.i gyroPitchKi 0 100 0.01 "I" "I-Value" "I-Value"
-			gui_slider .note.pitch.pid.d gyroPitchKd 0 100 0.01 "D" "D-Value" "D-Value"
+			gui_slider .note.pitch.pid.p gyroPitchKp 0 100 1 "P" "P-Value" "config.gyroPitchKp: P-Value"
+			gui_slider .note.pitch.pid.i gyroPitchKi 0 100 1 "I" "I-Value" "config.gyroPitchKi: I-Value"
+			gui_slider .note.pitch.pid.d gyroPitchKd 0 100 1 "D" "D-Value" "config.gyroPitchKd: D-Value"
 
 		labelframe .note.pitch.hw -text "Motor" -padx 10 -pady 10
 		pack .note.pitch.hw -side top -expand no -fill x
 
-			gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"
-			gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "Reverse" "Motor-Direction" "this is for reversing your motor if it is rotating in the wrong direction"
-			gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "minimize the MAX PWM Steps as much as possible this will also help to stop the vibration in the motor, when you have got NO vibration you are ready"
+			gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberPitch: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"
+			gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "reverse" "Motor-Direction" "config.Direction: this is for reversing your motor if it is rotating in the wrong direction"
+			gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorPitch: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
 
 		labelframe .note.pitch.rc -text "RC" -padx 10 -pady 10
 		pack .note.pitch.rc -side top -expand no -fill x
 
-			gui_spin .note.pitch.rc.rcChannelPitch rcChannelPitch 1 8 1   "RC-Channel"  "rcChannelPitch" "RC channel assignment for RC pitch, legal values are 0 to 7 in PPM mode"
-			gui_slider .note.pitch.rc.rcmin  minRCPitch -120 120 1      "RC-Min"  "minimum Angle" "the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitch.rc.rcmax  maxRCPitch -120 120 1      "RC-Max"  "maximum Angle" "the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitch.rc.aop angleOffsetPitch -120 120 0.1 "angleOffsetPitch" "angleOffsetPitch" "angleOffsetPitch"
+			gui_spin .note.pitch.rc.rcChannelPitch rcChannelPitch 1 16 1 "RC Channel"  "rcChannelPitch" "config.rcChannelPitch: RC channel assignment for RC pitch, legal values 1..16 in PPM mode, 1..2 in PWM mode"
+			gui_slider .note.pitch.rc.rcmin  minRCPitch -120 120 1       "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitch.rc.rcmax  maxRCPitch -120 120 1       "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitch.rc.aop angleOffsetPitch -120 120 0.1  "Angle Offset" "Angle Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
 
 
@@ -1354,24 +1354,24 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.roll.pid -text "PID" -padx 10 -pady 10
 		pack .note.roll.pid -side top -expand no -fill x
 
-			gui_slider .note.roll.pid.p gyroRollKp 0 100 0.1 "P" "P-Value" "adjust (increase) the P Term in 1.0 Steps stop when the movement is perfect if you go too far the motor will start to vibrate"
-			gui_slider .note.roll.pid.i gyroRollKi 0 100 0.1 "I" "I-Value" "I-Value"
-			gui_slider .note.roll.pid.d gyroRollKd 0 100 0.1 "D" "D-Value" "D-Value"
+			gui_slider .note.roll.pid.p gyroRollKp 0 100 1 "P" "P-Value" "config.gyroRollKp: P-Value"
+			gui_slider .note.roll.pid.i gyroRollKi 0 100 1 "I" "I-Value" "config.gyroRollKi: I-Value"
+			gui_slider .note.roll.pid.d gyroRollKd 0 100 1 "D" "D-Value" "config.gyroRollKd: D-Value"
 
 		labelframe .note.roll.hw -text "Motor" -padx 10 -pady 10
 		pack .note.roll.hw -side top -expand no -fill x
 
-			gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"
-			gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "Reverse" "Motor-Direction" "this is for reversing your motor if it is rotating in the wrong direction"
-			gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "minimize the MAX PWM Steps as much as possible this will also help to stop the vibration in the motor, when you have got NO vibration you are ready"
+			gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberRoll: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will save unplugging your motors"
+			gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "reverse" "Motor-Direction" "config.dirMotorRoll: this is for reversing your motor if it is rotating in the wrong direction"
+			gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorRoll: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
 
 		labelframe .note.roll.rc -text "RC" -padx 10 -pady 10
 		pack .note.roll.rc -side top -expand no -fill x
 
-			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 1 8 1   "RC-Channel"  "rcChannelRoll" "RC channel assignment for RC roll, legal values are 0 to 7 in PPM mode"
-			gui_slider .note.roll.rc.rcmin  minRCRoll -120 120 1      "RC-Min"  "minimum Angle" "the amount or rotation your motor will make on that axis"
-			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1      "RC-Max"  "maximum Angle" "the amount or rotation your motor will make on that axis"
-			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1 "angleOffsetRoll" "angleOffsetRoll" "angleOffsetRoll"
+			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 1 16 1 "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel assignment for RC roll, llegal values 1..16 in PPM mode, 1..2 in PWM mode"
+			gui_slider .note.roll.rc.rcmin  minRCRoll -120 120 1      "RC Min"  "minimum Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1      "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1 "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
 
 
@@ -1493,31 +1493,9 @@ proc show_help_tuning {} {
 	.help.f.t insert end "when you have uploaded the software and connect to your board, the software will load the default\n" text
 	.help.f.t insert end "settings.You will need to change these to suit your gimbal and motors\n" text
 	.help.f.t insert end "\n      " text
-	.help.f.t image create end -image "docu1"
+#	.help.f.t image create end -image "docu1"
 	.help.f.t insert end "\n" text
-	.help.f.t insert end "1. First thing to do is to set the ACC-Weight to Zero (Number 10)\n" text
-	.help.f.t insert end "2. Next start to make it in 0,0005 steps high until the Gimbal does no more drift\n" text
-	.help.f.t insert end "   (what is drift)\n" text
-	.help.f.t insert end "   when you set the ACC-Weight to Zero , the gimbal begin to move slowly to one side\n" text
-	.help.f.t insert end "   that is drift it will not sit level.\n" text
-	.help.f.t insert end "3. Next , adjust (increase) the P Term in 1.0 Steps (Number 1) stop when the movement is\n" text
-	.help.f.t insert end "   perfect if you go too far the motor will start to vibrate\n" text
-	.help.f.t insert end "4. minimize the MAX PWM Steps (Number 7) as much as possible this will also help to stop the\n" text
-	.help.f.t insert end "   vibration in the motor, when you have got NO vibration you are ready\n" text
-	.help.f.t insert end "5. If you still have some problems start to adjust the D Term in 0,005 steps higher until the\n" text
-	.help.f.t insert end "   motor stops vibrating.\n" text
-	.help.f.t insert end "6. (Number 10) is the ACC weight this is to eliminate the Drift from the Gyro.\n" text
-	.help.f.t insert end "7. (Number 11) is to switch between ACC and DMP Mode\n" text
-	.help.f.t insert end "   ACC Mode is the better one , DMP is only to test it.\n" text
-	.help.f.t insert end "8. (Number 12) Absolute or Proportional mode is for RC Channel,\n" text
-	.help.f.t insert end "   Proportional is when you are using a second RC Transmitter to control your Gimbal\n" text
-	.help.f.t insert end "   Absolute for normal Pot control on your RC Transmitter.\n" text
-	.help.f.t insert end "9. (Number 13) Is the RC Gain , how fast it react when you are change you RC channel you\n" text
-	.help.f.t insert end "   have it connected to.\n" text
-	.help.f.t insert end "Please note: (Number 4) is the motor, if you find that the wrong motor is connected you can just\n" text
-	.help.f.t insert end "change the 0 to the 1 and this will save unplugging your motors.\n" text
-	.help.f.t insert end "(Number 5) is for reversing your motor if it is rotating in the wrong direction.\n" text
-	.help.f.t insert end "(Number 8 & 9) is the amount or rotation your motor will make on that axis.\n" text
+	.help.f.t insert end "Note: help text to be added ... \n" text
 	.help.f.t insert end "\n\n\n" text
 
 	button .help.exit -text "Exit" -width 14 -command {
