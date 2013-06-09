@@ -37,10 +37,15 @@
 #define SCALE_ACC 10000.0
 #define SCALE_PID_PARAMS 1000.0f
 
-// RC Pins
-#define RC_PIN_ROLL A2
-#define RC_PIN_PITCH A1
-#define RC_PWM_CHANNELS 2
+// RC data size and channel assigment
+#define RC_DATA_SIZE  2
+#define RC_DATA_PITCH 0
+#define RC_DATA_ROLL  1
+
+// RC PPM pin A1 or A2
+#define RC_PIN_PPM_A1
+//#define RC_PIN_PPM_A2
+
 #define MIN_RC 1000
 #define MAX_RC 2000
 #define RC_DEADBAND 50
@@ -48,7 +53,7 @@
 
 // PPM Decoder
 #define RC_PPM_GUARD_TIME 4000
-#define RC_PPM_RX_MAX_CHANNELS 8
+#define RC_PPM_RX_MAX_CHANNELS 32
 
 // I2C Frequency
 //#define I2C_SPEED 100000L     //100kHz normal mode

@@ -67,7 +67,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcGain",           INT16, &config.rcGain,            NULL},
   {"rcLPF",            INT16, &config.rcLPF,             &initRC},
 
-  {"rcModePPM",        BOOL,  &config.rcModePPM,         &initRC},
+  {"rcModePPM",        BOOL,  &config.rcModePPM,         &initRCPins},
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,    NULL},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,     NULL},
   {"rcMid",            INT16, &config.rcMid,             NULL},
@@ -202,6 +202,7 @@ void setDefaultParametersAndUpdate() {
   initIMU();
   initMPUlpf();
   initSensorOrientation();
+  initRCPins();
   initRC();
 }
 
@@ -252,6 +253,7 @@ void setRcMode()
     config.rcModePPM = atoi(sCmd.next());
     config.rcChannelPitch = atoi(sCmd.next());
     config.rcChannelRoll = atoi(sCmd.next());
+    initRCPins();
 }
 
 void transmitRcMode()
@@ -267,17 +269,15 @@ void setRCAbsolute()
   if(temp==1)
   {
     config.rcAbsolute = true;
-    pitchRCSetpoint = 0.0;
-    rollRCSetpoint = 0.0;
   }
   else
   {
     config.rcAbsolute = false;
-    pitchRCSetpoint = 0;
-    rollRCSetpoint = 0;
   }
-  pitchRCSpeed = 0;
-  rollRCSpeed = 0;
+  rcData[RC_DATA_PITCH].setpoint = 0.0;
+  rcData[RC_DATA_ROLL].setpoint  = 0.0;
+  rcData[RC_DATA_PITCH].rcSpeed  = 0.0;
+  rcData[RC_DATA_ROLL].rcSpeed   = 0.0;
 }
 
 void setRCConfig()

@@ -5,6 +5,9 @@ Brushless Gimbal Controller Software by Christian Winkler and Alois Hahn (C) 201
 Brushless Gimbal Controller Hardware and Software support 
 by Ludwig Fäerber, Alexander Rehfeld and Martin Eckart
 
+Special Contributions:
+  Michael Schätzel
+
 Project homepage: http://brushlessgimbal.de/
 Discussions:
 http://fpv-community.de/showthread.php?20795-Brushless-Gimbal-Controller-SOFTWARE
@@ -238,11 +241,11 @@ void loop()
     
     // Evaluate RC-Signals
     if(config.rcAbsolute==1) {
-      evaluateRCSignalAbsolute();  // gives rollRCSetPoint, pitchRCSetpoint
+      evaluateRCAbsolute();  // gives rollRCSetPoint, pitchRCSetpoint
       utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc);
       utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc);
     } else {
-      evaluateRCSignalProportional(); // gives rollRCSpeed, pitchRCSpeed
+      evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
     }
@@ -320,13 +323,13 @@ void loop()
       break;
     case 7:
       // RC Pitch function
-      if (validRC[config.rcChannelPitch]) {
+      if (rcData[RC_DATA_PITCH].valid) {
         if(config.rcAbsolute==1) {
-            PitchPhiSet = pitchRCSetpoint*100;
+            PitchPhiSet = rcData[RC_DATA_PITCH].setpoint*100;
         }
         else {
-          if(abs(pitchRCSpeed)>0.01) {
-            PitchPhiSet += pitchRCSpeed;
+          if(abs(rcData[RC_DATA_PITCH].rcSpeed)>0.01) {
+            PitchPhiSet += rcData[RC_DATA_PITCH].rcSpeed;
           }
         }
       } else {
@@ -336,12 +339,12 @@ void loop()
       break;
     case 8:
       // RC roll function
-      if (validRC[config.rcChannelRoll]){
+      if (rcData[RC_DATA_ROLL].valid){
         if(config.rcAbsolute==1){
-          RollPhiSet = rollRCSetpoint*100;
+          RollPhiSet = rcData[RC_DATA_ROLL].setpoint*100;
         } else {
-          if(abs(rollRCSpeed)>0.01) {
-            RollPhiSet += rollRCSpeed;
+          if(abs(rcData[RC_DATA_ROLL].rcSpeed)>0.01) {
+            RollPhiSet += rcData[RC_DATA_ROLL].rcSpeed;
           }
         }
       } else {
@@ -373,15 +376,8 @@ void loop()
     //****************************
     // check RC channel timeouts
     //****************************
-    if (config.rcModePPM)
-    {
-      checkPPMTimeout();
-    }
-    else
-    {
-      checkPWMTimeout(0);
-      checkPWMTimeout(1);
-    }
+
+    checkRcTimeouts();
 
     //****************************
     // Evaluate Serial inputs 
