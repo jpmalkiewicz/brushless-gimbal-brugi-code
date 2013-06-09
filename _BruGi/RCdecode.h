@@ -86,14 +86,14 @@ inline void intDecodePPM()
 // Interrupts
 //******************************************
 
-// Connector Channel 1 (A1)
+// Connector Channel 1 (A2)
 void intDecodePWM_Ch0()
 { 
   // PWM: 6 / 10 us (min/max)
   // PPM: 0.5 / 12 us (min/max)
   if (config.rcModePPM)
   {
-#ifdef RC_PIN_PPM_A1
+#ifdef RC_PIN_PPM_A2
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
@@ -106,12 +106,12 @@ void intDecodePWM_Ch0()
   }
 }
 
-// Connector Channel 2 (A2)
+// Connector Channel 2 (A1)
 void intDecodePWM_Ch1()
 { 
   if (config.rcModePPM)
   {
-#ifdef RC_PIN_PPM_A2
+#ifdef RC_PIN_PPM_A1
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
@@ -162,10 +162,10 @@ void initRCPins()
   static bool first = true;
   if (first)
   {
-    pinMode(A1, INPUT); digitalWrite(A1, HIGH);
-    PCintPort::attachInterrupt(A1, &intDecodePWM_Ch0, CHANGE);
     pinMode(A2, INPUT); digitalWrite(A2, HIGH);
-    PCintPort::attachInterrupt(A2, &intDecodePWM_Ch1, CHANGE);
+    PCintPort::attachInterrupt(A2, &intDecodePWM_Ch0, CHANGE);
+    pinMode(A1, INPUT); digitalWrite(A1, HIGH);
+    PCintPort::attachInterrupt(A1, &intDecodePWM_Ch1, CHANGE);
     first = false;
   }
   for (char id = 0; id < RC_DATA_SIZE; id++)
