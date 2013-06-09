@@ -1259,7 +1259,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.general.settings.rc -text "RC"
 		pack .note.general.settings.rc -side left -expand yes -fill both
 
-			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A1/A2: PPM sum input on A1 or single RC PWM inputs on A1=Ch0, A2=Ch1"
+			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1"
 			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
 			gui_slider .note.general.settings.rc.rcGain rcGain 0.0 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
 			gui_slider .note.general.settings.rc.rcLPF rcLPF 1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
