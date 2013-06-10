@@ -742,9 +742,9 @@ proc rd_chid {chid} {
 					global LastValX
 					global LastValY
 					global CHART_SCALE
-					set ValX [expr [lindex $buffer 0] / 100.0]
+					set ValX [expr [lindex $buffer 0] / 1000.0]
 					set TEST [lindex $buffer 1]
-					set ValY [expr [lindex $buffer 2] / 100.0]
+					set ValY [expr [lindex $buffer 2] / 1000.0]
 					if {($TEST == "ACC" || $TEST == "DMP") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
 						incr chart_count 1
 						if {$chart_count >= 450} {
