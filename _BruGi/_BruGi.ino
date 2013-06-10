@@ -229,38 +229,40 @@ void loop()
   {
     motorUpdate = false;
     
-    CH2_ON
-   
     // update IMU data            
-    readGyros();
-    
-    if (config.enableGyro) updateGyroAttitude();
-    if (config.enableACC) updateACCAttitude(); 
+    readGyros();   // t=386us
 
-    getAttiduteAngles();
+    if (config.enableGyro) updateGyroAttitude(); // t=260us
+    if (config.enableACC) updateACCAttitude(); // t=146us
+
+    getAttiduteAngles(); // t=468us
     
     // Evaluate RC-Signals
     if(config.rcAbsolute==1) {
-      evaluateRCAbsolute();  // gives rollRCSetPoint, pitchRCSetpoint
-      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc);
-      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc);
+      evaluateRCAbsolute();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
+      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
+      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc); // t=28us
     } else {
       evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
     }
-       
+    
     //****************************
     // pitch PID
     //****************************
-    pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+    
+    // t=94us
+    pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
     // motor control
     pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
+
 
     //****************************
     // roll PID
     //****************************
-    rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
+    // t=94us
+    rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
 
     // motor control
     rollMotorDrive = rollPIDVal * config.dirMotorRoll;
@@ -325,32 +327,32 @@ void loop()
       // RC Pitch function
       if (rcData[RC_DATA_PITCH].valid) {
         if(config.rcAbsolute==1) {
-            PitchPhiSet = rcData[RC_DATA_PITCH].setpoint*100;
+            PitchPhiSet = rcData[RC_DATA_PITCH].setpoint;
         }
         else {
           if(abs(rcData[RC_DATA_PITCH].rcSpeed)>0.01) {
-            PitchPhiSet += rcData[RC_DATA_PITCH].rcSpeed;
+            PitchPhiSet += rcData[RC_DATA_PITCH].rcSpeed * 0.01;
           }
         }
       } else {
         PitchPhiSet = 0;
       }
-      PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch*100, config.maxRCPitch*100);
+      PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch, config.maxRCPitch);
       break;
     case 8:
       // RC roll function
       if (rcData[RC_DATA_ROLL].valid){
         if(config.rcAbsolute==1){
-          RollPhiSet = rcData[RC_DATA_ROLL].setpoint*100;
+          RollPhiSet = rcData[RC_DATA_ROLL].setpoint;
         } else {
           if(abs(rcData[RC_DATA_ROLL].rcSpeed)>0.01) {
-            RollPhiSet += rcData[RC_DATA_ROLL].rcSpeed;
+            RollPhiSet += rcData[RC_DATA_ROLL].rcSpeed * 0.01;
           }
         }
       } else {
         RollPhiSet = 0;
       }
-      RollPhiSet = constrain(RollPhiSet, config.minRCRoll*100, config.maxRCRoll*100);
+      RollPhiSet = constrain(RollPhiSet, config.minRCRoll, config.maxRCRoll);
       break;
     case 9:
       // regular ACC output

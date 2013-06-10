@@ -92,13 +92,13 @@ PIDdata_t pitchPIDpar,rollPIDpar;
 
 void initPIDs(void)
 {
-  rollPIDpar.Kp = config.gyroRollKp;
+  rollPIDpar.Kp = config.gyroRollKp/10;
   rollPIDpar.Ki = config.gyroRollKi/1000;
-  rollPIDpar.Kd = config.gyroRollKd;
+  rollPIDpar.Kd = config.gyroRollKd/10;
 
-  pitchPIDpar.Kp = config.gyroPitchKp;
+  pitchPIDpar.Kp = config.gyroPitchKp/10;
   pitchPIDpar.Ki = config.gyroPitchKi/1000;
-  pitchPIDpar.Kd = config.gyroPitchKd;
+  pitchPIDpar.Kd = config.gyroPitchKd/10;
   
 }
 
