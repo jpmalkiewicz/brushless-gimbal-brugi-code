@@ -116,10 +116,6 @@ void intDecodePWM_Ch1()
 #endif  
   }
   else 
-  if (config.rcModePPM)
-  {
-  }
-  else
   {
     if (config.rcChannelRoll == 1)
       decodePWM(&rcData[RC_DATA_ROLL]);
