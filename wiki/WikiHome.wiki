@@ -1,0 +1,18 @@
+#sidebar BrushlessgimballTOC
+
+<h1>Welcome</h1>
+
+<img width="502" height="136" alt="Brushless Gimbal Controller" src="http://brushlessgimbal.de/wp-content/uploads/2013/01/cropped-Logo.png">
+
+<h2>What Is it?</h2>
+
+This is a Open Source Project to create a Brushless gimball controller and firmware.
+
+The hardware is arduino compatible, It consists of one main board which is mounted anywhere on the gimball or copter and a sensor board which is located on the gimball where the camera sits, generaly underneath.
+
+The sensor board constantly sends the signals of actual position to the controller board which then sends the correct output to the motors to keep it level. 
+
+
+||<img width="500" height="307" src="http://brushlessgimbal.de/wp-content/gallery/elektronik-v1-1/thumbs/thumbs_motor.jpg" alt="motor" title="motor">|| This Shows the basic concept. You have two motors, One for pitch and one for roll. They are conected to the controller which inturn is conected to the IMU (sensor board)||
+
+<img width="500" height="333" src="http://brushlessgimbal.de/wp-content/gallery/aoi_youget/thumbs/thumbs_img_4866.jpg" alt="img_4866" title="img_4866">
