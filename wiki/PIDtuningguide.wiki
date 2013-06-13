@@ -1,3 +1,4 @@
+#sidebar BrushlessgimballTOC
 <h1>PID Tuning Guide</h1>
 
 
