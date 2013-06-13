@@ -1,6 +1,6 @@
 <wiki:toc max_depth="1" />
 
-=Heading1=Home page=Heading1=
+<h1>Home page</h1>
 
 #summary One-sentence summary of this page.
 
