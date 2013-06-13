@@ -1,2 +1,2 @@
- * [[WikiPageWickeln|test]]
+ * [WikiPageWickeln]
  * [PIDtuningguide]
