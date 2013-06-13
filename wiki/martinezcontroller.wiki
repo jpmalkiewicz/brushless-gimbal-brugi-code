@@ -1,0 +1,35 @@
+<h1>Martinez Controller.</h1>
+
+This controller was designed by "Martinez" of FPV-Comunity.de with the help of others.
+
+The current version of the controller is version 3.0,They normaly come with the bootloader on the chip and you just need to upload the firmware via USB.
+
+*Specifications﻿:*
+
+    * USB connector (no FTDI needed)
+    * Stabilized VBUS (USB port)
+    * Pin layout optimized GND, A1 and A2 GND, multi-port, 5V
+    * L6234 brushless motor driver
+    * 2 outputs for brushless motors
+    * 4 receiver inputs
+    * 6 analog inputs
+    * Serial port available
+    * Power LED (blue)
+    * Small LEDs on the USB
+    * Dimensions 50 mm x 50 mm
+    * Standard MK style mounting holes 45 mm x 45 mm
+    * 2 instead of 4 glass diodes SOT23
+    * 5V better stabilized
+    * Shifter lever on the I2C Bus (3.3V to 5V)
+    * Pull reduced (for better edges)
+   
+
+
+
+<h2>Conection diagram</h2>
+
+http://static.rcgroups.net/forums/attachments/4/2/4/3/4/6/a5757532-153-ImageUploadedByTapatalk1367820976.666779.jpg
+
+
+
+<a href="http://www.rcgroups.com/forums/showatt.php?attachmentid=5689722">Click here to go to the manual</a>
