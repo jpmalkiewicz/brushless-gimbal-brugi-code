@@ -1,3 +1,7 @@
+<wiki:toc max_depth="1" />
+
+#sidebar TableOfContents
+
 [B][SIZE=6]Motor Richtig Wickeln ? !
 [/SIZE][/B]
 
