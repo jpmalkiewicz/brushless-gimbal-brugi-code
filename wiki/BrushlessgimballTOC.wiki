@@ -1,1 +1,7 @@
 #sidebar BrushlessgimballTOC
+
+
+<a href="/p/brushless-gimbal/wiki/PageName" class="tab ">Page Name</a>
+
+<a href="/p/brushless-gimbal/wiki/WikiPageWickeln" class="tab ">Motor Richtig Wickeln</a>
+
