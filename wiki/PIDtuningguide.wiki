@@ -1,0 +1,30 @@
+<h1>PID Tuning Guide</h1>
+
+
+
+Only do this if you have BETA Version 049 r69 incl updated GUI. The other GUI's and Firmware act differently from each other. Tuning wont work the same way because the values and percentages have changed in between the firmwares and GUI's:
+
+Power on your Gimbal and then connect the USB to it. Then start the GUI.
+
+1. Zero out your max PWM(%) and PID in both Pitch and Roll.
+
+2. Start by giving the max PWM (%) a value on your Roll. I started with 70 and found it to be to much because when I started tuning PID it wouldn't stop vibrating. Also feel the motors for heat. If they are getting hot or even warm its likely your PWM is too high.
+
+3. Once PWM has a value begin tuning the PID. Start with "P". I started with 5.0 on "P"
+
+4. Now go to "D" and use the slider bar to give its number value. Slide it slowly until your gimbal starts vibrating. Slowly slide the bar in the opposite direction until you don't have any vibrations.
+
+5. Press Gyro-Cal button. I find doing this every so often helps give you a more precise tune. Also you may find your gimbal going crazy sometimes and I find the Gyro Calibration can help mellow it out.
+
+6. Go back to "P" and do the same thing you just did to "D" but start from the value you gave it at the beginning. In which case I gave it 5.0
+
+7. Go back and forth tuning from "P" and "D". Make sure to also test the tune by moving your gimbal on its roll axis. Once you give "P","D" the highest values with out the motors vibrating then go to "I". 
+
+8. I find that if you add "P" and "D" values together it will equal to around what your "I" value should be. For example My "D" value was 21.0 and my "P" value was 19.6. That equals around 40.0 so I put it at that. I found no vibrations so I left it at that. (I used 40.0 for my "I" pitch value as well)
+
+9. Your Roll Tuning should be complete! Save these settings to your gimbal. THIS IS VERY IMPORTANT. Follow these 2 steps. #1 Click on the options tab and then click "Save to Board". #2 Click on options tab and then click "Save to Flash".  
+
+10. Go to Pitch settings. Start the same way as with Roll. Give the max PWM(%)a Value. I found that your Pitch PWM value will most likely be less then your Roll PWM value. (I believe its because your Pitch and Roll have a different type of balance, weight, and stress ratio)
+11. Once you give your PWM a value go to tuning your Pitch PID's. Do the same steps as you did for your Roll tuning.(steps 3-9)
+
+That should be it for your basic tuning! Remember to constantly press the Gyro-Cal button throughout your tuning.
