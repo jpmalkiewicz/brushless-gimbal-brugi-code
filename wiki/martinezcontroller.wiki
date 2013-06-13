@@ -1,3 +1,4 @@
+#sidebar BrushlessgimballTOC
 <h1>Martinez Controller.</h1>
 
 This controller was designed by "Martinez" of FPV-Comunity.de with the help of others.
