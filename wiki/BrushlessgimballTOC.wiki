@@ -1,2 +1,633 @@
- <title>Brushless GimballTOC, Arduino open sourece brushless gimball project. - Google Project Hosting
+<!DOCTYPE html>
+<html>
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+ <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" >
+ 
+ <meta name="ROBOTS" content="NOARCHIVE">
+ 
+ <link rel="icon" type="image/vnd.microsoft.icon" href="http://www.gstatic.com/codesite/ph/images/phosting.ico">
+ 
+ 
+ <link rel="canonical" href="http://code.google.com/p/arducopter/wiki/ArduCopterTOC" />
+ 
+ <script type="text/javascript">
+ 
+ 
+ 
+ 
+ var codesite_token = "F1CgxU4LRL6vEeZe8Wpwnaj3qJY:1371111319192";
+ 
+ 
+ var CS_env = {"assetHostPath":"http://www.gstatic.com/codesite/ph","domainName":null,"assetVersionPath":"http://www.gstatic.com/codesite/ph/18376132045800511552","relativeBaseUrl":"","token":"F1CgxU4LRL6vEeZe8Wpwnaj3qJY:1371111319192","profileUrl":"/u/118260056033737275172/","projectHomeUrl":"/p/arducopter","loggedInUserEmail":"cooke86@googlemail.com","projectName":"arducopter"};
+ var _gaq = _gaq || [];
+ _gaq.push(
+ ['siteTracker._setAccount', 'UA-18071-1'],
+ ['siteTracker._trackPageview']);
+ 
+ _gaq.push(
+ ['projectTracker._setAccount', 'UA-8450907-4'],
+ ['projectTracker._trackPageview']);
+ 
+ (function() {
+ var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+ (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+ })();
+ 
+ </script>
+ 
+ 
+ <title>ArduCopterTOC - 
+ arducopter -
+ 
+ 
+ Arduino-based autopilot for mulitrotor craft, from quadcopters to traditional helis - Google Project Hosting
  </title>
+ <link type="text/css" rel="stylesheet" href="http://www.gstatic.com/codesite/ph/18376132045800511552/css/core.css">
+ 
+ <link type="text/css" rel="stylesheet" href="http://www.gstatic.com/codesite/ph/18376132045800511552/css/ph_detail.css" >
+ 
+ 
+ 
+ <link type="application/atom+xml" rel="alternate" href="/feeds/p/arducopter/gitchanges/basic?path=/ArduCopterTOC.wiki&amp;repo=wiki">
+ 
+ 
+<!--[if IE]>
+ <link type="text/css" rel="stylesheet" href="http://www.gstatic.com/codesite/ph/18376132045800511552/css/d_ie.css" >
+<![endif]-->
+ <style type="text/css">
+ .menuIcon.off { background: no-repeat url(http://www.gstatic.com/codesite/ph/images/dropdown_sprite.gif) 0 -42px }
+ .menuIcon.on { background: no-repeat url(http://www.gstatic.com/codesite/ph/images/dropdown_sprite.gif) 0 -28px }
+ .menuIcon.down { background: no-repeat url(http://www.gstatic.com/codesite/ph/images/dropdown_sprite.gif) 0 0; }
+ 
+ 
+ #maincol {
+ padding-top: 0;
+ padding-bottom: 0;
+ }
+
+ 
+ </style>
+</head>
+<body class="t6">
+<script type="text/javascript">
+ window.___gcfg = {lang: 'en'};
+ (function() 
+ {var po = document.createElement("script");
+ po.type = "text/javascript"; po.async = true;po.src = "https://apis.google.com/js/plusone.js";
+ var s = document.getElementsByTagName("script")[0];
+ s.parentNode.insertBefore(po, s);
+ })();
+</script>
+<div class="headbg">
+
+ <div id="gaia">
+ 
+
+ <span>
+ 
+ 
+ 
+ <b>cooke86@gmail.com</b>
+ 
+ 
+ | <a href="/u/118260056033737275172/" id="projects-dropdown" onclick="return false;"
+ ><u>My favorites</u> <small>&#9660;</small></a>
+ | <a href="/u/118260056033737275172/" onclick="_CS_click('/gb/ph/profile');"
+ title="Profile, Updates, and Settings"
+ ><u>Profile</u></a>
+ | <a href="https://www.google.com/accounts/Logout?continue=http%3A%2F%2Fcode.google.com%2Fp%2Farducopter%2Fwiki%2FArduCopterTOC" 
+ onclick="_CS_click('/gb/ph/signout');"
+ ><u>Sign out</u></a>
+ 
+ </span>
+
+ </div>
+
+ <div class="gbh" style="left: 0pt;"></div>
+ <div class="gbh" style="right: 0pt;"></div>
+ 
+ 
+ <div style="height: 1px"></div>
+<!--[if lte IE 7]>
+<div style="text-align:center;">
+Your version of Internet Explorer is not supported. Try a browser that
+contributes to open source, such as <a href="http://www.firefox.com">Firefox</a>,
+<a href="http://www.google.com/chrome">Google Chrome</a>, or
+<a href="http://code.google.com/chrome/chromeframe/">Google Chrome Frame</a>.
+</div>
+<![endif]-->
+
+
+
+ <table style="padding:0px; margin: 0px 0px 10px 0px; width:100%" cellpadding="0" cellspacing="0"
+ itemscope itemtype="http://schema.org/CreativeWork">
+ <tr style="height: 58px;">
+ 
+ 
+ 
+ <td id="plogo">
+ <link itemprop="url" href="/p/arducopter">
+ <a href="/p/arducopter/">
+ 
+ 
+ <img src="/p/arducopter/logo?cct=1366045116"
+ alt="Logo" itemprop="image">
+ 
+ </a>
+ </td>
+ 
+ <td style="padding-left: 0.5em">
+ 
+ <div id="pname">
+ <a href="/p/arducopter/"><span itemprop="name">arducopter</span></a>
+ </div>
+ 
+ <div id="psum">
+ <a id="project_summary_link"
+ href="/p/arducopter/"><span itemprop="description">Arduino-based autopilot for mulitrotor craft, from quadcopters to traditional helis</span></a>
+ 
+ </div>
+ 
+ 
+ </td>
+ <td style="white-space:nowrap;text-align:right; vertical-align:bottom;">
+ 
+ <form action="/hosting/search">
+ <input size="30" name="q" value="" type="text">
+ 
+ <input type="submit" name="projectsearch" value="Search projects" >
+ </form>
+ 
+ </tr>
+ </table>
+
+</div>
+
+ 
+<div id="mt" class="gtb"> 
+ <a href="/p/arducopter/" class="tab ">Project&nbsp;Home</a>
+ 
+ 
+ 
+ 
+ <a href="/p/arducopter/downloads/list" class="tab ">Downloads</a>
+ 
+ 
+ 
+ 
+ 
+ <a href="/p/arducopter/wiki/ArduCopter?tm=6" class="tab active">Wiki</a>
+ 
+ 
+ 
+ 
+ 
+ <a href="/p/arducopter/issues/list"
+ class="tab ">Issues</a>
+ 
+ 
+ 
+ 
+ 
+ <a href="/p/arducopter/source/checkout"
+ class="tab ">Source</a>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <div class=gtbc></div>
+</div>
+<table cellspacing="0" cellpadding="0" width="100%" align="center" border="0" class="st">
+ <tr>
+ 
+ 
+ 
+ <td class="subt">
+ <div class="issueDetail">
+<div class="isf">
+ 
+ <span class="inIssueList"> 
+ <span>Search</span>
+ <form action="/p/arducopter/w/list" method="GET" style="display:inline">
+ <select id="can" name="can" >
+ <option disabled="disabled">Search within:</option>
+ 
+ <option value="1" >&nbsp;All wiki pages</option>
+ <option value="3" >&nbsp;Featured pages</option>
+ <option value="2" selected="selected">&nbsp;Current pages</option>
+ 
+ 
+ <option value="5" >&nbsp;My starred pages</option>
+ 
+ <option value="4" >&nbsp;Deprecated pages</option>
+ 
+ </select>
+ <span>for</span>
+ <span id="qq"><input type="text" size="38" id="searchq" name="q" value=""
+ autocomplete="off" ></span>
+ 
+ 
+ 
+ <input type="submit" value="Search" >
+ </form>
+ </span>
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+</div>
+</div>
+
+ </td>
+ 
+ 
+ 
+ 
+ 
+ 
+ <td align="right" valign="top" class="bevel-right"></td>
+ </tr>
+</table>
+
+
+<script type="text/javascript">
+ var cancelBubble = false;
+ function _go(url) { document.location = url; }
+</script>
+<div id="maincol"
+ 
+ 
+ style="padding:0 3px 3px 0; margin:0"
+ 
+ 
+>
+
+ 
+
+
+
+
+
+
+ 
+<style type="text/css">
+ #wikimaincol { padding-top: 6px; padding-left:1em}
+ #sidebarcontainer {
+ padding: 1.5em 2px 2px 2px;
+ min-width: 15em;
+ max-width: 20em;
+ overflow:hidden;
+}
+ .sidebartop ul { margin:0 0 0 .5em; padding-left:0 !important; list-style:none}
+ .sidebartop ul ul { margin-left:1em; padding-left:0; list-style:none; display:none}
+ .sidebartop li { margin:0 0 2px 0; padding:1px; padding-left:14px; cursor:pointer}
+ .sidebartop li a { padding:2px}
+ .sidebartop li { background: url(http://www.gstatic.com/codesite/ph/images/plus.gif) no-repeat 1px 3px}
+ .sidebartop li.treeopen { background: url(http://www.gstatic.com/codesite/ph/images/minus.gif) no-repeat 1px 3px}
+ .sidebartop li.treeleaf { background:none}
+ .currentpagelink { 
+ font-weight: bold;
+ text-decoration: none;
+ color: black !important; 
+ background: #c3d9ff;
+ }
+ .sidebartop ul.treeleafcontainer { display:block;}
+ .sidebarcontent { 
+ vertical-align:top;
+ padding-right: 3px;
+ border-right: 2px solid #ccc;
+ }
+</style>
+
+
+
+ <style type="text/css">
+ .delcom { background: #e8e8e8 }
+ .commentcontent {
+ margin: 2em;
+ padding: 0px 10px;
+ width: 66em;
+ }
+ .artifactcomment {
+ border-top: 3px solid #c3d9ff;
+ }
+ #commentform {
+ border-top: 3px solid #c3d9ff;
+ }
+ </style>
+
+<div id="wikipage">
+<table>
+ <tr>
+ 
+ 
+ <td class="sidebarcontent">
+ <div class="vt expand" id="wikisidebar">
+ <div>
+ 
+ <div style="float:right;">
+ <a class="ifExpand" style="font-size:130%; color:blue; text-decoration:none"
+ href="#" onclick="_DW_toggleSidebar(this); return false;"
+ title="Hide sidebar"><b>&lsaquo;&lsaquo;</b></a>
+ </div>
+ <div class="ifCollapse" style="padding:0 2px">
+ <a style="font-size:130%; color:blue; text-decoration:none"
+ href="#" onclick="_DW_toggleSidebar(this); return false;"
+ title="Show sidebar"><b>&rsaquo;&rsaquo;</b></a>
+ </div>
+ 
+ 
+ <div id="sidebarcontainer" class="sidebartop ifExpand">
+ <blockquote><h2><a name="ArduCopter"></a>ArduCopter<a href="#ArduCopter" class="section_anchor"></a></h2>
+</blockquote><ul><li><hr/></li><li><strong><a href="/p/arducopter/wiki/ArduCopterTOC">Table of Contents</a> - - <a href="/p/arducopter/wiki/ArduCopterTOCsimple">Simple Version</a></strong> </li><li><hr/></li><li><a href="/p/arducopter/wiki/ArduCopter">What is ArduCopter?</a> </li><li><a href="/p/arducopter/wiki/Purchase">Get it!</a> </li><li><a href="/p/arducopter/wiki/AC2_news">Project news</a> </li><li><a href="/p/arducopter/wiki/AC2_history">Project history</a> </li><li><hr/></li><li><strong>MultiCopter Instructions</strong> </li><li><strong><a href="/p/arducopter/wiki/ArduCopter2">Multicopter (Quad, Tri, Hex, etc)</a></strong> </li><ul><li><strong><a href="/p/arducopter/wiki/ArduCopter2Quick">Quick Start Guide</a></strong> </li><li><strong><a href="/p/arducopter/wiki/ArduCopter2SIM">Simulator</a></strong> </li><li><strong>Assembly</strong> </li><ul><li>Preparing your APM or PX4 board and software </li><ul><li>PX4 </li><ul><li><a href="/p/arducopter/wiki/PX4board">PX4FMU Board Overview</a> </li><li><a href="/p/arducopter/wiki/PX4IOboard">PX4IO Board Overview</a> </li><li><a href="/p/arducopter/wiki/PX4FLOWcamera">PX4FLOW Camera Overview</a> </li></ul><li>APM 2.x </li><ul><li><a href="/p/arducopter/wiki/APM2board">APM 2.0 Board Overview</a> </li><li><a href="/p/arducopter/wiki/APM25board_Overview">APM 2.5 Board Overview</a> </li><li><a href="/p/arducopter/wiki/AC2Installation">Download and install the Mission Planner and flight software</a> </li></ul><li>APM 1.x </li><ul><li><a href="/p/arducopter/wiki/AC2Assembly">Assembling your APM board and IMU</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_Magnetos">Magnetometer (required if using GPS)</a> </li></ul><li><a href="/p/arducopter/wiki/AC2Installation2">Download and install the Mission Planner and flight software</a> </li></ul></ul><li>Assembling your MultiCopter frame </li><ul><li><a href="/p/arducopter/wiki/AC2Airframe">Jdrones QuadCopter</a>  </li><ul><li><a href="/p/arducopter/wiki/AC2Video">(Video guides)</a> </li><li><a href="/p/arducopter/wiki/AC2PowerDistro">Soldering the motor connectors and power distribution board</a> </li><li><a href="/p/arducopter/wiki/AC2_Motors">Attaching motors to the arms</a> </li><li><a href="/p/arducopter/wiki/AC2_Frame_Assembly">Setting up your airframe</a> </li><li><a href="/p/arducopter/wiki/MountingtheAPM2Board">Mounting the APM 2 Board</a> </li><li><a href="/p/arducopter/wiki/X_Setup_for_AC_airframe">X_Setup_for_AC_airframe</a> </li></ul><li><a href="/p/arducopter/wiki/AC23DR">3DRobotics QuadCopter</a> </li><li><a href="/p/arducopter/wiki/DJIF330build">DJI F330 FlameWheel</a> </li><li><a href="/p/arducopter/wiki/VibrationControl">Vibration Control</a> </li><ul><li><a href="/p/arducopter/wiki/VibrationControlOverView">Vibration Control Concepts</a> </li></ul><li><a href="/p/arducopter/wiki/GPS">Where to mount your GPS module</a> </li><li><a href="/p/arducopter/wiki/AC2_Props">Attaching props to the motors</a> </li></ul><li>Connecting your receiver and motors to the PX4 or APM </li><ul><li><a href="/p/arducopter/wiki/PX4RC">PX4FMU - Only for QuadCopter</a> </li><li><a href="/p/arducopter/wiki/PX4FMU_IORC">PX4FMU + PX4IO All Copters</a> </li><li><a href="/p/arducopter/wiki/APM2RC">APM2</a> </li><li><a href="/p/arducopter/wiki/AC2_Radio">APM1</a> </li></ul><li>HexaCopter, OctaCopter, TriCopter and Camera Gimbal </li><ul><li><a href="/p/arducopter/wiki/APM2_Motor_order">APM2</a> </li><li><a href="/p/arducopter/wiki/AC2_Multi">APM1</a>  </li></ul></ul><li><strong>Configuration</strong> </li><ul><li><a href="/p/arducopter/wiki/PX4_First">PX4FMU-Only Initial Setup</a> </li><li><a href="/p/arducopter/wiki/PX4FMU_PX4IO_First">PX4FMU + PX4IO Initial Setup</a> </li><li><a href="/p/arducopter/wiki/AC2_First">APM Initial Setup</a> </li><li><a href="/p/arducopter/wiki/AC2_ESC">ESC calibration</a> </li><li><a href="/p/arducopter/wiki/AC2_Props_2">Setting correct prop/motor direction</a> </li><li><a href="/p/arducopter/wiki/AC2_sensorGUI">Checking the sensors</a> </li></ul><li><strong>Flying</strong> </li><ul><li><a href="/p/arducopter/wiki/AC2_Safety">Safety (Important!)</a> </li><li><a href="/p/arducopter/wiki/AC2_ModeSwitch">Flight Modes</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_AcroMode">Acro</a> </li><li><a href="/p/arducopter/wiki/AC2_StableMode">Stabilize</a> </li><li><a href="/p/arducopter/wiki/AC2_AltHoldMode">Alt Hold</a> </li><li><a href="/p/arducopter/wiki/AC2_Simple">Simple</a> </li><li><a href="/p/arducopter/wiki/AC2_AutoMode">Auto</a> </li><li><a href="/p/arducopter/wiki/AC2_RTLMode">RTL</a> </li><li><a href="/p/arducopter/wiki/AC2_GuidedMode">Guided</a> </li><li><a href="/p/arducopter/wiki/AC2_PositionMode">Position</a> </li><li><a href="/p/arducopter/wiki/AC2_LoiterMode">Loiter</a> </li><li><a href="/p/arducopter/wiki/AC2_CircleMode">Circle</a> </li><li><a href="/p/arducopter/wiki/AC2_FollowMe">Follow Me!</a> </li><li><a href="/p/arducopter/wiki/AC2_Simple_GeoFence">Simple GeoFence</a> </li></ul><li><a href="/p/arducopter/wiki/AC2_Flying">First Flights</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_test">Flight test process</a> </li></ul><li><a href="/p/arducopter/wiki/AC2_GCS">Using a Ground Station</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_MP">Mission Planner GCS</a> </li><li><a href="/p/arducopter/wiki/AC2_QGC">QGroundControl</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_QGCWaypointWidget">Waypoint Widget</a> </li><li><a href="/p/arducopter/wiki/AC2_QGCParameterWidget">Parameter Widget</a> </li></ul></ul><li><a href="/p/arducopter/wiki/AC2_Datalogging">Datalogging</a> </li><li><a href="/p/arducopter/wiki/AC2_SimpleMode">CH 7 options (record waypoints with your RC switch, etc)</a> </li><li><a href="/p/arducopter/wiki/AC2_LEDs">LED display meaning</a> </li><li><a href="/p/arducopter/wiki/AC2_Failsafe">Failsafe</a> </li></ul><li><strong>Tuning</strong> </li><ul><li><a href="/p/arducopter/wiki/AC2_Tweaks">Overview and Methods</a> </li><li><a href="/p/arducopter/wiki/AC2_Configfiles">Configuration files for common airframes</a> </li><li><a href="/p/arducopter/wiki/AC2_attitude_PID">Attitude</a> </li><li><a href="/p/arducopter/wiki/AC2_alt_hold_PID">Alt Hold</a> </li><li><a href="/p/arducopter/wiki/AC2_loiter_PID">Loiter and Navigation</a> </li><li><a href="/p/arducopter/wiki/AC2_AutoTrim">AutoTrim &amp; SaveTrim</a> </li><li><a href="/p/arducopter/wiki/AC2_Standard_Parameters">Standard Parameters</a> </li><li><a href="/p/arducopter/wiki/AC2_Advanced_Parameters">Advanced Parameters</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/MAVParam" rel="nofollow">All user-modifiable MAVLink parameters</a> </li></ul><li><strong>Mission Planning and Analysis</strong> </li><ul><li><a href="/p/arducopter/wiki/AC2_Mission">Using the Mission Planner</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_MPGCS">Using the Ground Station</a> </li><li><a href="/p/arducopter/wiki/AC2_Waypoints">Planning a mission with waypoints and events</a> </li><li><a href="/p/arducopter/wiki/AC2_Record">Recording and playing back a mission with tlogs</a> </li><li><a href="/p/arducopter/wiki/AC2_Logs">Downloading and analyzing your flight data logs</a> </li><li><a href="/p/arducopter/wiki/Joystick">Flying with a joystick/gamepad instead of RC controller</a> </li><li><a href="/p/arducopter/wiki/Geotagging">Automatically geotagging your photos</a> </li><li><a href="/p/arducopter/wiki/AutoWP">Setting up automatic waypoint grids (&quot;lawnmower pattern&quot;)</a> </li><li><a href="/p/arducopter/wiki/Python">Python scripting</a> </li><li><a href="/p/arducopter/wiki/MPOther">Other features</a> </li></ul></ul><li><strong>Optional Additions</strong> </li><ul><li><a href="/p/arducopter/wiki/Telem">Using wireless data for telemetry and in-flight commands</a> </li><ul><li><a href="/p/arducopter/wiki/Frequencies">Some tips on picking frequencies</a> </li><li>APM 1 </li><ul><li><a href="/p/arducopter/wiki/APM13DRadio">3DR Radio </a> </li><li><a href="/p/arducopter/wiki/APM1Wireless">Xbee</a> </li></ul><li>APM 2 </li><ul><li><a href="/p/arducopter/wiki/3DRadio">3DR Radio </a> </li><li><a href="/p/arducopter/wiki/APM2Wireless">Xbee</a> </li></ul></ul><li><a href="/p/arducopter/wiki/AC2_Sonar">Sonar</a> </li><li><a href="/p/arducopter/wiki/OSD">On-screen Display (OSD) board</a>  </li><li><a href="/p/arducopter/wiki/AC2_Current">Voltage and Current measurement</a> </li><li><a href="/p/arducopter/wiki/ExternalMag">Using an external magnetometer</a> </li><li><a href="/p/arducopter/wiki/AC2_Camera">Camera gimbal and Shutter control</a> </li><li><a href="/p/arducopter/wiki/AC2_OptFlow">Optical flow sensor</a> </li><li><a href="/p/arducopter/wiki/AC2_frameLEDs">Cool LED strips</a> </li><li><a href="/p/arducopter/wiki/PPMsumRC">Connecting a PPM-Sum receiver</a> </li></ul><li><strong>Simulation</strong> </li><ul><li><a href="/p/arducopter/wiki/QuadHil">Set up a Quad hardware-in-the-loop simulation with FlightGear</a> </li><li><a href="/p/arducopter/wiki/ArduCopter2SIM">Online Simulator (no hardware required)</a> </li></ul><li><strong><a href="/p/arducopter/wiki/PDF_Guides">Printable PDF Guides</a></strong> </li><li><strong><a href="/p/arducopter/wiki/AC2_Troubleshooting">Troubleshooting guide</a></strong> </li><li><strong><a href="/p/arducopter/wiki/AC2_Pitfalls">Potential Pitfalls</a></strong> </li></ul><li><hr/></li><li><strong>Traditional HeliCopter Instructions</strong> </li><li><strong><a href="/p/arducopter/wiki/ArduCopter_TradHeli">Traditional HeliCopter</a></strong> </li><ul><li><a href="/p/arducopter/wiki/TradHeli_Quick">Quick Start Guide</a> </li><li><a href="/p/arducopter/wiki/TradHeli_PartsList">Parts List</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Assembly">Assembling the Airframe</a> </li><li><a href="/p/arducopter/wiki/TradHeli_ConnectingAPM">APM and your RC system</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Magnetos">(Optional) Magnetometers</a> </li><li><a href="/p/arducopter/wiki/TradHeli_LoadingPage">Loading the code</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Configuration">Configuration and Setting PIDs</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Testing">Default PIDs &amp; Testing</a> </li><li><a href="/p/arducopter/wiki/TradHeliHIL">Simulation</a> </li></ul><li><hr/></li><li><strong>Appendix</strong> </li><ul><li><a href="http://firmware.diydrones.com/" rel="nofollow">APM and PX4 Firmware Upload Site</a> </li><li><a href="/p/arducopter/wiki/AC_LED">LED behavior</a>   </li><li><a href="/p/arducopter/wiki/AC_FAQ_General">FAQ &amp; general details</a> </li><li><a href="/p/arducopter/wiki/APM25AltPower">Alternative ways to power the APM 2.5 board</a> </li><li><a href="/p/arducopter/wiki/SolderJumpers">Solder jumpers on the bottom of the APM 2.5 board</a> </li><li><a href="/p/arducopter/wiki/Failsafe">Failsafe function</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/Sixmodes" rel="nofollow">How to get six modes from your RC transmitter</a> </li><li><a href="/p/arducopter/wiki/AC2CLI">Using the Command Line Interface (CLI)</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_CLI">CLI setup</a> </li></ul><li><a href="/p/arducopter/wiki/Programming">Programming with Arduino</a> </li><ul><li><a href="/p/arducopter/wiki/ProgrammingSettingUp">Setting up APM for programming</a> </li><li><a href="/p/arducopter/wiki/ProgrammingArduino">Programming APM with Arduino</a> </li><li><a href="/p/arducopter/wiki/Code">Downloading and using the ArduCopter software</a> </li><li><a href="/p/arducopter/wiki/ProgrammingCodeOverview">Code Overview</a> </li><ul><li><a href="/p/arducopter/wiki/ProgrammingCodeAttitude">Attitude Control</a> </li><li><a href="/p/arducopter/wiki/ProgrammingCodeLibraries">Libraries</a> </li></ul></ul><li><strong>PX4 Developers Guide</strong> </li><ul><li><a href="/p/arducopter/wiki/PX4DevEnv">PX4 Development Environment</a> </li></ul><li><strong>Advanced configuration</strong> </li><ul><li><a href="/p/arducopter/wiki/AC2Advanced">Using the APM_Config.h file</a> </li><li><a href="/p/arducopter/wiki/AC2_Config">Advanced configuration with the APM_Config.h file</a> </li></ul><li><a href="/p/arducopter/wiki/GPSDisable">Disabling the built-in GPS in APM2 so you can use an external GPS</a> </li><li><a href="/p/arducopter/wiki/Replacement">Laser cutting your own ArduCopter replacement parts</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/APM2Protection" rel="nofollow">Adding power protection to APM 2.0</a> </li><li>Updating the PPM encoder firmware </li><ul><li><a href="/p/arducopter/wiki/APM2Encoder">APM 2</a> </li><li>APM 1 </li><ul><li><a href="/p/arducopter/wiki/AVRStudio">Rebuilding/Programming the Encoder using AVRStudio</a> </li><li><a href="/p/arducopter/wiki/BusPirate">Programming the Encoder using the Bus Pirate</a> </li></ul><li><a href="/p/arducopter/wiki/Encoder">Standalone PPM Encoder</a> </li></ul><li><a href="/p/arducopter/wiki/GPSFirmware">Reloading/updating your GPS firmware</a> </li><ul><li><a href="/p/arducopter/wiki/UBlox">uBlox GPS</a> </li><li><a href="/p/arducopter/wiki/MediaTek">MediaTek GPS</a> </li></ul><li><a href="/p/arducopter/wiki/ArduCopter_Members">ArduCopter Core Members</a> </li><li><a href="/p/arducopter/wiki/UserHacks">User Submitted Hacks</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/3DRadio" rel="nofollow">Using a 3DR Radio for telemetry</a> </li></ul><li><a href="/p/arducopter/wiki/GlossaryPage">Glossary</a> </li><li><hr/></li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/DevTeam" rel="nofollow">DIY Drones Dev Team</a> </li></ul><p><!--  * ----
+  * Legacy
+  * [ArduCopter_Quad ArduCopter 1 Quad]   * [ArduCopter_QuadIntroduction Introduction]   * [Brushless_Motors Brushless motors warning]   * [Quad_Quick_Start Quick Start Guide]   * ----
+   * *Setting up the hardware*   * [Quad_GettingStarted Soldering the APM board]   * [PDistro_Revision_C Soldering the Power Distribution]   * [Quad_Frame_Assembly Setting up your airframe]    * [Quad_Arm_Assembly Assembling Motors to Arms]   * [Quad_Radio Connecting your RC]   * [Quad_Magnetos (Optional) Magnetometers]   * [Quad_GPS (Optional) GPS]   * [Quad_Sonar (Optional) Sonar]   * [Quad_LoadingPage Loading the code]   * ----
+   * *Configuration*   * [First First-time setup]    * [Quad_ConfiguratorTool Using the Configurator Tool]    * [CLI Using the Command Line Interface (CLI)]   * [Quad_ESC ESC Calibration]   * ----
+   * *Flying*   * [Quad_Testing Pre-Flight]   * [NGTest Flight Test process]   * [Quad_Flying Flying]   * [Quad_ModeSwitch Mode Switch]   * [Quad_FlightTips Flight Tuning tips] --> <!--     * ----
+     * *With MAVLink*     * [AC2_ConfigRadio Radio setup]     * [AC2_Mag Configuring the magnetometer]     * [AC2_Frame Choosing a frame orientation]     * [AC2_ModeSwitch Setting flight modes]     * ----
+ --> </p>
+ </div>
+ </div>
+</div>
+
+ </td>
+ 
+ <td style="vertical-align:top; padding-left:5px">
+ 
+ <div id="wikiheader">
+ 
+ <img width="15" height="15" id="star_img"
+ src="http://www.gstatic.com/codesite/ph/images/star_off.gif"
+ style="cursor:pointer"
+ onclick="_CS_toggleStar(this,
+ {'scope': 'wiki',
+ 'user': '_CURRENT_USER',
+ 'item': 'arducopter:ArduCopterTOC'
+ });"/>
+ 
+ <span style="font-size:120%;font-weight:bold">ArduCopterTOC</span>
+ &nbsp;
+ <div> 
+ 
+ 
+ 
+ <br/>
+ 
+ 
+ <b>en</b>, 
+ 
+ 
+ 
+ <a href="/p/arducopter/wiki/ArduCopterTOC?wl=zh-Hant" 
+ title="zh-Hant">zh-Hant</a>
+ 
+ 
+ 
+ 
+ <div id="wikiauthor" style="float:right">
+ Updated <span title="Sun Mar 24 10:28:51 2013">
+ Mar 24, 2013</span>
+ 
+ by 
+
+ <a class="userlink"
+ href="/u/garyrmccray@gmail.com/">garyrmccray@gmail.com</a
+>
+ 
+ </div>
+ </div>
+ </div>
+ 
+ <div id="wikicontent">
+ <div class="vt" id="wikimaincol">
+ <hr/><hr/><p><font color="red"> <blockquote></p><h1><a name="ArduCopter_-_Expanded_Table_of_Contents"></a><strong>ArduCopter - Expanded Table of Contents</strong><a href="#ArduCopter_-_Expanded_Table_of_Contents" class="section_anchor"></a></h1>
+</blockquote><p></font> </p><hr/><ul><li><h2><a name="---_This_List_---"></a><strong><a href="/p/arducopter/wiki/ArduCopterTOC">Expanded Table of Contents</a> --- This List --- <a href="/p/arducopter/wiki/ArduCopterTOCsimple">Simple Table of Contents</a></strong><a href="#---_This_List_---" class="section_anchor"></a></h2></li></ul><hr/><ul><li><strong><a href="/p/arducopter/wiki/ArduCopter">What is ArduCopter?</a> ---- MultiCopters, MicroControllers and Autonomous Flight</strong> </li><ul><li><strong><a href="/p/arducopter/wiki/Purchase">Get it!</a> ---- Get a MultiCopter and a Flight Controller</strong> </li><li><strong><a href="/p/arducopter/wiki/AC2_news">Project news</a> ---- Most recent information on Updates and Changes</strong> </li><li><strong><a href="/p/arducopter/wiki/AC2_history">Project history</a> ---- Origins of ArduCopter</strong> </li></ul></ul><hr/><hr/><ul><li><h1><a name="MultiCopter_Instructions"></a><strong><font color="red">MultiCopter Instructions</font></strong><a href="#MultiCopter_Instructions" class="section_anchor"></a></h1></li></ul><hr/><ul><li><strong><a href="/p/arducopter/wiki/ArduCopter2">MultiCopter (Quad, Tri, Hex, etc)</a> --- Features and Capabilities</strong> </li></ul><ul><li><strong><a href="/p/arducopter/wiki/ArduCopter2Quick">Quick Start Guide</a> --- Assemble and Set Up your MultiCopter</strong> </li></ul><ul><li><strong><a href="/p/arducopter/wiki/ArduCopter2SIM">Simulator</a> --- A Simple MultiCopter Simulator by Jason Short</strong> </li></ul><hr/><ul><li><h2><a name="Assembly_---_Assembling_your_MultiCopter"></a><strong>Assembly --- Assembling your MultiCopter</strong><a href="#Assembly_---_Assembling_your_MultiCopter" class="section_anchor"></a></h2></li><ul><li>Preparing your APM or PX4 board and software </li><ul><li>PX4 The PX4 FMU, IO and FLOW Camera Boards </li><ul><li><a href="/p/arducopter/wiki/PX4board">PX4FMU Board Overview</a> </li><li><a href="/p/arducopter/wiki/PX4IOboard">PX4IO Board Overview</a> </li><li><a href="/p/arducopter/wiki/PX4FLOWcamera">PX4FLOW Camera Overview</a> </li></ul><li>APM series 2.x Flight Control Boards </li><ul><li><a href="/p/arducopter/wiki/APM2board">APM 2.0 Board Overview</a> </li><li><a href="/p/arducopter/wiki/APM25board_Overview">APM 2.5 Board Overview</a> </li><li><a href="/p/arducopter/wiki/AC2Installation">Download and install the Mission Planner and flight software for APM 2.x boards</a> </li></ul><li>APM series 1.x Flight Control Boards </li><ul><li><a href="/p/arducopter/wiki/AC2Assembly">Assembling your APM board and IMU</a> --- Soldering the connectors in the kit. </li><ul><li><a href="/p/arducopter/wiki/AC2_Magnetos">Magnetometer (required if using GPS)</a> --- Adding the Optional Magnetometer </li></ul><li><a href="/p/arducopter/wiki/AC2Installation2">Download and install the Mission Planner and flight software for APM 1.x boards</a> </li></ul></ul><li> Assembling Your MultiCopter frame </li><ul><li><a href="/p/arducopter/wiki/AC2Airframe">Jdrones QuadCopter</a> --- Assembling your JDrones QuadCopter </li><ul><li><a href="/p/arducopter/wiki/AC2Video">(Video guides)</a> </li><li><a href="/p/arducopter/wiki/AC2PowerDistro">Soldering the motor connectors and power distribution board</a> </li><li><a href="/p/arducopter/wiki/AC2_Motors">Attaching motors to the arms</a> </li><li><a href="/p/arducopter/wiki/AC2_Frame_Assembly">Setting up your airframe</a> </li><li><a href="/p/arducopter/wiki/MountingtheAPM2Board">Mounting the APM 2 Board</a> </li><li><a href="/p/arducopter/wiki/X_Setup_for_AC_airframe">X_Setup_for_AC_airframe</a> </li></ul><li><a href="/p/arducopter/wiki/AC23DR">3D Robotics QuadCopter</a> --- Assembling your 3D Robotics QuadCopter </li><li><a href="/p/arducopter/wiki/DJIF330build">DJI F330 FlameWheel</a> --- Assembling your DJI F330 FlameWheel QuadCopter </li><li><a href="/p/arducopter/wiki/VibrationControl">Vibration Control</a> --- Reduce Vibration in Your MultiCopter </li><ul><li><a href="/p/arducopter/wiki/VibrationControlOverView">Vibration Control Concepts</a> --- In Depth Explanation of Vibration Control Methods </li></ul><li><a href="/p/arducopter/wiki/GPS">Where to mount your GPS module</a> --- Mount the GPS in the clear facing up </li><li><a href="/p/arducopter/wiki/AC2_Props">Attaching props to the motors</a> --- Correct CW and CCW propeller installation is very important </li></ul><li>Connecting your radio receiver and motors to the PX4 or APM </li><ul><li><a href="/p/arducopter/wiki/PX4RC">PX4FMU - Only !QuadCopter</a> --- Wiring the PX4FMU board to the receiver and motors </li><li><a href="/p/arducopter/wiki/PX4FMU_IORC">PX4FMU + PX4IO All Copters</a> --- Wiring the PX4FMU plus the PX4IO board to the receiver and motors </li><li><a href="/p/arducopter/wiki/APM2RC">APM2.x</a> --- Wiring the APM 2.x board to the receiver and motors </li><li><a href="/p/arducopter/wiki/AC2_Radio">APM1.x</a> --- Wiring the APM 1.x board to the receiver and motors </li></ul><li>HexaCopter, OctaCopter, TriCopter and Camera gimbal </li><ul><li><a href="/p/arducopter/wiki/APM2_Motor_order">APM2</a> --- Connect APM2 to Hex, Oct or TriCopter motors and Camera Gimbal </li><li><a href="/p/arducopter/wiki/AC2_Multi">APM1</a> --- Connect APM1 to Hex, Oct or TriCopter motors </li></ul></ul></ul><hr/><ul><li><h2><a name="Configuration_---_Initial_Preflight_Setup_of_MultiCopter_and_APM"></a><strong>Configuration --- Initial Preflight Setup of MultiCopter and APM</strong><a href="#Configuration_---_Initial_Preflight_Setup_of_MultiCopter_and_APM" class="section_anchor"></a></h2></li></ul><ul><li><a href="/p/arducopter/wiki/PX4_First">PX4FMU-Only Initial Setup</a> --- Install PX4 ArduCopter Firmware on PX4FMU board </li><li><a href="/p/arducopter/wiki/PX4FMU_PX4IO_First">PX4FMU + PX4IO Initial Setup</a> --- Install PX4FMU with PX4IO ArduCopter Firmware on PX4FMU and PX4IO boards </li><li><a href="/p/arducopter/wiki/AC2_First">APM Initial setup</a> --- Mission Planner: Install Firmware and Configure APM </li><li><a href="/p/arducopter/wiki/AC2_ESC">ESC calibration</a> --- Calibrate the Electronic Speed Controls for the Motors </li><li><a href="/p/arducopter/wiki/AC2_Props_2">Setting correct prop/motor direction</a> --- Get the motors spinning the right direction </li><li><a href="/p/arducopter/wiki/AC2_sensorGUI">Checking the sensors</a> --- Verify Correct APM Sensor Operation </li></ul><hr/><ul><li><h2><a name="Flying_---_Flight_Modes,_Configuration,_Flight_Testing,_Telemetr"></a><strong>Flying --- Flight Modes, Configuration, Flight Testing, Telemetry, Logging, etc</strong><a href="#Flying_---_Flight_Modes,_Configuration,_Flight_Testing,_Telemetr" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/AC2_Safety">Safety (Important!)</a> --- <strong><font color="red">!Do Not Skip This Section!</font></strong> </li><li><a href="/p/arducopter/wiki/AC2_ModeSwitch">Flight Modes</a> --- Set up a switchable selection of Flight Modes in Mission Planner </li><ul><li><a href="/p/arducopter/wiki/AC2_AcroMode">Acro</a> --- Acrobatic Unstabilized Mode for Hot Rodding  <font color="red">(Advanced Only)</font> </li><li><a href="/p/arducopter/wiki/AC2_StableMode">Stabilize</a> --- The Most Basic Mode: Self Leveling (Must be in Stabilize to Arm) </li><li><a href="/p/arducopter/wiki/AC2_AltHoldMode">Alt Hold</a> --- Altitude Hold Maintains Current Altitude and Self Levels like Stabilize </li><li><a href="/p/arducopter/wiki/AC2_Simple">Simple</a> --- Flys related to your position regardless of Airframe Orientation (Modifier for other modes) </li><li><a href="/p/arducopter/wiki/AC2_AutoMode">Auto</a> --- Causes the Copter to follow route of user specified Way Points set up in the Mission Planner </li><li><a href="/p/arducopter/wiki/AC2_RTLMode">RTL</a> --- Causes the Copter Return To the Launch site </li><li><a href="/p/arducopter/wiki/AC2_GuidedMode">Guided</a> --- Copter goes to Points set on the Mission Planner map in real time using the telemetry option.  </li><li><a href="/p/arducopter/wiki/AC2_PositionMode">Position</a> --- Uses the GPS to maintain current horizontal position with manual throttle control </li><li><a href="/p/arducopter/wiki/AC2_LoiterMode">Loiter</a> --- Uses the GPS to maintains the current horizontal position and altitude. </li><li><a href="/p/arducopter/wiki/AC2_CircleMode">Circle</a> --- The copter circles at a specified radius at the current altitude </li><li><a href="/p/arducopter/wiki/AC2_FollowMe">Follow Me!</a> --- The Copter will follow you around Requires Telemetry and an external GPS module </li><li><a href="/p/arducopter/wiki/AC2_Simple_GeoFence">Simple GeoFence</a> --- Copter will attempt to stay within a user defined radius and upper and lower altitudes </li></ul><li><a href="/p/arducopter/wiki/AC2_Flying">First Flights</a> --- Preparing for and Executing your First Flights in Stabilize Mode </li><ul><li><a href="/p/arducopter/wiki/AC2_test">Flight test process</a> --- Use Alt Hold and Loiter Modes </li></ul><li><a href="/p/arducopter/wiki/AC2_GCS">Using a Ground Station</a> Add Telemetry to Monitor the Copter in Flight and to send In Flight Commands </li><ul><li><a href="/p/arducopter/wiki/AC2_MP">Mission Planner GCS</a> --- Mission Planners Flight Planner works as a Ground Station on a suitable LapTop </li><li><a href="/p/arducopter/wiki/AC2_QGC">QGroundControl</a> --- An alternative to Mission Planner for Ground Control </li><ul><li><a href="/p/arducopter/wiki/AC2_QGCWaypointWidget">Waypoint Widget</a> --- Observe and change Mission Waypoints during flight </li><li><a href="/p/arducopter/wiki/AC2_QGCParameterWidget">Parameter Widget</a> --- Permits adjustment of APM parameters and PIDs in real time during flight </li></ul></ul><li><a href="/p/arducopter/wiki/AC2_Datalogging">Datalogging</a> --- Built in recording and Telemetric Flight Data Logging </li><li><a href="/p/arducopter/wiki/AC2_SimpleMode">CH 7 options (record waypoints with your RC switch, etc)</a> --- Select from several Options for Receiver Channel 7 switch </li><li><a href="/p/arducopter/wiki/AC2_LEDs">LED display meaning</a> --- Power, Arm and GPS status LEDs on the APM board </li><li><a href="/p/arducopter/wiki/AC2_Failsafe">Failsafe</a> --- Various Throttle and Battery Failsafe conditions can be enabled. </li></ul></ul><hr/><ul><li><h2><a name="Tuning_---_Tune_the_APM_for_your_Airframe"></a><strong>Tuning --- Tune the APM for your Airframe</strong><a href="#Tuning_---_Tune_the_APM_for_your_Airframe" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/AC2_Tweaks">Overview and Methods</a> --- Optimizing Control Parameters for Your MultiCopter (PIDs) </li><li><a href="/p/arducopter/wiki/AC2_Configfiles">Configuration files for common airframes</a> --- Retreive User Supplied Parameter Files for Various !Multicopters </li><li><a href="/p/arducopter/wiki/AC2_attitude_PID">Attitude</a> Adjust the Primary Level Flight (Stabilization) PIDs for Your MultiCopter </li><li><a href="/p/arducopter/wiki/AC2_alt_hold_PID">Alt Hold</a> --- Adjust the Altitude Hold Control PIDs for your MultiCopter </li><li><a href="/p/arducopter/wiki/AC2_loiter_PID">Loiter and Navigation</a> --- Adjust the Automatic Horizontal Position Control PIDs </li><li><a href="/p/arducopter/wiki/AC2_AutoTrim">AutoTrim</a> --- Automatically Trim Your Multicopter for Level Flight </li><li><a href="/p/arducopter/wiki/AC2_Standard_Parameters">Standard Parameters</a> --- Mission Planner List of User Specifiable Parameters </li><li><a href="/p/arducopter/wiki/AC2_Advanced_Parameters">Advanced Parameters</a> --- Mission Planner List of Advanced User Specifiable Parameters </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/MAVParam" rel="nofollow">All user-modifiable MAVLink parameters</a> --- List of all User Settable Parameters for the APM </li></ul></ul><hr/><ul><li><h2><a name="Mission_Planning_and_Analysis----_Lay_Out_a_Flight_Path_and_Flig"></a><strong>Mission Planning and Analysis---- Lay Out a Flight Path and Flight Data Analysis</strong><a href="#Mission_Planning_and_Analysis----_Lay_Out_a_Flight_Path_and_Flig" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/AC2_Mission">Using the Mission Planner</a> --- The Mission Planner Windows Program is our Primary Interface to the ArduCopter </li><ul><li><a href="/p/arducopter/wiki/AC2_MPGCS">Using the Ground Station</a> --- Real Time Flight Information displayed in Mission Planner <font color="red">(Reguires Telemetry)</font> </li><li><a href="/p/arducopter/wiki/AC2_Waypoints">Planning a mission with waypoints and events</a> --- Lay out a flight path on Satellite Image and Map Overlays  </li><li><a href="/p/arducopter/wiki/AC2_Record">Recording and playing back a mission with tlogs</a> --- Record and play back Telemetric Flight Data Logs <font color="red">(Reguires Telemetry)</font> </li><li><a href="/p/arducopter/wiki/AC2_Logs">Downloading and analyzing your flight data logs</a> --- Record and play back Internal Flight Data Logs <font color="green">(Does Not Reguire Telemetry)</font> </li><li><a href="/p/arducopter/wiki/Joystick">Flying with a joystick/gamepad instead of RC controller</a> Fly with a USB Joystick or GamePad <font color="red">(Reguires Telemetry)</font> </li><li><a href="/p/arducopter/wiki/Geotagging">Automatically geotagging your photos</a> Inserts GPS Cordinates into Photos Taken </li><li><a href="/p/arducopter/wiki/AutoWP">Setting up automatic waypoint grids (&quot;lawnmower pattern&quot;)</a> Automatically lay out a flying grid with specifiable photo intervals </li><li><a href="/p/arducopter/wiki/Python">Python scripting</a> Mission Planner can run special &quot;Python Scripts&quot; for custom flight maneuvers <font color="red">(Reguires Telemetry)</font> </li><li><a href="/p/arducopter/wiki/MPOther">Other features</a> Display and record real time video, Load Non-Standard Firmware to the APM, Give Audio Speech Alerts </li></ul></ul></ul><hr/><ul><li><h2><a name="Optional_Additions_---_Telemetry,_SONAR,_OSD,__Camera,_Optical_F"></a><strong>Optional Additions --- Telemetry, SONAR, OSD,  Camera, Optical Flow, PPM-Sum</strong><a href="#Optional_Additions_---_Telemetry,_SONAR,_OSD,__Camera,_Optical_F" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/Telem">Using wireless data for telemetry and in-flight commands</a> --- 3DR and XBee Telemetry Sets </li><ul><li><a href="/p/arducopter/wiki/Frequencies">Some tips on picking frequencies</a> --- Pick the right frequencies for your RC radio, Telemetry and FPV video </li><li>APM 1 Telemetry Setup </li><ul><li><a href="/p/arducopter/wiki/APM13DRadio">3DR Radio </a> --- Using 3DR Telemetry with the APM1.x </li><li><a href="/p/arducopter/wiki/APM1Wireless">Xbee</a> --- Using XBee Telemetry with the APM1.x </li></ul><li>APM 2 Telemetry Setup </li><ul><li><a href="/p/arducopter/wiki/3DRadio">3DR Radio </a> --- Using 3DR Telemetry with the APM2.x </li><li><a href="/p/arducopter/wiki/APM2Wireless">Xbee</a> --- Using XBee Telemetry with the APM1.x </li></ul></ul><li><a href="/p/arducopter/wiki/AC2_Sonar">Sonar</a> --- Mounting, hooking up and enabling SONAR </li><li><a href="/p/arducopter/wiki/OSD">On-screen Display (OSD) board</a> --- MinimOSD Overlays Flight Atitude Insturments on First Person View Camera video transmission  </li><li><a href="/p/arducopter/wiki/AC2_Current">Voltage and Current measurement</a> --- Measure Voltage and Current with AttoPilot on APM1 and APM2 and power module on APM2.5  </li><li><a href="/p/arducopter/wiki/ExternalMag">Using an external magnetometer</a> --- Use an external magnetometer with the APM 2.5 if it is encountering interference </li><li><a href="/p/arducopter/wiki/AC2_Camera">Camera gimbal</a> --- Integrate Camera Gimbal control with the APM for self stabilization and manual pointing </li><li><a href="/p/arducopter/wiki/AC2_OptFlow">Optical flow sensor</a> --- Detects movement over ground permitting MultiCopter position to be controlled by ground reference </li><li><a href="/p/arducopter/wiki/AC2_frameLEDs">Cool LED strips</a> --- Add LED Strips to Your Copter For Night Flight and Easier Maintenance of Orientation </li><li><a href="/p/arducopter/wiki/PPMsumRC">Connecting a PPM-Sum receiver</a> --- PPM-Sum combines all channels to a single receiver port  <font color="red">(PX4 Requires This)</font> </li></ul></ul><hr/><ul><li><h2><a name="Simulation_----_Mission_Planners_Built_in_Flight_Simulator"></a><strong>Simulation ---- Mission Planners Built in Flight Simulator</strong><a href="#Simulation_----_Mission_Planners_Built_in_Flight_Simulator" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/QuadHil">Set up a Quad hardware-in-the-loop simulation with FlightGear</a> --- Hook up Actual MultiCopter  <font color="red">(without Props)</font> and run Simulator </li><li><a href="/p/arducopter/wiki/ArduCopter2SIM">Online Simulator (no hardware required)</a> --- Jason Short&#x27;s Simple Keyboard Operated Graphical MultiCopter Simulator </li></ul></ul><hr/><ul><li><h2><a name="---_Manuals_and_Assembly_and_Tuning_Guides"></a><strong><a href="/p/arducopter/wiki/PDF_Guides">Printable PDF Guides and Manual</a> --- Manuals and Assembly and Tuning Guides</strong><a href="#---_Manuals_and_Assembly_and_Tuning_Guides" class="section_anchor"></a></h2></li></ul><hr/><ul><li><h2><a name="---_Problems_and_Solutions_for_APM_and_MultiCopter"></a><strong><a href="/p/arducopter/wiki/AC2_Troubleshooting">Troubleshooting guide</a> --- Problems and Solutions for APM and MultiCopter</strong><a href="#---_Problems_and_Solutions_for_APM_and_MultiCopter" class="section_anchor"></a></h2></li></ul><hr/><hr/><ul><li><h1><a name="Traditional_HeliCopter_Instructions"></a><strong><font color="red">Traditional HeliCopter Instructions</font></strong><a href="#Traditional_HeliCopter_Instructions" class="section_anchor"></a></h1></li></ul><hr/><ul><li><h2><a name="---_Using_Conventional_HeliCopters_with_APM"></a><strong><a href="/p/arducopter/wiki/ArduCopter_TradHeli">Traditional HeliCopters</a> --- Using Conventional HeliCopters with APM</strong><a href="#---_Using_Conventional_HeliCopters_with_APM" class="section_anchor"></a></h2></li><ul><li><a href="/p/arducopter/wiki/TradHeli_Quick">Quick Start Guide</a> </li><li><a href="/p/arducopter/wiki/TradHeli_PartsList">Parts List</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Assembly">Assembling the Airframe</a> </li><li><a href="/p/arducopter/wiki/TradHeli_ConnectingAPM">APM and your RC system</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Magnetos">(Optional) Magnetometers</a> </li><li><a href="/p/arducopter/wiki/TradHeli_LoadingPage">Loading the code</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Configuration">Configuration</a> </li><li><a href="/p/arducopter/wiki/TradHeli_Testing">Setting PIDs &amp; Testing</a> </li><li><a href="/p/arducopter/wiki/TradHeliHIL">Simulation</a> </li></ul></ul><hr/><hr/><ul><li><h1><a name="Appendix_---_Everything_Else_You_Need_To_Know"></a><strong>Appendix --- Everything Else You Need To Know</strong><a href="#Appendix_---_Everything_Else_You_Need_To_Know" class="section_anchor"></a></h1></li></ul><hr/><ul><li><a href="http://firmware.diydrones.com/" rel="nofollow">APM and PX4 Firmware Upload Site</a> </li><li><a href="/p/arducopter/wiki/AC_LED">LED behavior</a>   </li><li><a href="/p/arducopter/wiki/AC_FAQ_General">FAQ &amp; general details</a> </li><li><a href="/p/arducopter/wiki/APM25AltPower">Alternative ways to power the APM 2.5 board</a> </li><li><a href="/p/arducopter/wiki/SolderJumpers">Solder jumpers on the bottom of the APM 2.5 board</a> </li><li><a href="/p/arducopter/wiki/Failsafe">Failsafe function</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/Sixmodes" rel="nofollow">How to get six modes from your RC transmitter</a> </li><li><a href="/p/arducopter/wiki/AC2CLI">Using the Command Line Interface (CLI)</a> </li><ul><li><a href="/p/arducopter/wiki/AC2_CLI">CLI setup</a> </li></ul><li><a href="/p/arducopter/wiki/Programming">Programming with Arduino</a> </li><ul><li><a href="/p/arducopter/wiki/ProgrammingSettingUp">Setting up APM for programming</a> </li><li><a href="/p/arducopter/wiki/ProgrammingArduino">Programming APM with Arduino</a> </li><li><a href="/p/arducopter/wiki/Code">Downloading and using the ArduCopter software</a> </li><li><a href="/p/arducopter/wiki/ProgrammingCodeOverview">Code Overview</a> </li><ul><li><a href="/p/arducopter/wiki/ProgrammingCodeAttitude">Attitude Control</a> </li><li><a href="/p/arducopter/wiki/ProgrammingCodeLibraries">Libraries</a> </li></ul></ul><li><strong>PX4 Developers Guide</strong> Program development for PX4FMU and PX4IO users </li><ul><li><a href="/p/arducopter/wiki/PX4DevEnv">PX4 Development Environment</a> </li></ul><li><strong>Advanced configuration</strong> </li><ul><li><a href="/p/arducopter/wiki/AC2Advanced">Using the APM_Config.h file</a> </li><li><a href="/p/arducopter/wiki/AC2_Config">Advanced configuration with the APM_Config.h file</a> </li></ul><li><a href="/p/arducopter/wiki/GPSDisable">Disabling the built-in GPS in APM2 so you can use an external GPS</a> </li><li><a href="/p/arducopter/wiki/Replacement">Laser cutting your own ArduCopter replacement parts</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/AMP2GPS" rel="nofollow">Disabling the built-in GPS on APM 2 to use an external GPS</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/APM2Protection" rel="nofollow">Adding power protection to APM 2.0</a> </li><li>Updating the PPM encoder firmware </li><ul><li><a href="/p/arducopter/wiki/APM2Encoder">APM 2</a> </li><li>APM 1 </li><ul><li><a href="/p/arducopter/wiki/AVRStudio">Rebuilding/Programming the Encoder using AVRStudio</a> </li><li><a href="/p/arducopter/wiki/BusPirate">Programming the Encoder using the Bus Pirate</a> </li></ul><li><a href="/p/arducopter/wiki/Encoder">Standalone PPM Encoder</a> </li></ul><li><a href="/p/arducopter/wiki/GPSFirmware">Reloading/updating your GPS firmware</a> </li><ul><li><a href="/p/arducopter/wiki/UBlox">uBlox GPS</a> </li><li><a href="/p/arducopter/wiki/MediaTek">MediaTek GPS</a> </li></ul><li><a href="/p/arducopter/wiki/ArduCopter_Members">ArduCopter Core Members</a> </li><li><a href="/p/arducopter/wiki/UserHacks">User Submitted Hacks</a> </li><li><a href="http://code.google.com/p/ardupilot-mega/wiki/3DRadio" rel="nofollow">Using a 3DR Radio for telemetry</a> </li></ul><hr/><hr/><ul><li><h1><a name="Definitions_Of_Terms"></a><a href="/p/arducopter/wiki/GlossaryPage">Glossary</a> Definitions Of Terms<a href="#Definitions_Of_Terms" class="section_anchor"></a></h1></li></ul><hr/><hr/><ul><li><h1><a name="The_Developers"></a><a href="http://code.google.com/p/ardupilot-mega/wiki/DevTeam" rel="nofollow">DIY Drones Dev Team</a> The Developers<a href="#The_Developers" class="section_anchor"></a></h1></li></ul><hr/><hr/>
+ </div>
+ </div>
+ </td><tr>
+</table>
+ </div>
+
+
+ 
+ <div id="wikicommentcol">
+ 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+<div class="collapse">
+
+
+ 
+
+
+<div id="commentlist">
+
+ 
+ <div class="artifactcomment"
+ 
+ >
+ 
+ 
+ 
+ 
+ 
+ 
+ <span class="author">Comment
+ 
+ by  project member 
+ 
+ 
+
+ <a class="userlink"
+ href="/u/garyrmccray@gmail.com/">garyrmccray@gmail.com</a
+>,
+ 
+ </span>
+ <span class="date" title="Mon Feb 11 10:43:02 2013">Feb 11, 2013</span>
+ <div>
+<div class="commentcontent">
+<p>I added this &quot;Table Of Contents&quot; section to make it easier to find information in the Wiki. Please let me know if you think it is worthwhile and let me know how you would like it changed.  </p>
+</div>
+ 
+ 
+ </div>
+ </div>
+ 
+
+ 
+ <div class="artifactcomment"
+ 
+ >
+ 
+ 
+ 
+ 
+ 
+ 
+ <span class="author">Comment
+ 
+ by 
+ 
+ 
+
+ 
+ <span class="userlink">hotpi...@gmail.com</span>,
+ 
+ </span>
+ <span class="date" title="Mon Feb 11 16:22:05 2013">Feb 11, 2013</span>
+ <div>
+<div class="commentcontent">
+<p>Gary McCray<a href="/p/arducopter/w/edit/McCray">?</a> has just made a neat improvement to the Arducopter Wiki. He&#x27;s created a table of contents that opens as a complete page with all of the sub-categories, many of them annotated. So instead of burrowing around the nested menus you can see where everything is at a glance. Just click directly on the &quot;Arducopter Table Of Contents&quot; link instead of on the little &quot;+&quot; box and there it all is. &quot;  Great job, Gary!  </p>
+</div>
+ 
+ 
+ </div>
+ </div>
+ 
+
+ 
+ <div class="artifactcomment"
+ 
+ >
+ 
+ 
+ 
+ 
+ 
+ 
+ <span class="author">Comment
+ 
+ by  project member 
+ 
+ 
+
+ <a class="userlink"
+ href="/u/garyrmccray@gmail.com/">garyrmccray@gmail.com</a
+>,
+ 
+ </span>
+ <span class="date" title="Thu Feb 14 17:00:08 2013">Feb 14, 2013</span>
+ <div>
+<div class="commentcontent">
+<p>A side note, I had to considerably reedit this Table of Contents so that it would work correctly in Internet Explorer. Everything worked fine in Chrome and FireFox<a href="/p/arducopter/w/edit/FireFox">?</a>, but Internet Explorer has serious problems with the font color command. There was more color before, but Internet Explorer was a mess. </p>
+</div>
+ 
+ 
+ </div>
+ </div>
+ 
+
+</div>
+</div>
+
+ 
+
+
+ <script type="text/javascript">
+ function delComment(sequence_num, create_time, delete_mode) {
+ var f = document.forms["delcom"];
+ f.sequence_num.value = sequence_num;
+ f.create_time.value = create_time;
+ f.mode.value = delete_mode;
+ f.submit();
+ return false;
+ }
+ </script>
+
+
+ </div>
+ 
+ 
+ 
+ 
+ 
+ <div id="commentform">
+ <form action="../w/detail.do" method="post">
+ <table>
+ <tr><td class="vt">
+ <input type="hidden" name="pagename" value="ArduCopterTOC" >
+ <input type="hidden" name="token" value="F1CgxU4LRL6vEeZe8Wpwnaj3qJY:1371111319192" >
+ <div class="graytext" style="float: right;">
+ Hint: You can use <a href="http://code.google.com/p/support/wiki/WikiSyntax">Wiki Syntax.</a>
+ </div>
+ <div>Enter a comment:</div>
+ <textarea name="content" rows="6" cols="100"></textarea><br><br>
+ <input type="submit" name="submit" value="Submit" >
+ </td>
+ </table>
+ </form>
+ </div>
+ 
+ 
+ 
+ 
+ 
+ <form name="delcom" action="../w/delComment.do" method="POST">
+ <input type="hidden" name="sequence_num" value="" >
+ <input type="hidden" name="create_time" value="" >
+ <input type="hidden" name="mode" value="" >
+ <input type="hidden" name="pagename" value="ArduCopterTOC" >
+ <input type="hidden" name="token" value="F1CgxU4LRL6vEeZe8Wpwnaj3qJY:1371111319192" >
+ </form>
+
+
+ <script src="http://www.gstatic.com/codesite/ph/18376132045800511552/js/prettify/prettify.js"></script>
+ <script type="text/javascript">
+ prettyPrint();
+ </script>
+
+<script type="text/javascript" src="http://www.gstatic.com/codesite/ph/18376132045800511552/js/dit_scripts.js"></script>
+
+
+
+  
+ 
+ 
+ <script type="text/javascript" src="http://www.gstatic.com/codesite/ph/18376132045800511552/js/ph_core.js"></script>
+ 
+ <script type="text/javascript" src="http://www.gstatic.com/codesite/ph/18376132045800511552/js/ph_dwiki.js"></script>
+ 
+ 
+ 
+ 
+</div> 
+
+<div id="footer" dir="ltr">
+ <div class="text">
+ <a href="/projecthosting/terms.html">Terms</a> -
+ <a href="http://www.google.com/privacy.html">Privacy</a> -
+ <a href="/p/support/">Project Hosting Help</a>
+ </div>
+</div>
+ <div class="hostedBy" style="margin-top: -20px;">
+ <span style="vertical-align: top;">Powered by <a href="http://code.google.com/projecthosting/">Google Project Hosting</a></span>
+ </div>
+
+ 
+ 
+
+
+ 
+ </body>
+</html>
+
