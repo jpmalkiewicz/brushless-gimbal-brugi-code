@@ -1,4 +1,4 @@
-<wiki:toc max_depth="1" />
+#sidebar BrushlessgimballTOC
 <h1>Motor Richtig Wickeln ?</h1>
 
 Hier möchte ich euch mit meinen gesamelten Erfahrungen beschreiben wie man einen Motor für die Brushless Gimbal richtig wickelt .
