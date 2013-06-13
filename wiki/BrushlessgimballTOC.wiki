@@ -1,2 +1,3 @@
- * [WikiPageWickeln]
- * [PIDtuningguide]
+<a href="http://code.google.com/p/brushless-gimbal/wiki/WikiPageWickeln">Motor Richtig Wickeln</a>
+
+<a href="http://code.google.com/p/brushless-gimbal/wiki/PIDtuningguide">PID tuning Guide</a>
