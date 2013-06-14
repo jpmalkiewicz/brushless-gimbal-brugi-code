@@ -1,3 +1,4 @@
+#sidebar BrushlessgimballTOC
 <h1>!BruGi AOI</h1>
 
 The !BruGi AOI is a All in One Brushless gimbal controller in 50x50mm format. It is available from www.brushlessgimbal.de
