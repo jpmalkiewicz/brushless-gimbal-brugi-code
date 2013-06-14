@@ -1,0 +1,26 @@
+<h1>!BruGi AOI</h1>
+
+The !BruGi AOI is a All in One Brushless gimbal controller in 50x50mm format. It is available from www.brushlessgimbal.de
+
+It is completly compatibel with our Open Source firmware.
+
+It comes with the PCB components pre soldered and you just need to solder the pin headers, conector and capacitors.
+
+http://brushlessgimbal.de/wp-content/gallery/aoi_youget/thumbs/thumbs_img_4866.jpg
+
+*Features are:*
+
+
+    *- Atmega 328p Microcontroller at 16mhz
+    *- ONBOARD Usb for Setup and Programming
+    *- up to 4 Motors per Axi
+    *- 2 – 6s Lipo Input
+    *- 3 RC Channel In
+    *- Multiport
+    *- 50x50mm
+    *- Shortcut Protection
+    *- Add-On Port
+    *- comes with Pre-loaded Firmware
+
+
+More info can be found here: http://brushlessgimbal.de/brugi-v1/brugi-aoi/  
