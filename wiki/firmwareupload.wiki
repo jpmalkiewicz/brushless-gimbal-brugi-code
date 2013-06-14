@@ -1,1 +1,1 @@
-http://www.youtube.com/watch?feature=player_embedded&v=T2BXGY4g9kA
+<wiki:video url="http://www.youtube.com/watch?feature=player_embedded&v=T2BXGY4g9kA"/>
