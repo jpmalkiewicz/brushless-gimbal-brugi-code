@@ -48,10 +48,10 @@ void setDefaultParameters()
 {
   config.vers = VERSION;
   config.gyroPitchKp = 20000;
-  config.gyroPitchKi = 25000;
+  config.gyroPitchKi = 10000;
   config.gyroPitchKd = 40000;
   config.gyroRollKp = 20000;
-  config.gyroRollKi = 25000;
+  config.gyroRollKi = 8000;
   config.gyroRollKd = 30000;
   config.accTimeConstant = 7;
   config.mpuLPF = 0;
