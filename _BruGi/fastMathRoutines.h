@@ -21,7 +21,7 @@ inline float Rajan_FastArcTan(float x) {
 inline float Rajan_FastArcTan2(float y, float x) {
 
   uint8_t qCode;
-  float pi_2 = PI/2.0;
+  const float pi_2 = PI/2.0;
   float q;
   float z;
 

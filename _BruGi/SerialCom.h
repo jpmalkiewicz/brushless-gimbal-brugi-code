@@ -81,7 +81,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"axisReverseZ",     BOOL,  &config.axisReverseZ,      &initSensorOrientation},
   {"axisSwapXY",       BOOL,  &config.axisSwapXY,        &initSensorOrientation},
   
-  {NULL, BOOL, NULL, NULL} // terminating NULL required !!
+  {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
 
 // read bytes from program memory
@@ -296,6 +296,7 @@ void transmitSensorOrientation()
 
 void writeEEPROM()
 {
+  config.accOutput = false; // do not save enabled OAC output mode 
   EEPROM_writeAnything(0, config); 
 }
 
