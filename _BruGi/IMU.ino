@@ -113,6 +113,11 @@ void initIMU() {
   
   setACCFastMode(false);
  
+  accLPF[0] = 0;
+  accLPF[1] = 0;
+  accLPF[2] = ACC_1G;
+ 
+ 
   // initialize coordinate system in EstG
   EstG.V.X = 0;
   EstG.V.Y = 0;
@@ -177,6 +182,7 @@ void updateACC(){
   uint8_t axis;
 
   // 179 us
+  accMag = 0;
   for (axis = 0; axis < 3; axis++) {
     accLPF[axis] = accLPF[axis] * (1.0f - (1.0f/ACC_LPF_FACTOR)) + accADC[axis] * (1.0f/ACC_LPF_FACTOR);
     accSmooth[axis] = accLPF[axis];
