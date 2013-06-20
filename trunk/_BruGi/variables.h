@@ -234,7 +234,7 @@ static int16_t accADC[3];
 
 static t_fp_vector EstG;
 
-static float accLPF[3];
+static float accLPF[3] = {0.0,};
 static int32_t accMag = 0;
 
 static float AccComplFilterConst = 0;  // filter constant for complementary filter
