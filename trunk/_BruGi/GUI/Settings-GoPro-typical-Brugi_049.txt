@@ -1,5 +1,5 @@
 par axisSwapXY 0
-par axisReverseZ 1
+par axisReverseZ 0
 par maxRCPitch 120
 par rcGain 5
 par accTimeConstant 7
@@ -8,7 +8,7 @@ par rcMid 1500
 par enableGyro 1
 par minRCPitch -120
 par motorNumberPitch 0
-par maxPWMmotorRoll 180.0
+par maxPWMmotorRoll 200.0
 par rcChannelPitch 1
 par angleOffsetPitch 0.0
 par rcChannelRoll 0
@@ -18,15 +18,15 @@ par maxRCRoll 30
 par enableACC 1
 par rcAbsolute 1
 par gyroRollKd 40000.0
-par gyroRollKi 80000.0
+par gyroRollKi 8000.0
 par rcModePPM 0
-par accOutput 0
+par accOutput 1
 par gyroPitchKd 30000.0
 par motorNumberRoll 1
 par mpuLPF 0
 par gyroRollKp 30000.0
-par gyroPitchKi 60000.0
+par gyroPitchKi 25000.0
 par minRCRoll -30
 par maxPWMmotorPitch 80.0
-par gyroPitchKp 15000.0
+par gyroPitchKp 19000.0
 par rcLPF 20.0
