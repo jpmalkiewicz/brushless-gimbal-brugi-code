@@ -494,26 +494,6 @@ proc send_parvar {n1 n2 op} {
 	global Serial
 	global par
 
-	## Value-Check ##
-	if {$n2 == "minRCRoll"} {
-		if {$par(minRCRoll) > $par(maxRCRoll)} {
-			set par(maxRCRoll) $par(minRCRoll)
-		}
-	} elseif {$n2 == "maxRCRoll"} {
-		if {$par(maxRCRoll) < $par(minRCRoll)} {
-			set par(minRCRoll) $par(maxRCRoll)
-		}
-	}
-	if {$n2 == "minRCPitch"} {
-		if {$par(minRCPitch) > $par(maxRCPitch)} {
-			set par(maxRCPitch) $par(minRCPitch)
-		}
-	} elseif {$n2 == "maxRCPitch"} {
-		if {$par(maxRCPitch) < $par(minRCPitch)} {
-			set par(minRCPitch) $par(maxRCPitch)
-		}
-	}
-
 	if {$Serial == 0} {
 		.bottom.info configure -background red
 		.bottom.info configure -text "not connected"
@@ -1269,7 +1249,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 
 			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1"
 			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.general.settings.rc.rcGain rcGain 0.0 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.general.settings.rc.rcGain rcGain -200 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
 			gui_slider .note.general.settings.rc.rcLPF rcLPF 1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
 			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"
 
