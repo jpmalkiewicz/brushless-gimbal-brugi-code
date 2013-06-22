@@ -74,7 +74,7 @@ void setDefaultParameters()
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
-  config.rcMid = 1500;
+  config.rcMid = MID_RC;
   config.rcAbsolute = true;
   config.accOutput=false;
   config.enableGyro=true;

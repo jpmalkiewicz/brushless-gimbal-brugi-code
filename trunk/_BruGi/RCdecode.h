@@ -224,11 +224,18 @@ void evaluateRCProportional()
 // Absolute
 //******************************************
 
-void evalRCChannelAbsolute(rcData_t* rcData, int16_t rcMin, int16_t rcMax)
+inline void evalRCChannelAbsolute(rcData_t* rcData, int16_t rcMin, int16_t rcMax, int16_t rcMid)
 {
+  float k;
+  float y0;
+  int16_t rx;
+  
   if(rcData->update == true)
   {
-    utilLP_float(&rcData->setpoint, (rcMin + (float)(rcData->rx - MIN_RC)/(float)(MAX_RC - MIN_RC) * (rcMax - rcMin)), 0.05);
+    k = (float)(rcMax - rcMin)/(MAX_RC - MIN_RC);
+    y0 = rcMin + k * (MID_RC - MIN_RC);
+    rx = rcData->rx - rcMid;
+    utilLP_float(&rcData->setpoint, y0 + k * rx, 0.05);
     rcData->update = false;
   }
 }
@@ -237,8 +244,8 @@ void evalRCChannelAbsolute(rcData_t* rcData, int16_t rcMin, int16_t rcMax)
 
 void evaluateRCAbsolute()
 {
-  evalRCChannelAbsolute(&rcData[RC_DATA_PITCH], config.minRCPitch, config.maxRCPitch);
-  evalRCChannelAbsolute(&rcData[RC_DATA_ROLL ], config.minRCRoll , config.maxRCRoll );
+  evalRCChannelAbsolute(&rcData[RC_DATA_PITCH], config.minRCPitch, config.maxRCPitch, config.rcMid);
+  evalRCChannelAbsolute(&rcData[RC_DATA_ROLL ], config.minRCRoll , config.maxRCRoll,  config.rcMid);
 }
 
 

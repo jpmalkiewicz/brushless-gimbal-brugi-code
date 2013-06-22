@@ -337,7 +337,11 @@ void loop()
       } else {
         PitchPhiSet = 0;
       }
-      PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch, config.maxRCPitch);
+      if (config.minRCPitch < config.maxRCPitch) {
+        PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch, config.maxRCPitch);
+      } else {
+        PitchPhiSet = constrain(PitchPhiSet, config.maxRCPitch, config.minRCPitch);
+      }
       break;
     case 8:
       // RC roll function
@@ -352,7 +356,11 @@ void loop()
       } else {
         RollPhiSet = 0;
       }
-      RollPhiSet = constrain(RollPhiSet, config.minRCRoll, config.maxRCRoll);
+      if (config.minRCRoll < config.maxRCRoll) {
+        RollPhiSet = constrain(RollPhiSet, config.minRCRoll, config.maxRCRoll);
+      } else {
+        RollPhiSet = constrain(RollPhiSet, config.maxRCRoll, config.minRCRoll);
+      }        
       break;
     case 9:
       // regular ACC output
