@@ -40,7 +40,6 @@ t_configUnion configUnion;
 // and http://jeelabs.org/2011/05/23/saving-ram-space/
 const t_configDef PROGMEM configListPGM[] = {
   {"vers",             UINT8, &config.vers,             NULL},
-  {"versEEPROM",       UINT8, &config.versEEPROM,       NULL},
 
   {"gyroPitchKp",      INT32, &config.gyroPitchKp,      &initPIDs},
   {"gyroPitchKi",      INT32, &config.gyroPitchKi,      &initPIDs},
@@ -82,8 +81,6 @@ const t_configDef PROGMEM configListPGM[] = {
   {"axisReverseZ",     BOOL,  &config.axisReverseZ,      &initSensorOrientation},
   {"axisSwapXY",       BOOL,  &config.axisSwapXY,        &initSensorOrientation},
   
-  {"crc",              UINT8, &config.crc8,              NULL},
-
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
 
