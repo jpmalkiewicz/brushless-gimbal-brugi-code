@@ -28,6 +28,9 @@ Config Parameters (list with "he par")
 
 vers
   firmware version
+  
+versEEPROM
+  eeprom version
 
 gyroPitchKp/gyroRollKp
   pid controller P-value
@@ -93,4 +96,7 @@ axisReverseZ
 axisSwapXY
    0 ... standard X/Y sensor orientation
    1 ... swap X/Y, exchange roll/pitch function, when sensor is rotated 90 degrees
+
+crc
+   EEPROM checksum
    

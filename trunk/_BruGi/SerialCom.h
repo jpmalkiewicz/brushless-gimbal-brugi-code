@@ -40,6 +40,7 @@ t_configUnion configUnion;
 // and http://jeelabs.org/2011/05/23/saving-ram-space/
 const t_configDef PROGMEM configListPGM[] = {
   {"vers",             UINT8, &config.vers,             NULL},
+  {"versEEPROM",       UINT8, &config.versEEPROM,       NULL},
 
   {"gyroPitchKp",      INT32, &config.gyroPitchKp,      &initPIDs},
   {"gyroPitchKi",      INT32, &config.gyroPitchKi,      &initPIDs},
@@ -81,6 +82,8 @@ const t_configDef PROGMEM configListPGM[] = {
   {"axisReverseZ",     BOOL,  &config.axisReverseZ,      &initSensorOrientation},
   {"axisSwapXY",       BOOL,  &config.axisSwapXY,        &initSensorOrientation},
   
+  {"crc",              UINT8, &config.crc8,              NULL},
+
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
 
@@ -195,8 +198,7 @@ void parameterMod() {
 //************************************************************************************
 
 
-void setDefaultParametersAndUpdate() {
-  setDefaultParameters();
+void updateAllParameters() {
   recalcMotorStuff();
   initPIDs();
   initIMU();
@@ -205,6 +207,12 @@ void setDefaultParametersAndUpdate() {
   initRCPins();
   initRC();
 }
+
+void setDefaultParametersAndUpdate() {
+  setDefaultParameters();
+  updateAllParameters();
+}
+
 
 void transmitUseACC()  // TODO: remove obsolete command
 {
@@ -297,14 +305,22 @@ void transmitSensorOrientation()
 void writeEEPROM()
 {
   config.accOutput = false; // do not save enabled OAC output mode 
+  config.crc8 = crcSlow((crc *)&config, sizeof(config)-1); // set proper CRC 
   EEPROM_writeAnything(0, config); 
 }
 
 void readEEPROM()
 {
   EEPROM_readAnything(0, config); 
-  recalcMotorStuff();
-  initPIDs();
+  if (config.crc8 == crcSlow((crc *)&config, sizeof(config)-1))
+  { 
+    updateAllParameters();
+  } else {
+    // crc failed intialize directly here, as readEEPROM is void
+    Serial.print(F("EEPROM CRC failed, initialize EEPROM"));
+    setDefaultParameters();
+    writeEEPROM();
+  }
 }
 
 void transmitActiveConfig()
@@ -455,3 +471,4 @@ void setSerialProtocol()
   sCmd.addCommand("he", printHelpUsage);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't matched  (says "What?")
 }
+
