@@ -42,6 +42,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
+#define VERSION_EEPROM 2 // change this number when eeprom data strcuture has changed
 
 
 /*************************/
@@ -104,17 +105,15 @@ void setup()
   // Set Serial Protocol Commands
   setSerialProtocol();
   
-  // Read Config or fill with default settings
-  if(EEPROM.read(0)==VERSION)
+  // Read Config, fill with default settings if versions do not match or CRC fails
+  readEEPROM();;
+  if ((config.vers != VERSION) || (config.versEEPROM != VERSION_EEPROM))
   {
-    EEPROM_readAnything(0, config);
-  }
-  else
-  {
+    Serial.print(F("EEPROM version mismatch, initialize EEPROM"));
     setDefaultParameters();
-    EEPROM_writeAnything(0, config);
+    writeEEPROM();
   }
-  
+    
   // Init Sinus Arrays and Motor Stuff 
   recalcMotorStuff();
   

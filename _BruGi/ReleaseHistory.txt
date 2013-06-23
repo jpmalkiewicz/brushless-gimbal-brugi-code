@@ -1,3 +1,44 @@
+23.6.2013
+Version 049 r156
+* new config versEEPROM, eeprom is initialized when versEEPROM changes
+* added CRC checks to EEPROM structure
+
+22.6.2013
+Version 049 r155
+RCmin and RCmax are not constrained any more, they can be set independent from each other.
+ * in Absolute Mode: RC direction can be changed by sign change of RCmin/RCmax
+ * in Relative Mode: RC direction can be changed by choosing RCgain negative. RCmin/RCmax act as angle limits
+ 
+20.6.2013
+Version 049 r153
+fixed acc initialization issues
+accMag calculation used uninitialized value
+
+15.6.2013
+Version 049 r152
+minor bug fixes
+  * accOutput=false when saved to EEPROM_readAnything
+  * PID I default value updated
+
+12.6.2013
+Version 049 r77
+* code size reduction, because some non UNO platforms have flash size issues
+  * reworked RC handling and bug fixes (thanks to micha-24 for the contribution)
+  * RC channels numbers match AOI naming now
+  * GUI help text enhancements
+  * reduced control noise, changed PID I scale (by 10)
+
+*******************************
+  Important Note for r77
+*******************************
+  ->  PID I must be divided by 10 for same result
+      e.g. instead I=60 use I=6
+
+General Note:
+  If you update from earlier versions, EEPROM parameters should be reset to their initial values.
+Use console command SD and WE
+or in blg_tools GUI "defaults" and "save to flash" 
+
 7.6.2013
 049B r69
   * GUI updates by meister

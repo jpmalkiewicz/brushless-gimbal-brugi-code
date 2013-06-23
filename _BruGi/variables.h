@@ -5,6 +5,7 @@
 struct config_t
 {
 uint8_t vers;
+uint8_t versEEPROM;
 int32_t gyroPitchKp; 
 int32_t gyroPitchKi;   
 int32_t gyroPitchKd;
@@ -39,6 +40,7 @@ bool enableGyro;           // enable gyro attitude update
 bool enableACC;            // enable acc attitude update
 bool axisReverseZ;
 bool axisSwapXY;
+uint8_t crc8;
 } config;
 
 void recalcMotorStuff();
@@ -47,6 +49,7 @@ void initPIDs();
 void setDefaultParameters()
 {
   config.vers = VERSION;
+  config.versEEPROM = VERSION_EEPROM;
   config.gyroPitchKp = 20000;
   config.gyroPitchKi = 10000;
   config.gyroPitchKd = 40000;
@@ -80,7 +83,8 @@ void setDefaultParameters()
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;
-  config.axisSwapXY=false;
+  config.axisSwapXY=false;  
+  config.crc8 = 0;  
 }
 
 
@@ -101,6 +105,11 @@ void initPIDs(void)
   pitchPIDpar.Kd = config.gyroPitchKd/10;
   
 }
+
+
+// CRC definitions
+#define POLYNOMIAL 0xD8  /* 11011 followed by 0's */
+typedef uint8_t crc;
 
 
 
@@ -242,6 +251,7 @@ static float AccComplFilterConst = 0;  // filter constant for complementary filt
 static int16_t acc_25deg = 25;      //** TODO: check
 
 static int32_t angle[2]    = {0,0};  // absolute angle inclination in multiple of 0.01 degree    180 deg = 18000
+
 
 // DEBUG only
 uint32_t stackTop = 0xffffffff;
