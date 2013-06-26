@@ -124,6 +124,23 @@ void intDecodePWM_Ch1()
   }
 }
 
+// Connector Channel 3 (A0)
+void intDecodePWM_Ch2()
+{ 
+  if (config.rcModePPM)
+  {
+#ifdef RC_PIN_PPM_A0
+    if (PCintPort::pinState==HIGH) intDecodePPM();
+#endif  
+  }
+  else 
+  {
+    if (config.rcChannelRoll == 2)
+      decodePWM(&rcData[RC_DATA_ROLL]);
+    if (config.rcChannelPitch == 2)
+      decodePWM(&rcData[RC_DATA_PITCH]);
+  }
+}
 
 
 
@@ -162,6 +179,8 @@ void initRCPins()
     PCintPort::attachInterrupt(A2, &intDecodePWM_Ch0, CHANGE);
     pinMode(A1, INPUT); digitalWrite(A1, HIGH);
     PCintPort::attachInterrupt(A1, &intDecodePWM_Ch1, CHANGE);
+    pinMode(A0, INPUT); digitalWrite(A0, HIGH);
+    PCintPort::attachInterrupt(A0, &intDecodePWM_Ch2, CHANGE);
     first = false;
   }
   for (char id = 0; id < RC_DATA_SIZE; id++)
@@ -178,7 +197,7 @@ void initRCPins()
   }
   if (!config.rcModePPM)
   {
-    if (config.rcChannelRoll  > 1 || config.rcChannelPitch > 1 || config.rcChannelRoll == config.rcChannelPitch) 
+    if (config.rcChannelRoll  > 2 || config.rcChannelPitch > 2 || config.rcChannelRoll == config.rcChannelPitch) 
     {
       config.rcChannelRoll  = 0;
       config.rcChannelPitch = 1;

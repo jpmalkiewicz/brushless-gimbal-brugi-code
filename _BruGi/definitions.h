@@ -42,9 +42,10 @@
 #define RC_DATA_PITCH 0
 #define RC_DATA_ROLL  1
 
-// RC PPM pin A1 or A2
+// RC PPM pin A0, A1 or A2
 #define RC_PIN_PPM_A2
 //#define RC_PIN_PPM_A1
+//#define RC_PIN_PPM_A0
 
 #define MIN_RC 1000
 #define MID_RC 1500
