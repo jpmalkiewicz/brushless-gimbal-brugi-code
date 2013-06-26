@@ -301,9 +301,11 @@ void transmitSensorOrientation()
 
 void writeEEPROM()
 {
+  bool old = config.accOutput;
   config.accOutput = false; // do not save enabled OAC output mode 
   config.crc8 = crcSlow((crc *)&config, sizeof(config)-1); // set proper CRC 
-  EEPROM_writeAnything(0, config); 
+  EEPROM_writeAnything(0, config);
+  config.accOutput = old; 
 }
 
 void readEEPROM()
