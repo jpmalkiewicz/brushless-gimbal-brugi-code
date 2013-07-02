@@ -227,10 +227,10 @@ void getAttiduteAngles() {
   // attitude of the estimated vector  
 
   // 272 us
-  angle[ROLL]  = (config.angleOffsetRoll * 10) +  Rajan_FastArcTan2_deg1000(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
+  angle[ROLL]  = ((int32_t)config.angleOffsetRoll * 10) +  Rajan_FastArcTan2_deg1000(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
  
   // 192 us
-  angle[PITCH] = (config.angleOffsetPitch * 10) + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);  
+  angle[PITCH] = ((int32_t)config.angleOffsetPitch * 10) + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);  
 }
 
 
