@@ -480,13 +480,13 @@ proc draw_chart {} {
 		.bottom.info configure -text "SEND: oac 0"
         	puts -nonewline $Serial "oac 0\n"
 		flush $Serial
-		.note.general.chart.fr1.button configure -text "Start"
+		.chartview.chart.fr1.button configure -text "Start"
 	} else {
 		set chart 1
 		.bottom.info configure -text "SEND: oac 1"
         	puts -nonewline $Serial "oac 1\n"
 		flush $Serial
-		.note.general.chart.fr1.button configure -text "Stop"
+		.chartview.chart.fr1.button configure -text "Stop"
 	}
 }
 
@@ -584,7 +584,7 @@ proc load_values_from_file {} {
 			}
 			.bottom.info configure -text "load: done"
 			update
-			connect_serial
+
 		} else {
 			.bottom.info configure -text "load: error, reading file: $file"
 			update
@@ -689,7 +689,7 @@ proc set_defaults {} {
 }
 
 #####################################################################################
-# Serial-Calback
+# Serial-Callback
 #####################################################################################
 
 proc rd_chid {chid} {
@@ -738,14 +738,14 @@ proc rd_chid {chid} {
 						if {$chart_count >= 450} {
 							set chart_count 0
 						}
-						.note.general.chart.chart1 delete "line_$chart_count"
-						.note.general.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
-						.note.general.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
-						.note.general.chart.chart1 delete "pos"
-						.note.general.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
-						.note.general.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
-						.note.general.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
-						.note.general.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
+						.chartview.chart.chart1 delete "line_$chart_count"
+						.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
+						.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
+						.chartview.chart.chart1 delete "pos"
+						.chartview.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
+						.chartview.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
+						.chartview.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
+						.chartview.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
 						set LastValX $ValX
 						set LastValY $ValY
 					}
@@ -1277,37 +1277,24 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 				update_mpu 0 0 0
 
 
+	labelframe .note.general.buttons -text "File"
+	pack .note.general.buttons -side top -expand no -fill both
 
-	labelframe .note.general.chart -text "Chart"
-	pack .note.general.chart -side top -expand no -fill both
+	frame .note.general.buttons.line1
+	pack .note.general.buttons.line1 -side top -expand no -fill x
+  
+		gui_button .note.general.buttons.line1.defaults "Defaults" "set defaults values" set_defaults
+		gui_button .note.general.buttons.line1.load "Load" "load values from board into gui" send_par
+		gui_button .note.general.buttons.line1.save "Save" "save values from gui into board" save_values
+		gui_button .note.general.buttons.line1.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
 
-		canvas .note.general.chart.chart1 -relief raised -width 450 -height 100
-		pack .note.general.chart.chart1 -side left
-		.note.general.chart.chart1 create rec 1 1 450 100 -fill black
-		.note.general.chart.chart1 create line 0 50 450 50 -fill white
-		setTooltip .note.general.chart.chart1 "acc chart"
-
-		frame .note.general.chart.fr1
-		pack .note.general.chart.fr1 -side left -expand yes -fill both
-
-			button .note.general.chart.fr1.button -text "Start" -width 5 -relief raised -command {
-				draw_chart
-			}
-			pack .note.general.chart.fr1.button -side top -expand yes -fill both
-			setTooltip .note.general.chart.fr1.button "start/stop chart drawing"
-
-			frame .note.general.chart.fr1.scale
-			pack .note.general.chart.fr1.scale -side top -expand no -fill x
-
-				scale .note.general.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 10.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
-				pack .note.general.chart.fr1.scale.slider -side left -expand yes -fill x
-				setTooltip .note.general.chart.fr1.scale.slider "Y-Scale for the chart"
-
-				button .note.general.chart.fr1.scale.help -text "?" -width 1 -command {
-					show_help "Y-Scale for the chart"
-				}
-				pack .note.general.chart.fr1.scale.help -side right -expand no -fill none
-
+	frame .note.general.buttons.line2
+	pack .note.general.buttons.line2 -side top -expand no -fill x
+  
+		gui_button .note.general.buttons.line2.gyro_cal "Gyro-Cal" "gyro recalibration" gyro_cal
+		gui_button .note.general.buttons.line2.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
+		gui_button .note.general.buttons.line2.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
+		gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 
 	ttk::frame .note.pitch
 	.note add .note.pitch -text "Pitch"
@@ -1361,7 +1348,37 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1      "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
 			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1 "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
+frame .chartview
+pack .chartview -side top -expand no -fill x
+	labelframe .chartview.chart -text "Chart"
+	pack .chartview.chart -side top -expand no -fill both
 
+		canvas .chartview.chart.chart1 -relief raised -width 450 -height 100
+		pack .chartview.chart.chart1 -side left
+		.chartview.chart.chart1 create rec 1 1 450 100 -fill black
+		.chartview.chart.chart1 create line 0 50 450 50 -fill white
+		setTooltip .chartview.chart.chart1 "acc chart"
+
+		frame .chartview.chart.fr1
+		pack .chartview.chart.fr1 -side left -expand yes -fill both
+
+			button .chartview.chart.fr1.button -text "Start" -width 5 -relief raised -command {
+				draw_chart
+			}
+			pack .chartview.chart.fr1.button -side top -expand yes -fill both
+			setTooltip .chartview.chart.fr1.button "start/stop chart drawing"
+
+			frame .chartview.chart.fr1.scale
+			pack .chartview.chart.fr1.scale -side top -expand no -fill x
+
+				scale .chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 50.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
+				pack .chartview.chart.fr1.scale.slider -side left -expand yes -fill x
+				setTooltip .chartview.chart.fr1.scale.slider "Y-Scale for the chart"
+
+				button .chartview.chart.fr1.scale.help -text "?" -width 1 -command {
+					show_help "Y-Scale for the chart"
+				}
+				pack .chartview.chart.fr1.scale.help -side right -expand no -fill none
 
 labelframe .device -text "Connection"
 pack .device -side top -expand no -fill x
@@ -1385,25 +1402,7 @@ setTooltip .device "serial port selection"
 	}
 	pack .device.close -side left -expand no -fill x
 
-
-frame .buttons
-pack .buttons -side top -expand no -fill x
-
-	gui_button .buttons.defaults "Defaults" "set defaults values" set_defaults
-	gui_button .buttons.load "Load" "load values from board into gui" send_par
-	gui_button .buttons.save "Save" "save values from gui into board" save_values
-	gui_button .buttons.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
-
-
-frame .buttons_ext
-pack .buttons_ext -side top -expand no -fill x
-
-	gui_button .buttons_ext.gyro_cal "Gyro-Cal" "gyro recalibration" gyro_cal
-	gui_button .buttons_ext.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
-	gui_button .buttons_ext.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
-	gui_button .buttons_ext.save2file "Save to File" "save values from gui into file" save_values2file
-
-
+ 
 label .helptext -relief sunken -text "BLG-Tool"
 pack .helptext -side top -expand no -fill x
 
