@@ -16,14 +16,13 @@ int16_t accTimeConstant;
 int8_t  mpuLPF;             // mpu LPF 0..6, 0=fastest(256Hz) 6=slowest(5Hz)
 int16_t angleOffsetPitch;   // angle offset, deg*100
 int16_t angleOffsetRoll;
-uint8_t nPolesMotorPitch;
-uint8_t nPolesMotorRoll;
 int8_t dirMotorPitch;
 int8_t dirMotorRoll;
 uint8_t motorNumberPitch;
 uint8_t motorNumberRoll;
 uint8_t maxPWMmotorPitch;
 uint8_t maxPWMmotorRoll;
+uint16_t refVoltageBat;    // Ubat reference, unit = Volts*100
 int8_t minRCPitch;
 int8_t maxRCPitch;
 int8_t minRCRoll;
@@ -60,14 +59,13 @@ void setDefaultParameters()
   config.mpuLPF = 0;
   config.angleOffsetPitch = 0;
   config.angleOffsetRoll = 0;
-  config.nPolesMotorPitch = 14;
-  config.nPolesMotorRoll = 14;
   config.dirMotorPitch = 1;
   config.dirMotorRoll = -1;
   config.motorNumberPitch = 0;
   config.motorNumberRoll = 1;
   config.maxPWMmotorPitch = 80;
   config.maxPWMmotorRoll = 80;
+  config.refVoltageBat = 800;
   config.minRCPitch = -30;
   config.maxRCPitch = 30;
   config.minRCRoll = -30;
@@ -131,7 +129,7 @@ bool motorUpdate = false;
 int8_t pitchDirection = 1;
 int8_t rollDirection = 1;
 
-int freqCounter=0; // TODO: back to char later ...
+uint8_t freqCounter = 0;
 
 int pitchMotorDrive = 0;
 int rollMotorDrive = 0;
@@ -139,6 +137,14 @@ int rollMotorDrive = 0;
 // control motor update in ISR
 bool enableMotorUpdates = false;
 
+// battery voltage
+float voltageBat = 0;
+float uBatValue_f = 0;
+float pwmMotorScale = 0;
+
+//scaled Motor Power
+uint32_t maxPWMmotorPitchScaled;
+uint32_t maxPWMmotorRollScaled;
 
 // Variables for MPU6050
 float gyroPitch;
@@ -189,10 +195,6 @@ int stateCount = 0;
 //  IMU
 //
 //*************************************
-struct flags_struct {
-  uint8_t SMALL_ANGLES_25 : 1;
-} flags;
-
 enum axisDef {
   ROLL,
   PITCH,
@@ -244,7 +246,7 @@ static int16_t accADC[3];
 static t_fp_vector EstG;
 
 static float accLPF[3] = {0.0,};
-static int32_t accMag = 0;
+static float accMag = 0;
 
 static float AccComplFilterConst = 0;  // filter constant for complementary filter
 

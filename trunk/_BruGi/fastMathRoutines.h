@@ -73,7 +73,8 @@ int32_t Rajan_FastArcTan2_deg1000(float y, float x) {
 /* LP Filter            */
 /************************/
 inline void utilLP_float(float * q, float i, float coeff) {
-  *q += (i-*q)*coeff;
+  //*q += (i-*q)*coeff;
+  *q = *q * (1.0f-coeff) + i * coeff;  // this one seems to be a bit faster on ATMega
 }
 
 
