@@ -59,6 +59,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"motorNumberRoll",  UINT8, &config.motorNumberRoll,  NULL},
   {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, &recalcMotorStuff},
   {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  &recalcMotorStuff},
+  {"refVoltageBat",   UINT16, &config.refVoltageBat,    &recalcMotorStuff},
 
   {"minRCPitch",       INT8,  &config.minRCPitch,        NULL},
   {"maxRCPitch",       INT8,  &config.maxRCPitch,        NULL},
@@ -132,7 +133,7 @@ void printConfig(t_configDef * def) {
     }
     Serial.println("");
   } else {
-    Serial.println(F("ERROR: illegal parameter"));    
+    Serial.println(F("ERROR: printConfig: illegal parameter"));    
   }
 }
 
@@ -151,7 +152,7 @@ void writeConfig(t_configDef * def, int32_t val) {
     // call update function
     if (def->updateFunction != NULL) def->updateFunction();
   } else {
-    Serial.println(F("ERROR: illegal parameter"));    
+    Serial.println(F("ERROR: writeConfig: illegal parameter"));    
   }
 }
 
@@ -332,8 +333,6 @@ void transmitActiveConfig()
   Serial.println(config.gyroRollKi);
   Serial.println(config.gyroRollKd);
   Serial.println(config.accTimeConstant);
-  Serial.println(config.nPolesMotorPitch);
-  Serial.println(config.nPolesMotorRoll);
   Serial.println(config.dirMotorPitch);
   Serial.println(config.dirMotorRoll);
   Serial.println(config.motorNumberPitch);
@@ -435,7 +434,9 @@ void printHelpUsage()
 
 void unrecognized(const char *command) 
 {
-  Serial.println(F("What? type in HE for Help ..."));
+  Serial.print(F("'"));
+  Serial.print(command);
+  Serial.println(F("' unrecognized command? type HE for help ..."));
 }
 
 

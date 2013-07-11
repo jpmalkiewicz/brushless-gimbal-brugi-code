@@ -13,7 +13,7 @@
 //#define PWM_4KHZ_PHASE   // Resolution 8 bit for PWM
 //#define NO_PWM_LOOP
 
-#define MOTORUPDATE_FREQ 500                // in Hz, 1000 is default // 1,2,4,8 for 32kHz, 1,2,4 for 4kHz
+#define MOTORUPDATE_FREQ 500                // in Hz, 1000 is default
 #define LOOPUPDATE_FREQ MOTORUPDATE_FREQ    // loop control sample rate equals motor update rate
 #define DT_FLOAT (1.0/LOOPUPDATE_FREQ)      // loop controller sample period dT
 #define DT_INT_MS (1000/MOTORUPDATE_FREQ) 
@@ -36,6 +36,16 @@
 
 #define SCALE_ACC 10000.0
 #define SCALE_PID_PARAMS 1000.0f
+
+// specifie input for VCC/Ubat measurement
+#define ADC_VCC_PIN A3 
+
+#define UBAT_ADC_SCALE (5.0 / 1023.0)
+// voltage divider 
+#define UBAT_R1 10000.0
+#define UBAT_R2 2200.0
+#define UBAT_SCALE ( (UBAT_R1 + UBAT_R2) / UBAT_R2 )
+
 
 // RC data size and channel assigment
 #define RC_DATA_SIZE  2

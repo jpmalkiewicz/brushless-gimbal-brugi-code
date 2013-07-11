@@ -109,7 +109,7 @@ void initIMU() {
  
   // resolutionDevider=131, scale = 0.000133
   // 102us
-  gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359;  // convert to radians
+  gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359 * DT_FLOAT;  // convert to radians
   
   setACCFastMode(false);
  
@@ -127,7 +127,7 @@ void initIMU() {
 
 // Rotate Estimated vector(s) with small angle approximation, according to the gyro data
 // needs angle in radian units !
-void rotateV(struct fp_vector *v,float* delta) {
+inline void rotateV(struct fp_vector *v,float* delta) {
   fp_vector v_tmp = *v;
   v->Z -= delta[ROLL]  * v_tmp.X + delta[PITCH] * v_tmp.Y;
   v->X += delta[ROLL]  * v_tmp.Z - delta[YAW]   * v_tmp.Y;
@@ -171,52 +171,42 @@ void updateGyroAttitude(){
   
   float deltaGyroAngle[3];
 
+  // 43 us
   for (axis = 0; axis < 3; axis++) {
-    deltaGyroAngle[axis] = gyroADC[axis]  * gyroScale * DT_FLOAT;
+    deltaGyroAngle[axis] = gyroADC[axis]  * gyroScale;
   }
-  // 168 us
+  
+  // 111 us
   rotateV(&EstG.V,deltaGyroAngle);
+  
 }
 
 void updateACC(){
   uint8_t axis;
 
-  // 179 us
+  // 150 us
   accMag = 0;
   for (axis = 0; axis < 3; axis++) {
-    accLPF[axis] = accLPF[axis] * (1.0f - (1.0f/ACC_LPF_FACTOR)) + accADC[axis] * (1.0f/ACC_LPF_FACTOR);
-    accSmooth[axis] = accLPF[axis];
-    accMag += (int32_t)accSmooth[axis]*accSmooth[axis] ;
+    utilLP_float(&accLPF[axis], accADC[axis], (1.0f/ACC_LPF_FACTOR)); // 96/3 us
+    accMag += accLPF[axis]*accLPF[axis] ; // 63/3us
   }
 
-  //  accMag = accMag*100/((int32_t)ACC_1G*ACC_1G); 
-  // 130 us
-  // split operation to avoid 32-bit overflow, TODO: no division may happen !!!
-  accMag = accMag/(int32_t)ACC_1G;
-  accMag = accMag*100;
-  accMag = accMag/(int32_t)ACC_1G;
-
-  // 11 us
-  if ( abs(accSmooth[ROLL])<acc_25deg && abs(accSmooth[PITCH])<acc_25deg && accSmooth[YAW]>0) {
-    flags.SMALL_ANGLES_25 = 1;
-  } else {
-    flags.SMALL_ANGLES_25 = 0;
-  }
-
+  // 24 us
+  accMag = accMag*100.0/(ACC_1G*ACC_1G);
 }
 
 
 void updateACCAttitude(){
   uint8_t axis;
   
-  // 255 us
+  // 80 us
   // Apply complimentary filter (Gyro drift correction)
   // If accel magnitude >1.4G or <0.6G and ACC vector outside of the limit range => we neutralize the effect of accelerometers in the angle estimation.
   // To do that, we just skip filter, as EstV already rotated by Gyro
-  if ( ( 36 < accMag && accMag < 196 ) || flags.SMALL_ANGLES_25 ) {
+  if ( 36 < accMag && accMag < 196 ) {
     for (axis = 0; axis < 3; axis++) {
-      int32_t acc = accSmooth[axis];
-      EstG.A[axis] = EstG.A[axis] * (1.0 - AccComplFilterConst) + acc * AccComplFilterConst; // note: this is different from MultiWii (wrong brackets postion in MultiWii ??.
+      //utilLP_float(&EstG.A[axis], accLPF[axis], AccComplFilterConst);
+      EstG.A[axis] = EstG.A[axis] * (1.0 - AccComplFilterConst) + accLPF[axis] * AccComplFilterConst; // note: this is different from MultiWii (wrong brackets postion in MultiWii ??.
     } 
   }
 }
@@ -225,12 +215,11 @@ void updateACCAttitude(){
 void getAttiduteAngles() {
 
   // attitude of the estimated vector  
-
-  // 272 us
+  // 200us
   angle[ROLL]  = ((int32_t)config.angleOffsetRoll * 10) +  Rajan_FastArcTan2_deg1000(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
- 
-  // 192 us
-  angle[PITCH] = ((int32_t)config.angleOffsetPitch * 10) + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);  
+  // 142 us
+  angle[PITCH] = ((int32_t)config.angleOffsetPitch * 10) + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);
+
 }
 
 

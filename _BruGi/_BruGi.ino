@@ -42,7 +42,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define VERSION_EEPROM 2 // change this number when eeprom data strcuture has changed
+#define VERSION_EEPROM 3 // change this number when eeprom data strcuture has changed
 
 
 /*************************/
@@ -106,7 +106,7 @@ void setup()
   setSerialProtocol();
   
   // Read Config, fill with default settings if versions do not match or CRC fails
-  readEEPROM();;
+  readEEPROM();
   if ((config.vers != VERSION) || (config.versEEPROM != VERSION_EEPROM))
   {
     Serial.print(F("EEPROM version mismatch, initialize EEPROM"));
@@ -191,7 +191,7 @@ void setup()
 /************************/
 /* PID Controller       */
 /************************/
-int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
+inline int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
 {
   int32_t error = setPoint - in;
   int32_t Ierr;
@@ -204,16 +204,77 @@ int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum
   int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTms;
   *errorOld = error;
 
-  return out / 4096;
+  out = out / 4096;
+  
+  return out;
+  
 }
 
+
+/******************************************************************
+
+main loop execution time budget
+
+
+exected each iteration (main tick)
+  time(us)   function
+  --------------------------------
+     6        motorUpdate
+   386        readGyros
+   160        updateGyroAttitude
+   120        updateACCAttitude
+   352        getAttiduteAngles
+    69        pid pitch
+    69        pid roll
+    44        RC low pass
+  --------------------------------
+  1206        sum
+  1400        measured, real, no RC
+
+executed each 10th iteration (sub tick)
+  time(us)   function
+  --------------------------------
+   382        readACC
+   289        measure/scale Ubat
+    76        RC roll
+    76        RC pitch
+   142        evaluate RC
+  --------------------------------
+   382        maximum of all
+   364        measured, real, no RC
+  --------------------------------
+
+
+total
+  time(us)    function
+  --------------------------------
+   1080       main tick execution time
+    382       sub tick maximum
+  --------------------------------
+   1462       sum 
+  ================================
+
+
+motor ISR duration
+  version r161
+  10 us every 31 us
+  18 us every 2000 us
+  
+  --> improved
+   6.3 us every 31 us
+   
+RC interrupt duration
+   43 us, every 1000 ms (one RC channel)
+   54 us, every 1000 ms, worst case, two RC channel
+
+*******************************************************************/
 
 
 /**********************************************/
 /* Main Loop                                  */
 /**********************************************/
 void loop() 
-{    
+{ 
   int32_t pitchPIDVal;
   int32_t rollPIDVal;
   static int32_t pitchErrorSum;
@@ -224,48 +285,61 @@ void loop()
   static char pOutCnt = 0;
   static int stateCount = 0;
   
+  int uBatValue;
+
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
-    motorUpdate = false;
-    
-    // update IMU data            
-    readGyros();   // t=386us
+   
+    CH2_ON
 
-    if (config.enableGyro) updateGyroAttitude(); // t=260us
-    if (config.enableACC) updateACCAttitude(); // t=146us
-
-    getAttiduteAngles(); // t=468us
-    
-    // Evaluate RC-Signals
-    if(config.rcAbsolute==1) {
-      evaluateRCAbsolute();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
-      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
-      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc); // t=28us
-    } else {
-      evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
-      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
-      utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
+    // motor update t=6us (*)
+    if (enableMotorUpdates)
+    {
+      // move pitch motor
+      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
+      // move roll motor
+      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, pwmSinMotorRoll);
     }
-    
+    motorUpdate = false;
+
+    // update IMU data            
+    readGyros();   // t=386us (*)
+ 
+    if (config.enableGyro) updateGyroAttitude(); // t=160us(*)
+    if (config.enableACC) updateACCAttitude(); // t=120us (*)
+ 
+    getAttiduteAngles(); // t=352us (*)
+   
     //****************************
     // pitch PID
     //****************************
-    
-    // t=94us
+    // t=69us (*)
     pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
     // motor control
     pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
 
-
     //****************************
     // roll PID
     //****************************
-    // t=94us
+    // t=69us (*)
     rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
-
     // motor control
     rollMotorDrive = rollPIDVal * config.dirMotorRoll;
  
+     // Evaluate RC-Signals
+    if(config.rcAbsolute==1) {
+      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
+      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc); // t=28us
+    } else {
+      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
+      utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
+    }
+
+    // tElapsed = 1.41ms, 1.50ms (new), 1.80ms(with previous RC version)
+    // tEleapsed = 1.58ms, with RC 1.72ms 
+
+    
+    CH3_ON
     //****************************
     // slow rate actions
     //****************************
@@ -279,6 +353,21 @@ void loop()
     case 4:
       updateACC(); break;
     case 5:
+      // td = 289us, total
+      // measure uBat, 190 us
+      uBatValue = analogRead(ADC_VCC_PIN); // 118 us
+      uBatValue_f = (float)uBatValue * UBAT_ADC_SCALE * UBAT_SCALE;   
+      utilLP_float(&voltageBat, uBatValue_f, LOWPASS_K_FLOAT(0.1)); // tau = 1 sec
+
+      // calcualte scale factor for motor power (70us)
+      //pwmMotorScale = (config.refVoltageBat * 0.01)/voltageBat;
+      pwmMotorScale = (800.0 * 0.01)/voltageBat;
+      pwmMotorScale *= 256;
+      // 44us
+      maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
+      constrain(maxPWMmotorPitchScaled, 0, 255);
+      maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
+      constrain(maxPWMmotorPitchScaled, 0, 255);
       break;
     case 6:
       // gimbal state transitions 
@@ -323,6 +412,7 @@ void loop()
       }
       break;
     case 7:
+      // td = 26/76us, total
       // RC Pitch function
       if (rcData[RC_DATA_PITCH].valid) {
         if(config.rcAbsolute==1) {
@@ -343,6 +433,7 @@ void loop()
       }
       break;
     case 8:
+      // td = 26/76us, total
       // RC roll function
       if (rcData[RC_DATA_ROLL].valid){
         if(config.rcAbsolute==1){
@@ -359,9 +450,20 @@ void loop()
         RollPhiSet = constrain(RollPhiSet, config.minRCRoll, config.maxRCRoll);
       } else {
         RollPhiSet = constrain(RollPhiSet, config.maxRCRoll, config.minRCRoll);
-      }        
+      }
       break;
     case 9:
+      // evaluate RC-Signals
+      if(config.rcAbsolute==1) {
+        evaluateRCAbsolute();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
+      } else {
+        evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
+      }
+      
+      // check RC channel timeouts
+      checkRcTimeouts();
+      break;
+    case 10:    
       // regular ACC output
       pOutCnt++;
       if (pOutCnt == (LOOPUPDATE_FREQ/10/POUT_FREQ))
@@ -370,8 +472,6 @@ void loop()
         if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
         pOutCnt = 0;
       }
-      break;
-    case 10:    
 #ifdef STACKHEAPCHECK_ENABLE
       stackHeapEval(false);
 #endif
@@ -392,6 +492,11 @@ void loop()
     // Evaluate Serial inputs 
     //****************************
     sCmd.readSerial();
+
+    // worst-case finalize after
+    //    1.81 ms (w/o RC)
+    //    1.90 ms (with 1 RC channel)
+    //    1.92 ms (with 2 RC channels)
 
     CH2_OFF
   }
