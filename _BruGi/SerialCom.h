@@ -57,30 +57,31 @@ const t_configDef PROGMEM configListPGM[] = {
   {"dirMotorRoll",     INT8,  &config.dirMotorRoll,     NULL},
   {"motorNumberPitch", UINT8, &config.motorNumberPitch, NULL},
   {"motorNumberRoll",  UINT8, &config.motorNumberRoll,  NULL},
-  {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, &recalcMotorStuff},
-  {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  &recalcMotorStuff},
-  {"refVoltageBat",   UINT16, &config.refVoltageBat,    &recalcMotorStuff},
-
-  {"minRCPitch",       INT8,  &config.minRCPitch,        NULL},
-  {"maxRCPitch",       INT8,  &config.maxRCPitch,        NULL},
-  {"minRCRoll",        INT8,  &config.minRCRoll,         NULL},
-  {"maxRCRoll",        INT8,  &config.maxRCRoll,         NULL},
-  {"rcGain",           INT16, &config.rcGain,            NULL},
-  {"rcLPF",            INT16, &config.rcLPF,             &initRC},
-
-  {"rcModePPM",        BOOL,  &config.rcModePPM,         &initRCPins},
-  {"rcChannelPitch",   INT8,  &config.rcChannelPitch,    NULL},
-  {"rcChannelRoll",    INT8,  &config.rcChannelRoll,     NULL},
-  {"rcMid",            INT16, &config.rcMid,             NULL},
-  {"rcAbsolute",       BOOL,  &config.rcAbsolute,        NULL},
+  {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, NULL},
+  {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  NULL},
+  {"refVoltageBat",    UINT16, &config.refVoltageBat,   NULL},
+  {"motorPowerScale",  BOOL,  &config.motorPowerScale,  NULL},
   
-  {"accOutput",        BOOL,  &config.accOutput,         NULL},
+  {"minRCPitch",       INT8,  &config.minRCPitch,       NULL},
+  {"maxRCPitch",       INT8,  &config.maxRCPitch,       NULL},
+  {"minRCRoll",        INT8,  &config.minRCRoll,        NULL},
+  {"maxRCRoll",        INT8,  &config.maxRCRoll,        NULL},
+  {"rcGain",           INT16, &config.rcGain,           NULL},
+  {"rcLPF",            INT16, &config.rcLPF,            &initRC},
 
-  {"enableGyro",       BOOL,  &config.enableGyro,        NULL},
-  {"enableACC",        BOOL,  &config.enableACC,         NULL},
+  {"rcModePPM",        BOOL,  &config.rcModePPM,        &initRCPins},
+  {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   NULL},
+  {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    NULL},
+  {"rcMid",            INT16, &config.rcMid,            NULL},
+  {"rcAbsolute",       BOOL,  &config.rcAbsolute,       NULL},
+  
+  {"accOutput",        BOOL,  &config.accOutput,        NULL},
 
-  {"axisReverseZ",     BOOL,  &config.axisReverseZ,      &initSensorOrientation},
-  {"axisSwapXY",       BOOL,  &config.axisSwapXY,        &initSensorOrientation},
+  {"enableGyro",       BOOL,  &config.enableGyro,       NULL},
+  {"enableACC",        BOOL,  &config.enableACC,        NULL},
+
+  {"axisReverseZ",     BOOL,  &config.axisReverseZ,     &initSensorOrientation},
+  {"axisSwapXY",       BOOL,  &config.axisSwapXY,       &initSensorOrientation},
   
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
@@ -390,6 +391,12 @@ void setSensorOrientation()
   
 }
 
+void saveBatteryRefVoltage()
+{
+  // save the actual battery voltage to configuration
+  config.refVoltageBat = voltageBat * 100;
+}
+
 void printHelpUsage()
 {
   Serial.println(F("This gives you a list of all commands with usage:"));
@@ -401,6 +408,7 @@ void printHelpUsage()
   Serial.println(F("WE    (Writes active config to eeprom)"));
   Serial.println(F("RE    (Restores values from eeprom to active config)"));  
   Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
+  Serial.println(F("SBV   (save battery voltage to config)"));
   Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
   Serial.println(F("    example usage:"));
   Serial.println(F("       par                     ... list all config parameters"));
@@ -448,6 +456,7 @@ void setSerialProtocol()
   sCmd.addCommand("re", readEEPROM); 
   sCmd.addCommand("par", parameterMod);
   sCmd.addCommand("gc", gyroRecalibrate);
+  sCmd.addCommand("sbv", saveBatteryRefVoltage);
 
   sCmd.addCommand("tc", transmitActiveConfig);
   sCmd.addCommand("sp", setPitchPID);

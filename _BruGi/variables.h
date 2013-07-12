@@ -23,6 +23,7 @@ uint8_t motorNumberRoll;
 uint8_t maxPWMmotorPitch;
 uint8_t maxPWMmotorRoll;
 uint16_t refVoltageBat;    // Ubat reference, unit = Volts*100
+bool motorPowerScale;
 int8_t minRCPitch;
 int8_t maxRCPitch;
 int8_t minRCRoll;
@@ -66,6 +67,7 @@ void setDefaultParameters()
   config.maxPWMmotorPitch = 80;
   config.maxPWMmotorRoll = 80;
   config.refVoltageBat = 800;
+  config.motorPowerScale = 0;
   config.minRCPitch = -30;
   config.maxRCPitch = 30;
   config.minRCRoll = -30;
@@ -119,8 +121,7 @@ typedef uint8_t crc;
 
 // motor drive
 
-uint8_t pwmSinMotorPitch[256];
-uint8_t pwmSinMotorRoll[256];
+int8_t pwmSinMotor[256];
 
 int currentStepMotor0 = 0;
 int currentStepMotor1 = 0;
@@ -143,8 +144,8 @@ float uBatValue_f = 0;
 float pwmMotorScale = 0;
 
 //scaled Motor Power
-uint32_t maxPWMmotorPitchScaled;
-uint32_t maxPWMmotorRollScaled;
+uint16_t maxPWMmotorPitchScaled;
+uint16_t maxPWMmotorRollScaled;
 
 // Variables for MPU6050
 float gyroPitch;
