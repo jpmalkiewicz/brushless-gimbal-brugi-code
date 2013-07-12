@@ -132,86 +132,67 @@ void initBlController()
 }
 
 // 3 lsb of MotorPos still reserved for precision improvement (TBD) 
-inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint8_t* pwmSin)
+inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint16_t maxPWM)
 {
   int posStep;
+  uint16_t pwm_a;
+  uint16_t pwm_b;
+  uint16_t pwm_c;
 
+  // fetch pwm from sinus table
+  posStep = MotorPos >> 3;
+  posStep &= 0xff;
+  pwm_a = pwmSinMotor[(uint8_t)posStep];
+  pwm_b = pwmSinMotor[(uint8_t)(posStep + 85)];
+  pwm_c = pwmSinMotor[(uint8_t)(posStep + 170)];
+ 
+  // apply power factor
+  pwm_a = maxPWM * pwm_a;
+  pwm_a = pwm_a >> 8;
+  pwm_a += 128;
+
+  pwm_b = maxPWM * pwm_b;
+  pwm_b = pwm_b >> 8;
+  pwm_b += 128;
+  
+  pwm_c = maxPWM * pwm_c;
+  pwm_c = pwm_c >> 8;
+  pwm_c += 128;
+  
+  // set motor pwm
   if (motorNumber == 0)
   {
-    posStep = MotorPos >> 3;
-    posStep &= 0xff;
-    PWM_A_MOTOR0 = pwmSin[(uint8_t)posStep];
-    PWM_B_MOTOR0 = pwmSin[(uint8_t)(posStep + 85)];
-    PWM_C_MOTOR0 = pwmSin[(uint8_t)(posStep + 170)];
+    PWM_A_MOTOR0 = (uint8_t)pwm_a;
+    PWM_B_MOTOR0 = (uint8_t)pwm_b;
+    PWM_C_MOTOR0 = (uint8_t)pwm_c;
   }
  
   if (motorNumber == 1)
   {
-    posStep = MotorPos >> 3;
-    posStep &= 0xff;
-    PWM_A_MOTOR1 = pwmSin[(uint8_t)posStep];
-    PWM_B_MOTOR1 = pwmSin[(uint8_t)(posStep + 85)];
-    PWM_C_MOTOR1 = pwmSin[(uint8_t)(posStep + 170)];
+    PWM_A_MOTOR1 = (uint8_t)pwm_a;
+    PWM_B_MOTOR1 = (uint8_t)pwm_b;
+    PWM_C_MOTOR1 = (uint8_t)pwm_c;
   }
 }
 
 
-
-void fastMoveMotor(uint8_t motorNumber, int dirStep,uint8_t* pwmSin)
-{
-  if (motorNumber == 0)
-  {
-    currentStepMotor0 += dirStep;
-    currentStepMotor0 &= 0xff;
-    PWM_A_MOTOR0 = pwmSin[currentStepMotor0];
-    PWM_B_MOTOR0 = pwmSin[(uint8_t)(currentStepMotor0 + 85)];
-    PWM_C_MOTOR0 = pwmSin[(uint8_t)(currentStepMotor0 + 170)];
-  }
- 
-  if (motorNumber == 1)
-  {
-    currentStepMotor1 += dirStep;
-    currentStepMotor1 &= 0xff;
-    PWM_A_MOTOR1 = pwmSin[currentStepMotor1] ;
-    PWM_B_MOTOR1 = pwmSin[(uint8_t)(currentStepMotor1 + 85)] ;
-    PWM_C_MOTOR1 = pwmSin[(uint8_t)(currentStepMotor1 + 170)] ;
-  }
-}
-
-// switch off motor power
-// TODO: for some reason motor control gets noisy, if call from ISR
-inline void MotorOff(uint8_t motorNumber, uint8_t* pwmSin)
-{
-  if (motorNumber == 0)
-  {
-    PWM_A_MOTOR0 = pwmSin[0];
-    PWM_B_MOTOR0 = pwmSin[0];
-    PWM_C_MOTOR0 = pwmSin[0];
-  }
- 
-  if (motorNumber == 1)
-  {
-    PWM_A_MOTOR1 = pwmSin[0];
-    PWM_B_MOTOR1 = pwmSin[0];
-    PWM_C_MOTOR1 = pwmSin[0];
-  }
-}
-
-
-void calcSinusArray(uint8_t maxPWM, uint8_t *array)
+void calcSinusArray()
 {
   for(int i=0; i<N_SIN; i++)
   {
-//    array[i] = maxPWM / 2.0 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
-    array[i] = 128 + sin(2.0 * i / N_SIN * 3.14159265) * maxPWM / 2.0;
+    pwmSinMotor[i] =  sin(2.0 * i / N_SIN * 3.14159265) * 127.0;
   }  
+}
+
+void initMotorStuff()
+{
+  calcSinusArray();
 }
 
 void recalcMotorStuff()
 {
   cli();
-  calcSinusArray(config.maxPWMmotorPitch,pwmSinMotorPitch);
-  calcSinusArray(config.maxPWMmotorRoll,pwmSinMotorRoll);
+  calcSinusArray();
   sei();
 }
 
@@ -255,17 +236,34 @@ ISR( TIMER1_OVF_vect )
     1d22:	18 95       	reti
 */
 
-void motorTest()
-{
-  #define MOT_DEL 100
-  cli();
-  delay(10 * CC_FACTOR);
-  // Move Motors to ensure function
-  for(int i=0; i<100; i++) { fastMoveMotor(config.motorNumberPitch, 1,pwmSinMotorPitch); delay(MOT_DEL * CC_FACTOR);  }
-  for(int i=0; i<100; i++) { fastMoveMotor(config.motorNumberPitch, -1,pwmSinMotorPitch); delay(MOT_DEL * CC_FACTOR);  }
-  delay(200 * CC_FACTOR);
-  for(int i=0; i<100; i++) { fastMoveMotor(config.motorNumberRoll, 1,pwmSinMotorRoll); delay(MOT_DEL * CC_FACTOR);  }
-  for(int i=0; i<100; i++) { fastMoveMotor(config.motorNumberRoll, -1,pwmSinMotorRoll); delay(MOT_DEL * CC_FACTOR);  }
-  sei();  
-}
 
+/**********************************************************/
+/* voltage compensation                                   */
+/*   measure power supply voltage and compensate          */
+/*   motor power accordingly                              */
+/**********************************************************/
+void voltageCompensation () {
+  int uBatValue;
+
+  // measure uBat, 190 us
+  uBatValue = analogRead(ADC_VCC_PIN); // 118 us
+  uBatValue_f = (float)uBatValue * UBAT_ADC_SCALE * UBAT_SCALE;   
+  utilLP_float(&voltageBat, uBatValue_f, LOWPASS_K_FLOAT(0.1)); // tau = 1 sec
+   
+  if (config.motorPowerScale) {
+    // calcualte scale factor for motor power (70us)
+    if (voltageBat > 6.0) {  // switch off if battery voltage < 6.0V
+      pwmMotorScale = (config.refVoltageBat * 0.01)/voltageBat;
+    } else {
+      pwmMotorScale = 0;
+    }
+  } else {
+    pwmMotorScale = 1.0;
+  }
+  
+  // 44us
+  maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
+  maxPWMmotorPitchScaled = constrain(maxPWMmotorPitchScaled, 0, 255);
+  maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
+  maxPWMmotorRollScaled = constrain(maxPWMmotorRollScaled, 0, 255);
+}

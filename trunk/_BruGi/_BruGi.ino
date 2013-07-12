@@ -114,8 +114,8 @@ void setup()
     writeEEPROM();
   }
     
-  // Init Sinus Arrays and Motor Stuff 
-  recalcMotorStuff();
+  // Init Sinus Arrays
+  initMotorStuff();
   
   // Init PIDs to reduce floating point operations.
   initPIDs();
@@ -284,21 +284,19 @@ void loop()
   
   static char pOutCnt = 0;
   static int stateCount = 0;
-  
-  int uBatValue;
 
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
    
     CH2_ON
-
+    
     // motor update t=6us (*)
     if (enableMotorUpdates)
     {
-      // move pitch motor
-      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, pwmSinMotorPitch); 
-      // move roll motor
-      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, pwmSinMotorRoll);
+      // set pitch motor pwm
+      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, maxPWMmotorPitchScaled); 
+      // set roll motor pwm
+      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, maxPWMmotorRollScaled);
     }
     motorUpdate = false;
 
@@ -354,20 +352,7 @@ void loop()
       updateACC(); break;
     case 5:
       // td = 289us, total
-      // measure uBat, 190 us
-      uBatValue = analogRead(ADC_VCC_PIN); // 118 us
-      uBatValue_f = (float)uBatValue * UBAT_ADC_SCALE * UBAT_SCALE;   
-      utilLP_float(&voltageBat, uBatValue_f, LOWPASS_K_FLOAT(0.1)); // tau = 1 sec
-
-      // calcualte scale factor for motor power (70us)
-      //pwmMotorScale = (config.refVoltageBat * 0.01)/voltageBat;
-      pwmMotorScale = (800.0 * 0.01)/voltageBat;
-      pwmMotorScale *= 256;
-      // 44us
-      maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
-      constrain(maxPWMmotorPitchScaled, 0, 255);
-      maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
-      constrain(maxPWMmotorPitchScaled, 0, 255);
+      voltageCompensation();
       break;
     case 6:
       // gimbal state transitions 
