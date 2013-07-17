@@ -60,6 +60,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"maxPWMmotorPitch", UINT8, &config.maxPWMmotorPitch, NULL},
   {"maxPWMmotorRoll",  UINT8, &config.maxPWMmotorRoll,  NULL},
   {"refVoltageBat",    UINT16, &config.refVoltageBat,   NULL},
+  {"cutoffVoltage",    UINT16, &config.cutoffVoltage,   NULL},
   {"motorPowerScale",  BOOL,  &config.motorPowerScale,  NULL},
   
   {"minRCPitch",       INT8,  &config.minRCPitch,       NULL},
