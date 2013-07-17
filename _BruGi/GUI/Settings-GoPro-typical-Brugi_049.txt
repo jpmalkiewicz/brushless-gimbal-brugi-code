@@ -10,6 +10,7 @@ par minRCPitch 25
 par motorNumberPitch 0
 par maxPWMmotorRoll 200.0
 par rcChannelPitch 1
+par motorPowerScale 1
 par angleOffsetPitch 0.0
 par rcChannelRoll 0
 par angleOffsetRoll 0.0
@@ -26,7 +27,8 @@ par motorNumberRoll 1
 par mpuLPF 0
 par gyroRollKp 30000.0
 par gyroPitchKi 25000.0
+par refVoltageBat 800.0
 par minRCRoll -30
 par maxPWMmotorPitch 80.0
 par gyroPitchKp 19000.0
-par rcLPF 15.0
+par rcLPF 8.0

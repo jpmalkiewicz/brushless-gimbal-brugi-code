@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION 49
+set VERSION "49 r167"
 
 #####################################################################################
 # Big hexdata
@@ -376,7 +376,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll minRCPitch maxRCPitch minRCRoll maxRCRoll rcGain rcLPF rcModePPM rcChannelPitch rcChannelRoll rcMid rcAbsolute accOutput enableGyro enableACC axisReverseZ axisSwapXY"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale minRCPitch maxRCPitch minRCRoll maxRCRoll rcGain rcLPF rcModePPM rcChannelPitch rcChannelRoll rcMid rcAbsolute accOutput enableGyro enableACC axisReverseZ axisSwapXY"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -387,6 +387,7 @@ foreach var $params {
 	}
 }
 
+set enable_trace 1
 
 set par(gyroPitchKp,scale) 1000.0
 set par(gyroPitchKi,scale) 1000.0
@@ -403,6 +404,8 @@ set par(rcChannelPitch,offset) 1
 set par(rcChannelRoll,offset) 1
 set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
+set par(refVoltageBat,scale) 100.0
+set par(cutoffVoltage,scale) 100.0
 
 
 
@@ -493,27 +496,30 @@ proc draw_chart {} {
 proc send_parvar {n1 n2 op} {
 	global Serial
 	global par
+	global enable_trace
 
-	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
-		return
-	}
-	if {$n2 == "vers"} {
-	} elseif {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
-		if {$par($n2) == 1} {
-			.bottom.info configure -text "SEND: par $n2 -1"
-		        puts -nonewline $Serial "par $n2 -1\n"
-		} else {
-			.bottom.info configure -text "SEND: par $n2 1"
-		        puts -nonewline $Serial "par $n2 1\n"
+	if {$enable_trace == 1} {
+		if {$Serial == 0} {
+			.bottom.info configure -background red
+			.bottom.info configure -text "not connected"
+			return
 		}
-	} else {
-		.bottom.info configure -text "SEND: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
-	        puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
+		if {$n2 == "vers"} {
+		} elseif {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
+			if {$par($n2) == 1} {
+				.bottom.info configure -text "SEND: par $n2 -1"
+					puts -nonewline $Serial "par $n2 -1\n"
+			} else {
+				.bottom.info configure -text "SEND: par $n2 1"
+					puts -nonewline $Serial "par $n2 1\n"
+			}
+		} else {
+			.bottom.info configure -text "SEND: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
+				puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
+		}
+		flush $Serial
+		after 20
 	}
-	flush $Serial
-	after 20
 }
 
 proc send_par {} {
@@ -521,6 +527,7 @@ proc send_par {} {
 	global count
 	global device
 	global buffer
+	global enable_trace
 	set count 0
 	set buffer ""
 	if {$Serial == 0} {
@@ -528,6 +535,7 @@ proc send_par {} {
 		.bottom.info configure -text "not connected"
 		return
 	}
+	set enable_trace 0 
 	.bottom.info configure -text "PAR: reading values..."
 
         puts -nonewline $Serial "par\n"
@@ -688,6 +696,23 @@ proc set_defaults {} {
 	after 200 send_par
 }
 
+proc set_batteryVoltage {} {
+	global Serial
+	global count
+	global device
+	set count 0
+	.bottom.info configure -text "get battery voltag"
+	update
+	if {$Serial == 0} {
+		.bottom.info configure -background red
+		.bottom.info configure -text "not connected"
+		return
+	}
+        puts -nonewline $Serial "SBV\n"
+	flush $Serial
+	after 200 send_par
+}
+
 #####################################################################################
 # Serial-Callback
 #####################################################################################
@@ -698,6 +723,8 @@ proc rd_chid {chid} {
 	global chart_count
 	global VERSION
 	global par
+	global enable_trace
+	
 	if {$chid == 0} {
 		return
 	}
@@ -760,6 +787,7 @@ proc rd_chid {chid} {
 					.bottom.info configure -text "READY!"
 					.bottom.info configure -background green
 				} else {
+					set enable_trace 1
 				}
 			}
 			set buffer ""
@@ -1250,7 +1278,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
 			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
 			gui_slider .note.general.settings.rc.rcGain rcGain -200 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.general.settings.rc.rcLPF rcLPF 1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.general.settings.rc.rcLPF rcLPF 0.1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
 			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"
 
 		labelframe .note.general.settings.sensor -text "Sensor"
@@ -1276,16 +1304,27 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 				.note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
 				update_mpu 0 0 0
 
+	labelframe .note.general.power -text "Motor Power"
+	pack .note.general.power -side top -expand no -fill both
 
+	frame .note.general.power.line1
+	pack .note.general.power.line1 -side top -expand no -fill x
+  
+		gui_check .note.general.power.line1.motorPowerScale  motorPowerScale   "Power Scale on/off" "Power Scale" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
+		gui_spin .note.general.power.line1.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
+		gui_spin .note.general.power.line1.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
+		gui_button .note.general.power.line1.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and update config.refVoltageBat" set_batteryVoltage
+
+				
 	labelframe .note.general.buttons -text "File"
 	pack .note.general.buttons -side top -expand no -fill both
 
 	frame .note.general.buttons.line1
 	pack .note.general.buttons.line1 -side top -expand no -fill x
   
-		gui_button .note.general.buttons.line1.defaults "Defaults" "set defaults values" set_defaults
-		gui_button .note.general.buttons.line1.load "Load" "load values from board into gui" send_par
-		gui_button .note.general.buttons.line1.save "Save" "save values from gui into board" save_values
+		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
+		gui_button .note.general.buttons.line1.load "Load from BruGi" "load values from board into gui" send_par
+		gui_button .note.general.buttons.line1.save "Save to Brugi" "save values from gui into board" save_values
 		gui_button .note.general.buttons.line1.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
 
 	frame .note.general.buttons.line2

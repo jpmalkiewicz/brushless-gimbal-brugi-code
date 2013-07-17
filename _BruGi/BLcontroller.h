@@ -251,8 +251,8 @@ void voltageCompensation () {
   utilLP_float(&voltageBat, uBatValue_f, LOWPASS_K_FLOAT(0.1)); // tau = 1 sec
    
   if (config.motorPowerScale) {
-    // calcualte scale factor for motor power (70us)
-    if (voltageBat > 6.0) {  // switch off if battery voltage < 6.0V
+    // calculate scale factor for motor power (70us)
+    if (voltageBat*100 > config.cutoffVoltage) {  // switch off if battery voltage below cutoff
       pwmMotorScale = (config.refVoltageBat * 0.01)/voltageBat;
     } else {
       pwmMotorScale = 0;

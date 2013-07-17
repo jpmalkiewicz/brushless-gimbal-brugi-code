@@ -22,7 +22,8 @@ uint8_t motorNumberPitch;
 uint8_t motorNumberRoll;
 uint8_t maxPWMmotorPitch;
 uint8_t maxPWMmotorRoll;
-uint16_t refVoltageBat;    // Ubat reference, unit = Volts*100
+uint16_t refVoltageBat;    // Ubat reference, unit = volts*100
+uint16_t cutoffVoltage;    // Ubat cutoff, unit = volts*100
 bool motorPowerScale;
 int8_t minRCPitch;
 int8_t maxRCPitch;
@@ -67,6 +68,7 @@ void setDefaultParameters()
   config.maxPWMmotorPitch = 80;
   config.maxPWMmotorRoll = 80;
   config.refVoltageBat = 800;
+  config.cutoffVoltage = 600;
   config.motorPowerScale = 0;
   config.minRCPitch = -30;
   config.maxRCPitch = 30;
