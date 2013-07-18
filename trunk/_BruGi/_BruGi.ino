@@ -172,10 +172,14 @@ void setup()
   initMPUlpf();
   Serial.println(F("Gyro calibration: done"));
   
-  LEDPIN_ON
+  LEDPIN_OFF
   
    // Init BL Controller
   initBlController();
+  // switch off PWM Power
+  MoveMotorPosSpeed(config.motorNumberPitch, 0, 0); 
+  MoveMotorPosSpeed(config.motorNumberRoll, 0, 0);
+  
   // motorTest();
 
   // Init RC-Input
@@ -284,6 +288,9 @@ void loop()
   
   static char pOutCnt = 0;
   static int stateCount = 0;
+  uint8_t ledBlinkCnt = 0;
+  uint8_t ledBlinkOnTime = 10;
+  uint8_t ledBlinkPeriod = 20;
 
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
@@ -311,19 +318,22 @@ void loop()
     //****************************
     // pitch PID
     //****************************
-    // t=69us (*)
-    pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
-    // motor control
-    pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
-
+    if (!fpvModePitch) {
+      // t=69us (*)
+      pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+      // motor control
+      pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
+   }
+ 
     //****************************
     // roll PID
     //****************************
     // t=69us (*)
-    rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
-    // motor control
-    rollMotorDrive = rollPIDVal * config.dirMotorRoll;
- 
+    if (!fpvModeRoll) {
+      rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
+      // motor control
+      rollMotorDrive = rollPIDVal * config.dirMotorRoll;
+    } 
      // Evaluate RC-Signals
     if(config.rcAbsolute==1) {
       utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
@@ -382,17 +392,25 @@ void loop()
       switch (gimState) {
         case GIM_IDLE :
           enableMotorUpdates = false;
-          setACCFastMode(true);
+          setACCFastMode(true, config.accTimeConstant);
           break;
         case GIM_UNLOCKED :
           enableMotorUpdates = true;
-          setACCFastMode(true);
+          setACCFastMode(true, config.accTimeConstant);
           break;
         case GIM_LOCKED :
           enableMotorUpdates = true;
-          setACCFastMode(false);
+          if (altModeAccTime) { // alternate time constant mode switch
+            setACCFastMode(false, config.accTimeConstant2);
+          } else {
+            setACCFastMode(false, config.accTimeConstant);
+          }
           break;
       }
+      
+      // handle mode switches
+      decodeModeSwitches();
+      
       break;
     case 7:
       // td = 26/76us, total
@@ -456,6 +474,16 @@ void loop()
         if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
         pOutCnt = 0;
       }
+      
+      ledBlinkCnt++;
+      if (ledBlinkCnt <= ledBlinkOnTime) {
+          LEDPIN_ON
+      } else if (ledBlinkCnt <= ledBlinkPeriod) {
+          LEDPIN_OFF
+      } else {
+        ledBlinkCnt = 0;
+      }
+        
 #ifdef STACKHEAPCHECK_ENABLE
       stackHeapEval(false);
 #endif

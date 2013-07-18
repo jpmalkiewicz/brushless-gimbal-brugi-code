@@ -84,6 +84,14 @@ const t_configDef PROGMEM configListPGM[] = {
   {"axisReverseZ",     BOOL,  &config.axisReverseZ,     &initSensorOrientation},
   {"axisSwapXY",       BOOL,  &config.axisSwapXY,       &initSensorOrientation},
   
+  {"fpvSwPitch",       INT8, &config.fpvSwPitch,        NULL},
+  {"fpvSwRoll",        INT8, &config.fpvSwRoll,         NULL},
+  {"fpvPWMmotorPitch", UINT8, &config.fpvPWMmotorPitch, NULL},
+  {"fpvPWMmotorRoll",  UINT8, &config.fpvPWMmotorRoll,  NULL},
+
+  {"altSwAccTime",     INT8, &config.altSwAccTime,      NULL},
+  {"accTimeConstant2", INT16, &config.accTimeConstant2, &initIMU},
+    
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
 
