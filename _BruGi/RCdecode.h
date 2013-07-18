@@ -65,8 +65,10 @@ inline void intDecodePPM()
     rcData_t* data = 0; 
     if (channel_idx == config.rcChannelPitch) 
       data = &rcData[RC_DATA_PITCH];
-    else if (channel_idx == config.rcChannelRoll)
+    if (channel_idx == config.rcChannelRoll)
       data = &rcData[RC_DATA_ROLL];
+    if (channel_idx == config.rcChannelAux)
+      data = &rcData[RC_DATA_AUX];
     if (data)
     {
       data->microsLastUpdate = microsNow;    
@@ -103,6 +105,8 @@ void intDecodePWM_Ch0()
       decodePWM(&rcData[RC_DATA_ROLL]);
     if (config.rcChannelPitch == 0)
       decodePWM(&rcData[RC_DATA_PITCH]);
+    if (config.rcChannelAux == 0)
+      decodePWM(&rcData[RC_DATA_AUX]);
   }
 }
 
@@ -121,6 +125,8 @@ void intDecodePWM_Ch1()
       decodePWM(&rcData[RC_DATA_ROLL]);
     if (config.rcChannelPitch == 1)
       decodePWM(&rcData[RC_DATA_PITCH]);
+    if (config.rcChannelAux == 1)
+      decodePWM(&rcData[RC_DATA_AUX]);
   }
 }
 
@@ -139,6 +145,8 @@ void intDecodePWM_Ch2()
       decodePWM(&rcData[RC_DATA_ROLL]);
     if (config.rcChannelPitch == 2)
       decodePWM(&rcData[RC_DATA_PITCH]);
+    if (config.rcChannelAux == 2)
+      decodePWM(&rcData[RC_DATA_AUX]);
   }
 }
 
@@ -193,6 +201,8 @@ void initRCPins()
     rcData[id].valid            = true;
     rcData[id].rcSpeed          = 0.0;
     rcData[id].setpoint         = 0.0;
+    rcData[id].rcAuxSwitch1     = false;
+    rcData[id].rcAuxSwitch2     = false;
     sei();
   }
   if (!config.rcModePPM)
@@ -267,6 +277,27 @@ void evaluateRCAbsolute()
   evalRCChannelAbsolute(&rcData[RC_DATA_ROLL ], config.minRCRoll , config.maxRCRoll,  config.rcMid);
 }
 
+
+// auxiliary channel, decode switches
+inline void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)
+{
+  int16_t rx;
+  
+  if(rcData->update == true)
+  {
+    rx = rcData->rx - rcMid;
+    utilLP_float(&rcData->setpoint, rx, 0.05);
+    rcData->rcAuxSwitch1 = (rcData->setpoint > rcSwThresh) ? true : false;
+    rcData->rcAuxSwitch2 = (rcData->setpoint < -rcSwThresh) ? true : false;
+    rcData->update = false;
+  }
+}
+
+// auxiliary 
+void evaluateRCAux()
+{
+  evalRCChannelAux(&rcData[RC_DATA_AUX], RC_SW_THRESH, config.rcMid);
+}
 
 
 
