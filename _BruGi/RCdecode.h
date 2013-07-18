@@ -282,13 +282,17 @@ void evaluateRCAbsolute()
 inline void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)
 {
   int16_t rx;
+  int8_t hyst;
   
   if(rcData->update == true)
   {
     rx = rcData->rx - rcMid;
     utilLP_float(&rcData->setpoint, rx, 0.05);
-    rcData->rcAuxSwitch1 = (rcData->setpoint > rcSwThresh) ? true : false;
-    rcData->rcAuxSwitch2 = (rcData->setpoint < -rcSwThresh) ? true : false;
+   
+    hyst = rcData->rcAuxSwitch1 ? 0 : 50;
+    rcData->rcAuxSwitch1 = (rcData->setpoint > (rcSwThresh+hyst)) ? true : false;
+    hyst = rcData->rcAuxSwitch2 ? 0 : 50;
+    rcData->rcAuxSwitch2 = (rcData->setpoint < -(rcSwThresh+hyst)) ? true : false;
     rcData->update = false;
   }
 }
@@ -299,7 +303,55 @@ void evaluateRCAux()
   evalRCChannelAux(&rcData[RC_DATA_AUX], RC_SW_THRESH, config.rcMid);
 }
 
+// decode mode switches
+void decodeModeSwitches() {
+  // fpv mode
+  switch (config.fpvSwPitch) {
+    case -1:
+      fpvModePitch = true;
+      break;
+    case 0:
+      fpvModePitch = false;
+      break;
+    case 1: // aux Switch 1
+      fpvModePitch = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
+      break;
+    case 2:
+      fpvModePitch = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
+      break;
+  }
+  switch (config.fpvSwRoll) {
+    case -1:
+      fpvModeRoll = true;
+      break;
+    case 0:
+      fpvModeRoll = false;
+      break;
+    case 1: // aux Switch 1
+      fpvModeRoll = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
+      break;
+    case 2:
+      fpvModeRoll = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
+      break;
+  }
 
+  switch (config.altSwAccTime) {
+    case -1:
+      altModeAccTime = true;
+      break;
+    case 0:
+      altModeAccTime = false;
+      break;
+    case 1: // aux Switch 1
+      altModeAccTime = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
+      break;
+    case 2:
+      altModeAccTime = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
+      break;
+  }
+
+
+}
 
 
 

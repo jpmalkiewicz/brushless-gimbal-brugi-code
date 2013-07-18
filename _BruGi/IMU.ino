@@ -97,13 +97,14 @@ void initSensorOrientation() {
   }
 }
 
-void setACCFastMode (bool fastMode) {
+void setACCFastMode (bool fastMode, int16_t accTimeConstant) {
   if (fastMode) {
     AccComplFilterConst = (float)DT_FLOAT/(2.0 + DT_FLOAT); // 2 sec
   } else {
-    AccComplFilterConst = (float)DT_FLOAT/(config.accTimeConstant + DT_FLOAT);
+    AccComplFilterConst = (float)DT_FLOAT/(accTimeConstant + DT_FLOAT);
   }
 }
+
 
 void initIMU() {
  
@@ -111,7 +112,7 @@ void initIMU() {
   // 102us
   gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359 * DT_FLOAT;  // convert to radians
   
-  setACCFastMode(false);
+  setACCFastMode(false, config.accTimeConstant);
  
   accLPF[0] = 0;
   accLPF[1] = 0;

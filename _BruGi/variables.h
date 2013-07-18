@@ -42,6 +42,12 @@ bool enableGyro;           // enable gyro attitude update
 bool enableACC;            // enable acc attitude update
 bool axisReverseZ;
 bool axisSwapXY;
+int8_t fpvSwPitch;         // fpv switch pitch: -1=always on, 0=off, 1=auxSW1, 2=auxSW2 
+int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
+int8_t fpvPWMmotorPitch;
+int8_t fpvPWMmotorRoll;
+int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
+int16_t accTimeConstant2;  // alternate constant
 uint8_t crc8;
 } config;
 
@@ -80,14 +86,20 @@ void setDefaultParameters()
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
-  config.rcChannelAux = 0;  
+  config.rcChannelAux = -1;
   config.rcMid = MID_RC;
   config.rcAbsolute = true;
   config.accOutput=false;
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;
-  config.axisSwapXY=false;  
+  config.axisSwapXY=false;
+  config.fpvSwPitch=0;
+  config.fpvSwRoll=0;
+  config.fpvPWMmotorPitch = 80;
+  config.fpvPWMmotorRoll = 80;
+  config.altSwAccTime=0;
+  config.accTimeConstant2 = 2;
   config.crc8 = 0;  
 }
 
@@ -196,6 +208,11 @@ enum gimStateType {
 gimStateType gimState = GIM_IDLE;
 int stateCount = 0;
 
+// rc fpv mode
+bool fpvModePitch = false;
+bool fpvModeRoll = false;
+// rc alternate ACC time
+bool altModeAccTime = false;
 
 //*************************************
 //
