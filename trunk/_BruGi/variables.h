@@ -34,6 +34,7 @@ int16_t rcLPF;             // low pass filter for RC absolute mode, units=1/10 s
 bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
 int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
+int8_t rcChannelAux;       // input channel for auxiliary functions
 int16_t rcMid;             // rc channel center ms
 bool rcAbsolute;
 bool accOutput;
@@ -79,6 +80,7 @@ void setDefaultParameters()
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
+  config.rcChannelAux = 0;  
   config.rcMid = MID_RC;
   config.rcAbsolute = true;
   config.accOutput=false;
@@ -176,6 +178,8 @@ struct rcData_t
  bool     valid;
  float    rcSpeed;
  float    setpoint;
+ bool     rcAuxSwitch1;
+ bool     rcAuxSwitch2;
 };
 
 rcData_t rcData[RC_DATA_SIZE];

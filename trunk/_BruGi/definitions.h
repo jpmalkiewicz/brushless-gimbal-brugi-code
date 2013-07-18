@@ -13,9 +13,9 @@
 //#define PWM_4KHZ_PHASE   // Resolution 8 bit for PWM
 //#define NO_PWM_LOOP
 
-#define MOTORUPDATE_FREQ 500                // in Hz, 1000 is default
-#define LOOPUPDATE_FREQ MOTORUPDATE_FREQ    // loop control sample rate equals motor update rate
-#define DT_FLOAT (1.0/LOOPUPDATE_FREQ)      // loop controller sample period dT
+#define MOTORUPDATE_FREQ 500                 // in Hz, 1000 is default
+#define LOOPUPDATE_FREQ MOTORUPDATE_FREQ     // loop control sample rate equals motor update rate
+#define DT_FLOAT (1.0/LOOPUPDATE_FREQ*1.024) // loop controller sample period dT
 #define DT_INT_MS (1000/MOTORUPDATE_FREQ) 
 
 #define POUT_FREQ 25     // rate of ACC print output in Hz, 25 Hz is default
@@ -48,9 +48,10 @@
 
 
 // RC data size and channel assigment
-#define RC_DATA_SIZE  2
+#define RC_DATA_SIZE  3
 #define RC_DATA_PITCH 0
 #define RC_DATA_ROLL  1
+#define RC_DATA_AUX   2
 
 // RC PPM pin A0, A1 or A2
 #define RC_PIN_PPM_A2
@@ -62,6 +63,9 @@
 #define MAX_RC 2000
 #define RC_DEADBAND 50
 #define RC_TIMEOUT 100000
+
+// rc switch on/off threshold (as offset from MID_RC)
+#define RC_SW_THRESH 250
 
 // PPM Decoder
 #define RC_PPM_GUARD_TIME 4000

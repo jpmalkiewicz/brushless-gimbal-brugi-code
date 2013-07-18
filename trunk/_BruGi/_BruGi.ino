@@ -336,8 +336,6 @@ void loop()
     // tElapsed = 1.41ms, 1.50ms (new), 1.80ms(with previous RC version)
     // tEleapsed = 1.58ms, with RC 1.72ms 
 
-    
-    CH3_ON
     //****************************
     // slow rate actions
     //****************************
@@ -444,6 +442,7 @@ void loop()
       } else {
         evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
       }
+      evaluateRCAux();
       
       // check RC channel timeouts
       checkRcTimeouts();
