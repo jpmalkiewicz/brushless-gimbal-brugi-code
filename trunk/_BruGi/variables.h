@@ -154,6 +154,14 @@ int rollMotorDrive = 0;
 // control motor update in ISR
 bool enableMotorUpdates = false;
 
+uint8_t pwm_a_motor0 = 128;
+uint8_t pwm_b_motor0 = 128;
+uint8_t pwm_c_motor0 = 128;
+
+uint8_t pwm_a_motor1 = 128;
+uint8_t pwm_b_motor1 = 128;
+uint8_t pwm_c_motor1 = 128;
+
 // battery voltage
 float voltageBat = 0;
 float uBatValue_f = 0;
@@ -263,7 +271,6 @@ int16_t gyroOffset[3] = {0, 0, 0};
 
 static float gyroScale=0;
 
-static int32_t accSmooth[3];
 static int16_t gyroADC[3];
 static int16_t accADC[3];
 

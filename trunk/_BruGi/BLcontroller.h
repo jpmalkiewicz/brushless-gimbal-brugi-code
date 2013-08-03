@@ -159,19 +159,19 @@ inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint16_t maxPWM
   pwm_c = pwm_c >> 8;
   pwm_c += 128;
   
-  // set motor pwm
+  // set motor pwm variables
   if (motorNumber == 0)
   {
-    PWM_A_MOTOR0 = (uint8_t)pwm_a;
-    PWM_B_MOTOR0 = (uint8_t)pwm_b;
-    PWM_C_MOTOR0 = (uint8_t)pwm_c;
+    pwm_a_motor0 = (uint8_t)pwm_a;
+    pwm_b_motor0 = (uint8_t)pwm_b;
+    pwm_c_motor0 = (uint8_t)pwm_c;
   }
  
   if (motorNumber == 1)
   {
-    PWM_A_MOTOR1 = (uint8_t)pwm_a;
-    PWM_B_MOTOR1 = (uint8_t)pwm_b;
-    PWM_C_MOTOR1 = (uint8_t)pwm_c;
+    pwm_a_motor1 = (uint8_t)pwm_a;
+    pwm_b_motor1 = (uint8_t)pwm_b;
+    pwm_c_motor1 = (uint8_t)pwm_c;
   }
 }
 
@@ -207,11 +207,21 @@ ISR( TIMER1_OVF_vect )
   if(freqCounter==(CC_FACTOR*1000/MOTORUPDATE_FREQ))
   {
     freqCounter=0;
+    
+    PWM_A_MOTOR0 = pwm_a_motor0;
+    PWM_B_MOTOR0 = pwm_b_motor0;
+    PWM_C_MOTOR0 = pwm_c_motor0;
+
+    PWM_A_MOTOR1 = pwm_a_motor1;
+    PWM_B_MOTOR1 = pwm_b_motor1;
+    PWM_C_MOTOR1 = pwm_c_motor1;  
+    
     // update event
     motorUpdate = true;
   }
 }
 
+// TODO ..... disassembly is not up-to-date
 /*
 00001cf4 <__vector_13>:
     1cf4:	1f 92       	push	r1

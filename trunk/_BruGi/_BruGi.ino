@@ -42,6 +42,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
+#define REVISION "r170"
 #define VERSION_EEPROM 3 // change this number when eeprom data strcuture has changed
 
 
@@ -295,18 +296,10 @@ void loop()
   if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
   {
    
-    CH2_ON
-    
-    // motor update t=6us (*)
-    if (enableMotorUpdates)
-    {
-      // set pitch motor pwm
-      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, maxPWMmotorPitchScaled); 
-      // set roll motor pwm
-      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, maxPWMmotorRollScaled);
-    }
     motorUpdate = false;
 
+    CH2_ON
+    
     // update IMU data            
     readGyros();   // t=386us (*)
  
@@ -334,7 +327,17 @@ void loop()
       // motor control
       rollMotorDrive = rollPIDVal * config.dirMotorRoll;
     } 
-     // Evaluate RC-Signals
+
+    // motor update t=6us (*)
+    if (enableMotorUpdates)
+    {
+      // set pitch motor pwm
+      MoveMotorPosSpeed(config.motorNumberPitch, pitchMotorDrive, maxPWMmotorPitchScaled); 
+      // set roll motor pwm
+      MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, maxPWMmotorRollScaled);
+    }
+
+    // Evaluate RC-Signals
     if(config.rcAbsolute==1) {
       utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
       utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc); // t=28us
