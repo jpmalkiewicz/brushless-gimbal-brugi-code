@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "49 r167"
+set VERSION "49 r170"
 
 #####################################################################################
 # Big hexdata
@@ -376,7 +376,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale minRCPitch maxRCPitch minRCRoll maxRCRoll rcGain rcLPF rcModePPM rcChannelPitch rcChannelRoll rcMid rcAbsolute accOutput enableGyro enableACC axisReverseZ axisSwapXY"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale minRCPitch maxRCPitch minRCRoll maxRCRoll rcGain rcLPF rcModePPM rcChannelPitch rcChannelRoll rcMid rcAbsolute accOutput enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll fpvPWMmotorPitch fpvPWMmotorRoll altSwAccTime accTimeConstant2"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -406,7 +406,8 @@ set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
 set par(refVoltageBat,scale) 100.0
 set par(cutoffVoltage,scale) 100.0
-
+set par(fpvPWMmotorPitch,scale) 2.5
+set par(fpvPWMmotorRoll,scale) 2.5
 
 
 set CHART_SCALE 0.5
@@ -467,7 +468,7 @@ proc connect_serial {} {
 		.bottom.info configure -background green
 		.bottom.info configure -text "connected"
 	}
-	after 6000 send_par
+	after 7000 send_par
 }
 
 proc draw_chart {} {
@@ -480,14 +481,14 @@ proc draw_chart {} {
 	}
 	if {$chart == 1} {
 		set chart 0
-		.bottom.info configure -text "SEND: oac 0"
-        	puts -nonewline $Serial "oac 0\n"
+		.bottom.info configure -text "SEND: par accOutput 0"
+        	puts -nonewline $Serial "par accOutput 0\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Start"
 	} else {
 		set chart 1
-		.bottom.info configure -text "SEND: oac 1"
-        	puts -nonewline $Serial "oac 1\n"
+		.bottom.info configure -text "SEND: par accOutput 1"
+        	puts -nonewline $Serial "par accOutput 1\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Stop"
 	}
@@ -760,7 +761,7 @@ proc rd_chid {chid} {
 					set ValX [expr [lindex $buffer 0] / 1000.0]
 					set TEST [lindex $buffer 1]
 					set ValY [expr [lindex $buffer 2] / 1000.0]
-					if {($TEST == "ACC" || $TEST == "DMP") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
+					if {($TEST == "ACC") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
 						incr chart_count 1
 						if {$chart_count >= 450} {
 							set chart_count 0
@@ -1355,7 +1356,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.pitch.rc -text "RC" -padx 10 -pady 10
 		pack .note.pitch.rc -side top -expand no -fill x
 
-			gui_spin .note.pitch.rc.rcChannelPitch rcChannelPitch 1 16 1 "RC Channel"  "rcChannelPitch" "config.rcChannelPitch: RC channel assignment for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode"
+			gui_spin .note.pitch.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 			gui_slider .note.pitch.rc.rcmin  minRCPitch -120 120 1       "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
 			gui_slider .note.pitch.rc.rcmax  maxRCPitch -120 120 1       "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
 			gui_slider .note.pitch.rc.aop angleOffsetPitch -120 120 0.1  "Angle Offset" "Angle Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
@@ -1382,7 +1383,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.roll.rc -text "RC" -padx 10 -pady 10
 		pack .note.roll.rc -side top -expand no -fill x
 
-			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 1 16 1 "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel assignment for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode"
+			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 			gui_slider .note.roll.rc.rcmin  minRCRoll -120 120 1      "RC Min"  "minimum Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
 			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1      "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
 			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1 "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
