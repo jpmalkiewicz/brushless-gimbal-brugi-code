@@ -45,7 +45,7 @@ void initSensorOrientationDefault() {
 
   // direction
   sensorDef.Gyro[ROLL].dir = 1;
-  sensorDef.Gyro[PITCH].dir = 1;
+  sensorDef.Gyro[PITCH].dir = -1;
   sensorDef.Gyro[YAW].dir = 1;
 
   sensorDef.Acc[ROLL].dir = 1;
@@ -147,7 +147,7 @@ void readGyros() {
   gyroADC[ROLL] *= sensorDef.Gyro[0].dir;
 
   idx = sensorDef.Gyro[1].idx;
-  gyroADC[PITCH] = -(axisRot[idx]-gyroOffset[idx]);
+  gyroADC[PITCH] = axisRot[idx]-gyroOffset[idx];
   gyroADC[PITCH] *= sensorDef.Gyro[1].dir;
 
   idx = sensorDef.Gyro[2].idx;
