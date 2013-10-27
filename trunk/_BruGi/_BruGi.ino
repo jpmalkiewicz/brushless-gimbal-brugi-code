@@ -314,22 +314,18 @@ void loop()
     //****************************
     // pitch PID
     //****************************
-    if (!fpvModePitch) {
-      // t=69us (*)
-      pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
-      // motor control
-      pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
-   }
+    // t=69us (*)
+    pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+    // motor control
+    pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
  
     //****************************
     // roll PID
     //****************************
     // t=69us (*)
-    if (!fpvModeRoll) {
-      rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
-      // motor control
-      rollMotorDrive = rollPIDVal * config.dirMotorRoll;
-    } 
+    rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
+    // motor control
+    rollMotorDrive = rollPIDVal * config.dirMotorRoll;
 
     // motor update t=6us (*)
     if (enableMotorUpdates)
