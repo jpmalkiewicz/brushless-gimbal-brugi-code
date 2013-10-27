@@ -63,18 +63,22 @@ const t_configDef PROGMEM configListPGM[] = {
   {"cutoffVoltage",    UINT16, &config.cutoffVoltage,   NULL},
   {"motorPowerScale",  BOOL,  &config.motorPowerScale,  NULL},
   
-  {"minRCPitch",       INT8,  &config.minRCPitch,       NULL},
+  {"rcAbsolutePitch",  BOOL,  &config.rcAbsolutePitch,  NULL},
+  {"rcAbsoluteRoll",   BOOL,  &config.rcAbsolutePitch,  NULL},
+
   {"maxRCPitch",       INT8,  &config.maxRCPitch,       NULL},
-  {"minRCRoll",        INT8,  &config.minRCRoll,        NULL},
   {"maxRCRoll",        INT8,  &config.maxRCRoll,        NULL},
-  {"rcGain",           INT16, &config.rcGain,           NULL},
-  {"rcLPF",            INT16, &config.rcLPF,            &initRC},
+  {"minRCPitch",       INT8,  &config.minRCPitch,       NULL},
+  {"minRCRoll",        INT8,  &config.minRCRoll,        NULL},
+  {"rcGainPitch",      INT16, &config.rcGainPitch,      NULL},
+  {"rcGainRoll",       INT16, &config.rcGainRoll,       NULL},
+  {"rcLPFPitch",       INT16, &config.rcLPFPitch,       &initRC},
+  {"rcLPFRoll",        INT16, &config.rcLPFRoll,        &initRC},
 
   {"rcModePPM",        BOOL,  &config.rcModePPM,        &initRCPins},
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   NULL},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    NULL},
   {"rcMid",            INT16, &config.rcMid,            NULL},
-  {"rcAbsolute",       BOOL,  &config.rcAbsolute,       NULL},
   
   {"accOutput",        BOOL,  &config.accOutput,        NULL},
 
@@ -86,8 +90,6 @@ const t_configDef PROGMEM configListPGM[] = {
   
   {"fpvSwPitch",       INT8, &config.fpvSwPitch,        NULL},
   {"fpvSwRoll",        INT8, &config.fpvSwRoll,         NULL},
-  {"fpvPWMmotorPitch", UINT8, &config.fpvPWMmotorPitch, NULL},
-  {"fpvPWMmotorRoll",  UINT8, &config.fpvPWMmotorRoll,  NULL},
 
   {"altSwAccTime",     INT8, &config.altSwAccTime,      NULL},
   {"accTimeConstant2", INT16, &config.accTimeConstant2, &initIMU},

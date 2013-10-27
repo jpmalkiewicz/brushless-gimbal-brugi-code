@@ -42,8 +42,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r170"
-#define VERSION_EEPROM 3 // change this number when eeprom data strcuture has changed
+#define REVISION "r174"
+#define VERSION_EEPROM 4 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -337,11 +337,14 @@ void loop()
     }
 
     // Evaluate RC-Signals
-    if(config.rcAbsolute==1) {
-      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPF_tc); // t=16us
-      utilLP_float(&rollAngleSet, RollPhiSet, rcLPF_tc); // t=28us
+    if(config.rcAbsolutePitch==1) {
+      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPFPitch_tc); // t=16us
     } else {
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
+    }
+    if(config.rcAbsoluteRoll==1) {
+      utilLP_float(&rollAngleSet, RollPhiSet, rcLPFRoll_tc); // t=28us
+    } else {
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
     }
 
@@ -418,7 +421,7 @@ void loop()
       // td = 26/76us, total
       // RC Pitch function
       if (rcData[RC_DATA_PITCH].valid) {
-        if(config.rcAbsolute==1) {
+        if(config.rcAbsolutePitch==1) {
             PitchPhiSet = rcData[RC_DATA_PITCH].setpoint;
         }
         else {
@@ -439,7 +442,7 @@ void loop()
       // td = 26/76us, total
       // RC roll function
       if (rcData[RC_DATA_ROLL].valid){
-        if(config.rcAbsolute==1){
+        if(config.rcAbsoluteRoll==1){
           RollPhiSet = rcData[RC_DATA_ROLL].setpoint;
         } else {
           if(abs(rcData[RC_DATA_ROLL].rcSpeed)>0.01) {
@@ -457,10 +460,15 @@ void loop()
       break;
     case 9:
       // evaluate RC-Signals
-      if(config.rcAbsolute==1) {
-        evaluateRCAbsolute();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
+      if(config.rcAbsolutePitch==1) {
+        evaluateRCAbsolutePitch();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
       } else {
-        evaluateRCProportional(); // gives rollRCSpeed, pitchRCSpeed
+        evaluateRCProportionalPitch(); // gives rollRCSpeed, pitchRCSpeed
+      }
+      if(config.rcAbsoluteRoll==1) {
+        evaluateRCAbsoluteRoll();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
+      } else {
+        evaluateRCProportionalRoll(); // gives rollRCSpeed, pitchRCSpeed
       }
       evaluateRCAux();
       
