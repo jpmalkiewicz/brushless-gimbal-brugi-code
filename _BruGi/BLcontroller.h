@@ -272,17 +272,10 @@ void voltageCompensation () {
   }
   
   // 44us
-  if (fpvModePitch) {
-    maxPWMmotorPitchScaled = config.fpvPWMmotorPitch * pwmMotorScale;
-  } else {
-    maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
-  }
+  maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
   maxPWMmotorPitchScaled = constrain(maxPWMmotorPitchScaled, 0, 255);
 
-  if (fpvModeRoll) {
-    maxPWMmotorRollScaled = config.fpvPWMmotorRoll * pwmMotorScale;
-  } else {
-    maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
-  }
+  maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
   maxPWMmotorRollScaled = constrain(maxPWMmotorRollScaled, 0, 255);
+  
 }
