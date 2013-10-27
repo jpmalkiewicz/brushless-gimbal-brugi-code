@@ -114,11 +114,11 @@ void initPIDs(void)
 {
   rollPIDpar.Kp = config.gyroRollKp/10;
   rollPIDpar.Ki = config.gyroRollKi/1000;
-  rollPIDpar.Kd = config.gyroRollKd/10;
+  rollPIDpar.Kd = config.gyroRollKd/10/250;  // divide by 250 to keep compatibility to previous version 
 
   pitchPIDpar.Kp = config.gyroPitchKp/10;
   pitchPIDpar.Ki = config.gyroPitchKi/1000;
-  pitchPIDpar.Kd = config.gyroPitchKd/10;
+  pitchPIDpar.Kd = config.gyroPitchKd/10/250;  // divide by 250 to keep compatibility to previous version
   
 }
 

@@ -16,7 +16,9 @@
 #define MOTORUPDATE_FREQ 500                 // in Hz, 1000 is default
 #define LOOPUPDATE_FREQ MOTORUPDATE_FREQ     // loop control sample rate equals motor update rate
 #define DT_FLOAT (1.0/LOOPUPDATE_FREQ*1.024) // loop controller sample period dT
-#define DT_INT_MS (1000/MOTORUPDATE_FREQ) 
+#define DT_INT_MS (1000/MOTORUPDATE_FREQ)    // dT, integer, (ms)
+#define DT_INT_INV (MOTORUPDATE_FREQ)        // dT, integer, inverse, (Hz)
+
 
 #define POUT_FREQ 25     // rate of ACC print output in Hz, 25 Hz is default
 

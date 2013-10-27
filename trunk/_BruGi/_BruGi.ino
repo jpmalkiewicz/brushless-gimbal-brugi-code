@@ -196,7 +196,10 @@ void setup()
 /************************/
 /* PID Controller       */
 /************************/
-inline int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
+// PID integer inplementation
+//   DTms  ... sample period (ms)
+//   DTinv ... sample frequency (Hz), inverse of DT (just to avoid division)
+inline int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
 {
   int32_t error = setPoint - in;
   int32_t Ierr;
@@ -206,7 +209,7 @@ inline int32_t ComputePID(int32_t DTms, int32_t in, int32_t setPoint, int32_t *e
   *errorSum += Ierr;
  
   /*Compute PID Output*/
-  int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTms;
+  int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTinv;
   *errorOld = error;
 
   out = out / 4096;
@@ -313,7 +316,7 @@ void loop()
     //****************************
     if (!fpvModePitch) {
       // t=69us (*)
-      pitchPIDVal = ComputePID(DT_INT_MS, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+      pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
       // motor control
       pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
    }
@@ -323,7 +326,7 @@ void loop()
     //****************************
     // t=69us (*)
     if (!fpvModeRoll) {
-      rollPIDVal = ComputePID(DT_INT_MS, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
+      rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
       // motor control
       rollMotorDrive = rollPIDVal * config.dirMotorRoll;
     } 
