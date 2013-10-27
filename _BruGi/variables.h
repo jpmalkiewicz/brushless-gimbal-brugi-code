@@ -25,18 +25,22 @@ uint8_t maxPWMmotorRoll;
 uint16_t refVoltageBat;    // Ubat reference, unit = volts*100
 uint16_t cutoffVoltage;    // Ubat cutoff, unit = volts*100
 bool motorPowerScale;
-int8_t minRCPitch;
+bool rcAbsolutePitch;
+bool rcAbsoluteRoll;
 int8_t maxRCPitch;
-int8_t minRCRoll;
 int8_t maxRCRoll;
-int16_t rcGain;
-int16_t rcLPF;             // low pass filter for RC absolute mode, units=1/10 sec
+int8_t minRCPitch;
+int8_t minRCRoll;
+int16_t rcGainPitch;
+int16_t rcGainRoll;
+int16_t rcLPFPitch;        // low pass filter for RC absolute mode, units=1/10 sec
+int16_t rcLPFRoll;         
 bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
 int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
 int8_t rcChannelAux;       // input channel for auxiliary functions
 int16_t rcMid;             // rc channel center ms
-bool rcAbsolute;
+
 bool accOutput;
 bool enableGyro;           // enable gyro attitude update
 bool enableACC;            // enable acc attitude update
@@ -44,8 +48,6 @@ bool axisReverseZ;
 bool axisSwapXY;
 int8_t fpvSwPitch;         // fpv switch pitch: -1=always on, 0=off, 1=auxSW1, 2=auxSW2 
 int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
-int8_t fpvPWMmotorPitch;
-int8_t fpvPWMmotorRoll;
 int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
 int16_t accTimeConstant2;  // alternate constant
 uint8_t crc8;
@@ -77,18 +79,21 @@ void setDefaultParameters()
   config.refVoltageBat = 800;
   config.cutoffVoltage = 600;
   config.motorPowerScale = 0;
-  config.minRCPitch = -30;
+  config.rcAbsolutePitch = true;
+  config.rcAbsoluteRoll = true;
   config.maxRCPitch = 30;
-  config.minRCRoll = -30;
+  config.minRCPitch = -30;
   config.maxRCRoll = 30;
-  config.rcGain = 5;
-  config.rcLPF = 20;              // 2 sec
+  config.minRCRoll = -30;
+  config.rcGainPitch = 5;
+  config.rcGainRoll = 5;
+  config.rcLPFPitch = 20;             // 2 sec
+  config.rcLPFRoll = 20;              // 2 sec
   config.rcModePPM = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
   config.rcChannelAux = -1;
   config.rcMid = MID_RC;
-  config.rcAbsolute = true;
   config.accOutput=false;
   config.enableGyro=true;
   config.enableACC=true;
@@ -96,8 +101,6 @@ void setDefaultParameters()
   config.axisSwapXY=false;
   config.fpvSwPitch=0;
   config.fpvSwRoll=0;
-  config.fpvPWMmotorPitch = 80;
-  config.fpvPWMmotorRoll = 80;
   config.altSwAccTime=0;
   config.accTimeConstant2 = 2;
   config.crc8 = 0;  
@@ -204,7 +207,8 @@ struct rcData_t
 
 rcData_t rcData[RC_DATA_SIZE];
 
-float rcLPF_tc = 1.0;
+float rcLPFPitch_tc = 1.0;
+float rcLPFRoll_tc = 1.0;
 
 // Gimbal State
 enum gimStateType {

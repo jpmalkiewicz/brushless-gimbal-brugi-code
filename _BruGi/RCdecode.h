@@ -5,7 +5,8 @@
 // init RC config variables
 void initRC() 
 {
-  rcLPF_tc = LOWPASS_K_FLOAT(config.rcLPF*0.1);
+  rcLPFPitch_tc = LOWPASS_K_FLOAT(config.rcLPFPitch*0.1);
+  rcLPFRoll_tc = LOWPASS_K_FLOAT(config.rcLPFRoll*0.1);
 }
 
 
@@ -242,10 +243,13 @@ void evalRCChannelProportional(rcData_t* rcData, int16_t rcGain, int16_t rcMid)
 
 // Proportional RC control
 
-void evaluateRCProportional()
+void evaluateRCProportionalPitch()
 {
-  evalRCChannelProportional(&rcData[RC_DATA_PITCH], config.rcGain, config.rcMid);
-  evalRCChannelProportional(&rcData[RC_DATA_ROLL ], config.rcGain, config.rcMid);
+  evalRCChannelProportional(&rcData[RC_DATA_PITCH], config.rcGainPitch, config.rcMid);
+}
+void evaluateRCProportionalRoll()
+{
+  evalRCChannelProportional(&rcData[RC_DATA_ROLL ], config.rcGainRoll, config.rcMid);
 }
 
 
@@ -271,9 +275,12 @@ inline void evalRCChannelAbsolute(rcData_t* rcData, int16_t rcMin, int16_t rcMax
 
 // Absolute RC control
 
-void evaluateRCAbsolute()
+void evaluateRCAbsolutePitch()
 {
   evalRCChannelAbsolute(&rcData[RC_DATA_PITCH], config.minRCPitch, config.maxRCPitch, config.rcMid);
+}
+void evaluateRCAbsoluteRoll()
+{
   evalRCChannelAbsolute(&rcData[RC_DATA_ROLL ], config.minRCRoll , config.maxRCRoll,  config.rcMid);
 }
 

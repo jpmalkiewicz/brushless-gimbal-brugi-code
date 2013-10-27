@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "49 r170"
+set VERSION "49 r174"
 
 #####################################################################################
 # Big hexdata
@@ -271,12 +271,12 @@ menu .menu.options -tearoff 0
 	.menu.options add command -label "set Defaults" -command {
 		set_defaults
 	}
-	.menu.options add command -label "Load from Board" -command {
-		send_par
-	}
-	.menu.options add command -label "Save to Board" -command {
-		save_values
-	}
+#	.menu.options add command -label "Load from Board" -command {
+#		send_par
+#	}
+#	.menu.options add command -label "Save to Board" -command {
+#		save_values
+#	}
 	.menu.options add command -label "Load from Flash" -command {
 		load_from_flash
 	}
@@ -376,7 +376,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale minRCPitch maxRCPitch minRCRoll maxRCRoll rcGain rcLPF rcModePPM rcChannelPitch rcChannelRoll rcMid rcAbsolute accOutput enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll fpvPWMmotorPitch fpvPWMmotorRoll altSwAccTime accTimeConstant2"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPM rcChannelPitch rcChannelRoll rcMid accOutput enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -397,7 +397,8 @@ set par(gyroRollKi,scale) 1000.0
 set par(gyroRollKd,scale) 1000.0
 set par(angleOffsetPitch,scale) 100.0
 set par(angleOffsetRoll,scale) 100.0
-set par(rcLPF,scale) 10.0
+set par(rcLPFPitch,scale) 10.0
+set par(rcLPFRoll,scale) 10.0
 set par(maxPWMmotorPitch,scale) 2.5
 set par(maxPWMmotorRoll,scale) 2.5
 set par(rcChannelPitch,offset) 1
@@ -406,9 +407,6 @@ set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
 set par(refVoltageBat,scale) 100.0
 set par(cutoffVoltage,scale) 100.0
-set par(fpvPWMmotorPitch,scale) 2.5
-set par(fpvPWMmotorRoll,scale) 2.5
-
 
 set CHART_SCALE 0.5
 set buffer ""
@@ -1277,11 +1275,11 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		pack .note.general.settings.rc -side left -expand yes -fill both
 
 			gui_check .note.general.settings.rc.rcModePPM  rcModePPM  "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.general.settings.rc.rcGain rcGain -200 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.general.settings.rc.rcLPF rcLPF 0.1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+#			gui_check .note.general.settings.rc.rcAbsolute rcAbsolute "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+#			gui_slider .note.general.settings.rc.rcGain rcGain -200 200.0 0.1 "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+#			gui_slider .note.general.settings.rc.rcLPF rcLPF 0.1 20 0.1 "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
 			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"
-
+	
 		labelframe .note.general.settings.sensor -text "Sensor"
 		pack .note.general.settings.sensor -side left -expand yes -fill both
 
@@ -1311,7 +1309,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	frame .note.general.power.line1
 	pack .note.general.power.line1 -side top -expand no -fill x
   
-		gui_check .note.general.power.line1.motorPowerScale  motorPowerScale   "Power Scale on/off" "Power Scale" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
+		gui_check .note.general.power.line1.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
 		gui_spin .note.general.power.line1.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
 		gui_spin .note.general.power.line1.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
 		gui_button .note.general.power.line1.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and update config.refVoltageBat" set_batteryVoltage
@@ -1324,15 +1322,13 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	pack .note.general.buttons.line1 -side top -expand no -fill x
   
 		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
-		gui_button .note.general.buttons.line1.load "Load from BruGi" "load values from board into gui" send_par
-		gui_button .note.general.buttons.line1.save "Save to Brugi" "save values from gui into board" save_values
+		gui_button .note.general.buttons.line1.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
 		gui_button .note.general.buttons.line1.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
 
 	frame .note.general.buttons.line2
 	pack .note.general.buttons.line2 -side top -expand no -fill x
   
 		gui_button .note.general.buttons.line2.gyro_cal "Gyro-Cal" "gyro recalibration" gyro_cal
-		gui_button .note.general.buttons.line2.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
 		gui_button .note.general.buttons.line2.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
 		gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 
@@ -1356,12 +1352,13 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.pitch.rc -text "RC" -padx 10 -pady 10
 		pack .note.pitch.rc -side top -expand no -fill x
 
-			gui_spin .note.pitch.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_slider .note.pitch.rc.rcmin  minRCPitch -120 120 1       "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitch.rc.rcmax  maxRCPitch -120 120 1       "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitch.rc.aop angleOffsetPitch -120 120 0.1  "Angle Offset" "Angle Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
-
-
+			gui_spin   .note.pitch.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+			gui_check  .note.pitch.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+			gui_slider .note.pitch.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.pitch.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.pitch.rc.rcmin  minRCPitch -120 120 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitch.rc.rcmax  maxRCPitch -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitch.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
 	ttk::frame .note.roll
 	.note add .note.roll -text "Roll"
@@ -1383,10 +1380,13 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.roll.rc -text "RC" -padx 10 -pady 10
 		pack .note.roll.rc -side top -expand no -fill x
 
-			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_slider .note.roll.rc.rcmin  minRCRoll -120 120 1      "RC Min"  "minimum Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1      "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1 "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
+			gui_spin .note.roll.rc.rcChannelRoll rcChannelRoll 0 16 1     "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+			gui_check  .note.roll.rc.rcAbsolute rcAbsoluteRoll            "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+			gui_slider .note.roll.rc.rcGain rcGainRoll -200 200.0 0.1     "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.roll.rc.rcLPF  rcLPFRoll 0.1 20 0.1          "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.roll.rc.rcmin  minRCRoll -120 120 1          "RC Min"  "minimum Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1          "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1     "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
 frame .chartview
 pack .chartview -side top -expand no -fill x
