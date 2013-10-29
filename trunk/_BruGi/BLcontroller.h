@@ -119,7 +119,12 @@ void initBlController()
   TCCR2B = _BV(CS21);
 #endif
 
+  // enable Timer 1 interrupt
   TIMSK1 |= _BV(TOIE1);
+  
+  // disable arduino standard timer interrupt
+  TIMSK0 &= ~_BV(TOIE1);
+  
   sei();
 
   // Enable Timer1 Interrupt for Motor Control
@@ -130,6 +135,7 @@ void initBlController()
   OCR0A = 0;  //D6
   OCR0B = 0;  //D5 
 }
+
 
 // 3 lsb of MotorPos still reserved for precision improvement (TBD) 
 inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint16_t maxPWM)
@@ -196,6 +202,7 @@ void recalcMotorStuff()
   sei();
 }
 
+
 /********************************/
 /* Motor Control IRQ Routine    */
 /********************************/
@@ -219,32 +226,15 @@ ISR( TIMER1_OVF_vect )
     // update event
     motorUpdate = true;
   }
-}
+ 
+  
+  // care for standard timers every 1 ms
+  if ((freqCounter & 0x01f) == 0) {
+    TIMER0_isr_emulation();
+  }
 
-// TODO ..... disassembly is not up-to-date
-/*
-00001cf4 <__vector_13>:
-    1cf4:	1f 92       	push	r1
-    1cf6:	0f 92       	push	r0
-    1cf8:	0f b6       	in	r0, 0x3f	; 63
-    1cfa:	0f 92       	push	r0
-    1cfc:	11 24       	eor	r1, r1
-    1cfe:	8f 93       	push	r24
-    1d00:	80 91 0f 04 	lds	r24, 0x040F
-    1d04:	8f 5f       	subi	r24, 0xFF	; 255
-    1d06:	80 93 0f 04 	sts	0x040F, r24
-    1d0a:	80 35       	cpi	r24, 0x50	; 80
-    1d0c:	29 f4       	brne	.+10     	; 0x1d18 <__vector_13+0x24>
-    1d0e:	10 92 0f 04 	sts	0x040F, r1
-    1d12:	81 e0       	ldi	r24, 0x01	; 1
-    1d14:	80 93 0e 04 	sts	0x040E, r24
-    1d18:	8f 91       	pop	r24
-    1d1a:	0f 90       	pop	r0
-    1d1c:	0f be       	out	0x3f, r0	; 63
-    1d1e:	0f 90       	pop	r0
-    1d20:	1f 90       	pop	r1
-    1d22:	18 95       	reti
-*/
+
+}
 
 
 /**********************************************************/
@@ -279,3 +269,5 @@ void voltageCompensation () {
   maxPWMmotorRollScaled = constrain(maxPWMmotorRollScaled, 0, 255);
   
 }
+
+

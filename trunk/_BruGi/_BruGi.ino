@@ -42,7 +42,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r174"
+#define REVISION "r175"
 #define VERSION_EEPROM 4 // change this number when eeprom data structure has changed
 
 
@@ -57,7 +57,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 #include "SerialCommand.h"
 #include "EEPROMAnything.h"
 #include "PinChangeInt.h"
-
+#include "Timer1.h"
 #include "variables.h"
 MPU6050 mpu;            // Create MPU object
 SerialCommand sCmd;     // Create SerialCommand object
