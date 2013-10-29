@@ -18,7 +18,7 @@ void initRC()
 
 inline void decodePWM(rcData_t* rcData)
 {
-  uint32_t microsNow = micros();
+  uint32_t microsNow = microsT1();
   uint16_t pulseInPWMtmp;
 
   if (PCintPort::pinState==HIGH)
@@ -28,7 +28,7 @@ inline void decodePWM(rcData_t* rcData)
   else
   {
     rcData->microsLastUpdate = microsNow;
-    pulseInPWMtmp = (microsNow - rcData->microsRisingEdge)/CC_FACTOR;
+    pulseInPWMtmp = microsNow - rcData->microsRisingEdge;
     if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
     {
       // update if within expected RC range
@@ -47,14 +47,14 @@ inline void decodePWM(rcData_t* rcData)
 inline void intDecodePPM()
 { 
   CH3_ON
-  uint32_t microsNow = micros();
+  uint32_t microsNow = microsT1();
   
   static int32_t microsPPMLastEdge = 0;
   uint16_t pulseInPPM;
 
   static char channel_idx = 0;
 
-  pulseInPPM = (microsNow - microsPPMLastEdge)/CC_FACTOR;
+  pulseInPPM = microsNow - microsPPMLastEdge;
   microsPPMLastEdge = microsNow;
 
   if (pulseInPPM > RC_PPM_GUARD_TIME) 
@@ -161,14 +161,14 @@ void intDecodePWM_Ch2()
 
 void checkRcTimeouts()
 {
-  int32_t microsNow = micros();
+  int32_t microsNow = microsT1();
   int32_t microsLastUpdate;
   for (char id = 0; id < RC_DATA_SIZE; id++)
   {
     cli();
     microsLastUpdate = rcData[id].microsLastUpdate;
     sei();
-    if (rcData[id].valid && ((microsNow - microsLastUpdate)/CC_FACTOR) > RC_TIMEOUT) 
+    if (rcData[id].valid && (microsNow - microsLastUpdate) > RC_TIMEOUT) 
     {
       rcData[id].rx     = config.rcMid;
       rcData[id].valid  = false;

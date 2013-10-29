@@ -42,6 +42,7 @@ THE SOFTWARE.
 */
 
 #include "I2Cdev.h"
+#include "Timer1.h"
 
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 
@@ -215,7 +216,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
     #endif
 
     int8_t count = 0;
-    uint32_t t1 = millis();
+    uint32_t t1 = millisT1();
 
     #if (I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE)
 
@@ -232,7 +233,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
                 Wire.beginTransmission(devAddr);
                 Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
 
-                for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) {
+                for (; Wire.available() && (timeout == 0 || millisT1() - t1 < timeout); count++) {
                     data[count] = Wire.receive();
                     #ifdef I2CDEV_SERIAL_DEBUG
                         Serial.print(data[count], HEX);
@@ -256,7 +257,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
                 Wire.beginTransmission(devAddr);
                 Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
         
-                for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) {
+                for (; Wire.available() && (timeout == 0 || millisT1() - t1 < timeout); count++) {
                     data[count] = Wire.read();
                     #ifdef I2CDEV_SERIAL_DEBUG
                         Serial.print(data[count], HEX);
@@ -280,7 +281,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
                 Wire.beginTransmission(devAddr);
                 Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
         
-                for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) {
+                for (; Wire.available() && (timeout == 0 || millisT1() - t1 < timeout); count++) {
                     data[count] = Wire.read();
                     #ifdef I2CDEV_SERIAL_DEBUG
                         Serial.print(data[count], HEX);
@@ -306,7 +307,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
     #endif
 
     // check for timeout
-    if (timeout > 0 && millis() - t1 >= timeout && count < length) count = -1; // timeout
+    if (timeout > 0 && millisT1() - t1 >= timeout && count < length) count = -1; // timeout
 
     #ifdef I2CDEV_SERIAL_DEBUG
         Serial.print(". Done (");
@@ -337,7 +338,7 @@ int8_t I2Cdev::readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint1
     #endif
 
     int8_t count = 0;
-    uint32_t t1 = millis();
+    uint32_t t1 = millisT1();
 
     #if (I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE)
 
@@ -355,7 +356,7 @@ int8_t I2Cdev::readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint1
                 Wire.requestFrom(devAddr, (uint8_t)(length * 2)); // length=words, this wants bytes
     
                 bool msb = true; // starts with MSB, then LSB
-                for (; Wire.available() && count < length && (timeout == 0 || millis() - t1 < timeout);) {
+                for (; Wire.available() && count < length && (timeout == 0 || millisT1() - t1 < timeout);) {
                     if (msb) {
                         // first byte is bits 15-8 (MSb=15)
                         data[count] = Wire.receive() << 8;
@@ -388,7 +389,7 @@ int8_t I2Cdev::readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint1
                 Wire.requestFrom(devAddr, (uint8_t)(length * 2)); // length=words, this wants bytes
     
                 bool msb = true; // starts with MSB, then LSB
-                for (; Wire.available() && count < length && (timeout == 0 || millis() - t1 < timeout);) {
+                for (; Wire.available() && count < length && (timeout == 0 || millisT1() - t1 < timeout);) {
                     if (msb) {
                         // first byte is bits 15-8 (MSb=15)
                         data[count] = Wire.read() << 8;
@@ -421,7 +422,7 @@ int8_t I2Cdev::readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint1
                 Wire.requestFrom(devAddr, (uint8_t)(length * 2)); // length=words, this wants bytes
         
                 bool msb = true; // starts with MSB, then LSB
-                for (; Wire.available() && count < length && (timeout == 0 || millis() - t1 < timeout);) {
+                for (; Wire.available() && count < length && (timeout == 0 || millisT1() - t1 < timeout);) {
                     if (msb) {
                         // first byte is bits 15-8 (MSb=15)
                         data[count] = Wire.read() << 8;
@@ -458,7 +459,7 @@ int8_t I2Cdev::readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint1
 
     #endif
 
-    if (timeout > 0 && millis() - t1 >= timeout && count < length) count = -1; // timeout
+    if (timeout > 0 && millisT1() - t1 >= timeout && count < length) count = -1; // timeout
 
     #ifdef I2CDEV_SERIAL_DEBUG
         Serial.print(". Done (");
@@ -924,8 +925,8 @@ uint16_t I2Cdev::readTimeout = I2CDEV_DEFAULT_READ_TIMEOUT;
     }
     
     uint8_t twii_WaitForDone(uint16_t timeout) {
-        uint32_t endMillis = millis() + timeout;
-        while (!twi_Done && (timeout == 0 || millis() < endMillis)) continue;
+        uint32_t endMillis = millisT1() + timeout;
+        while (!twi_Done && (timeout == 0 || millisT1() < endMillis)) continue;
         return twi_Return_Value;
     }
     
