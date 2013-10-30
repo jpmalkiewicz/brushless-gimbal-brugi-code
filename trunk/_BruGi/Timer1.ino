@@ -5,19 +5,17 @@
 // the whole number of milliseconds per timer0 overflow
 #define MILLIS_INC_T1 (MICROSECONDS_PER_TIMER1_OVERFLOW / 1000)
 
-volatile unsigned long timer1_overflow_count;
 volatile unsigned long timer1_millis;
 
 /***************************************************************************/
 /* Timer0 interrupt emulation
 /***************************************************************************/
-inline void TIMER0_isr_emulation (void) {
+void TIMER0_isr_emulation (void) {
 
   unsigned long m = timer1_millis;
   
   m += MILLIS_INC_T1;
   timer1_millis = m;
-  timer1_overflow_count++;
 
 }
 
@@ -34,36 +32,18 @@ unsigned long millisT1() {
 }
 
 unsigned long microsT1() {
+  
   unsigned long m;
-  uint8_t oldSREG = SREG, t, f;
+  
+  uint8_t oldSREG = SREG;
+  uint8_t f;
   	
   cli();
-  
-  // TODO: up/down count issue not solved
-  m = timer1_overflow_count;
-#if defined(TCNT1)
-  t = TCNT1;
-#elif defined(TCNT1L)
-  t = TCNT1L;
-#else
-#error TIMER 1 not defined
-#endif
-  
-    
-#ifdef TIFR1
-  if ((TIFR1 & _BV(TOV1)) && (t < 255))
-    m++;
-#else
-  if ((TIFR & _BV(TOV1)) && (t < 255))
-    m++;
-#endif
-  
-  SREG = oldSREG;
-  
-  t = t >> 5;
+  m = timer1_millis;
   f = (freqCounter & 0x01f) << 3;
-  
-  return ((m << 8) + f + t) * (64 / clockCyclesPerMicrosecond());
+  SREG = oldSREG;
+
+  return ((m << 8) + f) * (64 / clockCyclesPerMicrosecond());
 }
 
 void delayT1(unsigned long ms)
