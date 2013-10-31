@@ -18,7 +18,6 @@ void initRC()
 
 inline void decodePWM(rcData_t* rcData)
 {
-  uint32_t microsNow = microsT1();
   uint16_t pulseInPWMtmp;
 
   if (PCintPort::pinState==HIGH)
@@ -46,9 +45,7 @@ inline void decodePWM(rcData_t* rcData)
 
 inline void intDecodePPM()
 { 
-  CH3_ON
-  uint32_t microsNow = microsT1();
-  
+
   static int32_t microsPPMLastEdge = 0;
   uint16_t pulseInPPM;
 
@@ -82,7 +79,7 @@ inline void intDecodePPM()
     }
     channel_idx++;
   }
-  CH3_ON
+
 }
 
 //******************************************
@@ -92,63 +89,68 @@ inline void intDecodePPM()
 // Connector Channel 1 (A2)
 void intDecodePWM_Ch0()
 { 
+  microsNow = microsT1();
+  sei(); // re-enable interrupts
+  
   // PWM: 6 / 10 us (min/max)
   // PPM: 0.5 / 12 us (min/max)
-  if (config.rcModePPM)
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux)
   {
 #ifdef RC_PIN_PPM_A2
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
-  else 
-  {
-    if (config.rcChannelRoll == 0)
-      decodePWM(&rcData[RC_DATA_ROLL]);
-    if (config.rcChannelPitch == 0)
-      decodePWM(&rcData[RC_DATA_PITCH]);
-    if (config.rcChannelAux == 0)
-      decodePWM(&rcData[RC_DATA_AUX]);
-  }
+  if ((config.rcChannelRoll == 0) && (config.rcModePPMPitch == false))
+    decodePWM(&rcData[RC_DATA_ROLL]);
+  if ((config.rcChannelPitch == 0) && (config.rcModePPMRoll == false))
+    decodePWM(&rcData[RC_DATA_PITCH]);
+  if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
+    decodePWM(&rcData[RC_DATA_AUX]);
+    
+
 }
 
 // Connector Channel 2 (A1)
 void intDecodePWM_Ch1()
 { 
-  if (config.rcModePPM)
+  microsNow = microsT1();
+  sei(); // re-enable interrupts
+
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux)
   {
 #ifdef RC_PIN_PPM_A1
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
   else 
-  {
-    if (config.rcChannelRoll == 1)
-      decodePWM(&rcData[RC_DATA_ROLL]);
-    if (config.rcChannelPitch == 1)
-      decodePWM(&rcData[RC_DATA_PITCH]);
-    if (config.rcChannelAux == 1)
-      decodePWM(&rcData[RC_DATA_AUX]);
-  }
+  if ((config.rcChannelRoll == 1) && (config.rcModePPMPitch == false))
+    decodePWM(&rcData[RC_DATA_ROLL]);
+  if ((config.rcChannelPitch == 1) && (config.rcModePPMRoll == false))
+    decodePWM(&rcData[RC_DATA_PITCH]);
+  if ((config.rcChannelAux == 1) && (config.rcModePPMAux == false))
+    decodePWM(&rcData[RC_DATA_AUX]);
 }
 
 // Connector Channel 3 (A0)
 void intDecodePWM_Ch2()
 { 
-  if (config.rcModePPM)
+  microsNow = microsT1();
+  sei(); // re-enable interrupts
+  
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux)
   {
 #ifdef RC_PIN_PPM_A0
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
   else 
-  {
-    if (config.rcChannelRoll == 2)
-      decodePWM(&rcData[RC_DATA_ROLL]);
-    if (config.rcChannelPitch == 2)
-      decodePWM(&rcData[RC_DATA_PITCH]);
-    if (config.rcChannelAux == 2)
-      decodePWM(&rcData[RC_DATA_AUX]);
-  }
+  if ((config.rcChannelRoll == 2) && (config.rcModePPMPitch == false))
+    decodePWM(&rcData[RC_DATA_ROLL]);
+  if ((config.rcChannelPitch == 2) && (config.rcModePPMRoll == false))
+    decodePWM(&rcData[RC_DATA_PITCH]);
+  if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
+    decodePWM(&rcData[RC_DATA_AUX]);
+
 }
 
 
@@ -206,14 +208,12 @@ void initRCPins()
     rcData[id].rcAuxSwitch2     = false;
     sei();
   }
-  if (!config.rcModePPM)
-  {
-    if (config.rcChannelRoll  > 2 || config.rcChannelPitch > 2 || config.rcChannelRoll == config.rcChannelPitch) 
-    {
-      config.rcChannelRoll  = 0;
-      config.rcChannelPitch = 1;
-    }
-  }
+  
+  // sanity check of RC channel assignment
+  config.rcChannelPitch = constrain(config.rcChannelPitch, -1, RC_DATA_SIZE-1);
+  config.rcChannelRoll = constrain(config.rcChannelRoll, -1, RC_DATA_SIZE-1);
+  config.rcChannelAux = constrain(config.rcChannelAux, -1, RC_DATA_SIZE-1);
+  
 }
 
 //******************************************

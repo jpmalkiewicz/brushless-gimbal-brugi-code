@@ -35,7 +35,9 @@ int16_t rcGainPitch;
 int16_t rcGainRoll;
 int16_t rcLPFPitch;        // low pass filter for RC absolute mode, units=1/10 sec
 int16_t rcLPFRoll;         
-bool rcModePPM;            // RC mode, true=common RC PPM channel, false=separate RC channels 
+bool rcModePPMPitch;       // RC mode, true=common RC PPM channel, false=separate RC channels 
+bool rcModePPMRoll;
+bool rcModePPMAux;
 int8_t rcChannelPitch;     // input channel for pitch
 int8_t rcChannelRoll;      // input channel for roll
 int8_t rcChannelAux;       // input channel for auxiliary functions
@@ -89,7 +91,9 @@ void setDefaultParameters()
   config.rcGainRoll = 5;
   config.rcLPFPitch = 20;             // 2 sec
   config.rcLPFRoll = 20;              // 2 sec
-  config.rcModePPM = false;
+  config.rcModePPMPitch = false;
+  config.rcModePPMRoll = false;
+  config.rcModePPMAux = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
   config.rcChannelAux = -1;
@@ -191,6 +195,8 @@ static float rollAngleSet=0;
 int count=0;
 
 // RC control
+
+uint32_t microsNow = 0;
 
 struct rcData_t
 {
