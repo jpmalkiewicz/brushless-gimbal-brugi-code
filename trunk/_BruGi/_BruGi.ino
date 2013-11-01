@@ -42,8 +42,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r177"
-#define VERSION_EEPROM 5 // change this number when eeprom data structure has changed
+#define REVISION "r178"
+#define VERSION_EEPROM 7 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -58,6 +58,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 #include "EEPROMAnything.h"
 #include "PinChangeInt.h"
 #include "Timer1.h"
+#include "Trace.h"
 #include "variables.h"
 MPU6050 mpu;            // Create MPU object
 SerialCommand sCmd;     // Create SerialCommand object
@@ -291,6 +292,7 @@ void loop()
   static int32_t rollErrorOld;
   
   static char pOutCnt = 0;
+  static char tOutCnt = 0;
   static int stateCount = 0;
   uint8_t ledBlinkCnt = 0;
   uint8_t ledBlinkOnTime = 10;
@@ -481,10 +483,22 @@ void loop()
       if (pOutCnt == (LOOPUPDATE_FREQ/10/POUT_FREQ))
       {
         // 600 us
-        if(config.accOutput==1){ Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);}
+        if (config.accOutput) {
+          Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);         
+        }
         pOutCnt = 0;
       }
       
+      // regular ACC output
+      tOutCnt++;
+      if (tOutCnt == (LOOPUPDATE_FREQ/10/TRACE_OUT_FREQ))
+      {
+        if (config.trace != TRC_OFF) {
+          printTrace(config.trace);
+        }
+        tOutCnt = 0;
+      }
+
       ledBlinkCnt++;
       if (ledBlinkCnt <= ledBlinkOnTime) {
           LEDPIN_ON

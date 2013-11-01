@@ -16,12 +16,8 @@
 // **************************************************
 
 //******  advanced users settings *******************
-/* Set the Low Pass Filter factor for ACC */
-/* Increasing this value would reduce ACC noise (visible in GUI), but would increase ACC lag time*/
-/* Comment this if  you do not want filter at all.*/
-#ifndef ACC_LPF_FACTOR
-  #define ACC_LPF_FACTOR 40
-#endif
+/* Set the Low Pass Filter factor for ACC Magnitude */
+#define ACC_LPF_FACTOR 40
 
 #define ACC_1G 16384.0f
 
@@ -105,6 +101,9 @@ void setACCFastMode (bool fastMode, int16_t accTimeConstant) {
   }
 }
 
+void initIMUtc() {
+  setACCFastMode(false, config.accTimeConstant);
+}
 
 void initIMU() {
  
@@ -112,12 +111,10 @@ void initIMU() {
   // 102us
   gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359 * DT_FLOAT;  // convert to radians
   
+  // initialize complementary filter timw constant
   setACCFastMode(false, config.accTimeConstant);
  
-  accLPF[0] = 0;
-  accLPF[1] = 0;
-  accLPF[2] = ACC_1G;
- 
+  accMag = ACC_1G*ACC_1G; // magnitude = 1G initially
  
   // initialize coordinate system in EstG
   EstG.V.X = 0;
@@ -184,16 +181,16 @@ void updateGyroAttitude(){
 
 void updateACC(){
   uint8_t axis;
+  float accMagSum = 0;
 
-  // 150 us
-  accMag = 0;
   for (axis = 0; axis < 3; axis++) {
-    utilLP_float(&accLPF[axis], accADC[axis], (1.0f/ACC_LPF_FACTOR)); // 96/3 us
-    accMag += accLPF[axis]*accLPF[axis] ; // 63/3us
+    accLPF[axis] = accADC[axis];
+    accMagSum += accLPF[axis]*accLPF[axis];
   }
 
   // 24 us
-  accMag = accMag*100.0/(ACC_1G*ACC_1G);
+  accMagSum = accMagSum*100.0/(ACC_1G*ACC_1G);
+  utilLP_float(&accMag, accMagSum, (1.0f/ACC_LPF_FACTOR)); 
 }
 
 

@@ -28,12 +28,16 @@ inline void decodePWM(rcData_t* rcData)
   {
     rcData->microsLastUpdate = microsNow;
     pulseInPWMtmp = microsNow - rcData->microsRisingEdge;
-    if ((pulseInPWMtmp >= MIN_RC) && (pulseInPWMtmp <= MAX_RC)) 
+    if ((pulseInPWMtmp >= MIN_RC_VALID) && (pulseInPWMtmp <= MAX_RC_VALID)) 
     {
       // update if within expected RC range
       rcData->rx = pulseInPWMtmp;
       rcData->valid=true;
       rcData->update=true;
+    } else {
+      rcData->rx     = config.rcMid;
+      rcData->valid  = false;
+      rcData->update = true;
     }
   }
 }
@@ -70,12 +74,16 @@ inline void intDecodePPM()
     if (data)
     {
       data->microsLastUpdate = microsNow;    
-      if ((pulseInPPM >= MIN_RC) && (pulseInPPM <= MAX_RC)) 
+      if ((pulseInPPM >= MIN_RC_VALID) && (pulseInPPM <= MAX_RC_VALID)) 
       {
         data->rx     = pulseInPPM;
         data->valid  = true;
         data->update = true;
-      }  
+      } else {
+        rcData->rx     = config.rcMid;
+        rcData->valid  = false;
+        rcData->update = true;
+      }
     }
     channel_idx++;
   }
@@ -100,9 +108,9 @@ void intDecodePWM_Ch0()
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
-  if ((config.rcChannelRoll == 0) && (config.rcModePPMPitch == false))
+  if ((config.rcChannelRoll == 0) && (config.rcModePPMRoll == false))
     decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 0) && (config.rcModePPMRoll == false))
+  if ((config.rcChannelPitch == 0) && (config.rcModePPMPitch == false))
     decodePWM(&rcData[RC_DATA_PITCH]);
   if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
     decodePWM(&rcData[RC_DATA_AUX]);
@@ -123,9 +131,9 @@ void intDecodePWM_Ch1()
 #endif  
   }
   else 
-  if ((config.rcChannelRoll == 1) && (config.rcModePPMPitch == false))
+  if ((config.rcChannelRoll == 1) && (config.rcModePPMRoll == false))
     decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 1) && (config.rcModePPMRoll == false))
+  if ((config.rcChannelPitch == 1) && (config.rcModePPMPitch == false))
     decodePWM(&rcData[RC_DATA_PITCH]);
   if ((config.rcChannelAux == 1) && (config.rcModePPMAux == false))
     decodePWM(&rcData[RC_DATA_AUX]);
@@ -144,9 +152,9 @@ void intDecodePWM_Ch2()
 #endif  
   }
   else 
-  if ((config.rcChannelRoll == 2) && (config.rcModePPMPitch == false))
+  if ((config.rcChannelRoll == 2) && (config.rcModePPMRoll == false))
     decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 2) && (config.rcModePPMRoll == false))
+  if ((config.rcChannelPitch == 2) && (config.rcModePPMPitch == false))
     decodePWM(&rcData[RC_DATA_PITCH]);
   if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
     decodePWM(&rcData[RC_DATA_AUX]);
@@ -291,16 +299,23 @@ inline void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid
   int16_t rx;
   int8_t hyst;
   
-  if(rcData->update == true)
+ 
+  if(rcData->valid == true)
   {
-    rx = rcData->rx - rcMid;
-    utilLP_float(&rcData->setpoint, rx, 0.05);
-   
-    hyst = rcData->rcAuxSwitch1 ? 0 : 50;
-    rcData->rcAuxSwitch1 = (rcData->setpoint > (rcSwThresh+hyst)) ? true : false;
-    hyst = rcData->rcAuxSwitch2 ? 0 : 50;
-    rcData->rcAuxSwitch2 = (rcData->setpoint < -(rcSwThresh+hyst)) ? true : false;
-    rcData->update = false;
+    if(rcData->update == true)
+    {
+      rx = rcData->rx - rcMid;
+      utilLP_float(&rcData->setpoint, rx, 0.05);
+     
+      hyst = rcData->rcAuxSwitch1 ? 0 : 50;
+      rcData->rcAuxSwitch1 = (rcData->setpoint > (rcSwThresh+hyst)) ? true : false;
+      hyst = rcData->rcAuxSwitch2 ? 0 : 50;
+      rcData->rcAuxSwitch2 = (rcData->setpoint < -(rcSwThresh+hyst)) ? true : false;
+      rcData->update = false;
+    }
+  } else {
+    rcData->rcAuxSwitch1 = false;
+    rcData->rcAuxSwitch2 = false;
   }
 }
 

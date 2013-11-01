@@ -47,7 +47,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroRollKp",       INT32, &config.gyroRollKp,       &initPIDs},
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
   {"gyroRollKd",       INT32, &config.gyroRollKd,       &initPIDs},
-  {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMU},
+  {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMUtc},
   {"mpuLPF",           INT8,  &config.mpuLPF,           &initMPUlpf},
   
   {"angleOffsetPitch", INT16, &config.angleOffsetPitch, NULL},
@@ -64,7 +64,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"motorPowerScale",  BOOL,  &config.motorPowerScale,  NULL},
   
   {"rcAbsolutePitch",  BOOL,  &config.rcAbsolutePitch,  NULL},
-  {"rcAbsoluteRoll",   BOOL,  &config.rcAbsolutePitch,  NULL},
+  {"rcAbsoluteRoll",   BOOL,  &config.rcAbsoluteRoll,   NULL},
 
   {"maxRCPitch",       INT8,  &config.maxRCPitch,       NULL},
   {"maxRCRoll",        INT8,  &config.maxRCRoll,        NULL},
@@ -80,9 +80,11 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcModePPMAux",     BOOL,  &config.rcModePPMAux,     &initRCPins},
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   NULL},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    NULL},
+  {"rcChannelAux",     INT8,  &config.rcChannelAux,     NULL},
   {"rcMid",            INT16, &config.rcMid,            NULL},
   
   {"accOutput",        BOOL,  &config.accOutput,        NULL},
+  {"trace",            UINT8, &config.trace,            NULL},
 
   {"enableGyro",       BOOL,  &config.enableGyro,       NULL},
   {"enableACC",        BOOL,  &config.enableACC,        NULL},
@@ -230,24 +232,19 @@ void setDefaultParametersAndUpdate() {
   updateAllParameters();
 }
 
-
-void toggleACCOutput()
-{
-  int temp = atoi(sCmd.next());
-  if(temp==1)
-    config.accOutput = true;
-  else
-    config.accOutput = false;
-}
-
-
 void writeEEPROM()
 {
-  bool old = config.accOutput;
-  config.accOutput = false; // do not save enabled OAC output mode 
+  bool oldAcc = config.accOutput;
+  traceModeType oldTrace = config.trace;
+  
+  config.accOutput = false; // do not save enabled OAC output mode
+  config.trace = TRC_OFF;    
+  
   config.crc8 = crcSlow((crc *)&config, sizeof(config)-1); // set proper CRC 
   EEPROM_writeAnything(0, config);
-  config.accOutput = old; 
+  
+  config.accOutput = oldAcc;
+  config.trace = oldTrace;
 }
 
 void readEEPROM()
@@ -317,8 +314,6 @@ void setSerialProtocol()
   sCmd.addCommand("par", parameterMod);
   sCmd.addCommand("gc", gyroRecalibrate);
   sCmd.addCommand("sbv", saveBatteryRefVoltage);
-
-  sCmd.addCommand("oac", toggleACCOutput); // compatibility mode
 
   sCmd.addCommand("he", printHelpUsage);
   
