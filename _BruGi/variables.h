@@ -1,58 +1,62 @@
+#include "Trace.h"
+
 /*************************/
 /* Config Structure      */
 /*************************/
 
 struct config_t
 {
-uint8_t vers;
-uint8_t versEEPROM;
-int32_t gyroPitchKp; 
-int32_t gyroPitchKi;   
-int32_t gyroPitchKd;
-int32_t gyroRollKp;
-int32_t gyroRollKi;
-int32_t gyroRollKd;
-int16_t accTimeConstant;
-int8_t  mpuLPF;             // mpu LPF 0..6, 0=fastest(256Hz) 6=slowest(5Hz)
-int16_t angleOffsetPitch;   // angle offset, deg*100
-int16_t angleOffsetRoll;
-int8_t dirMotorPitch;
-int8_t dirMotorRoll;
-uint8_t motorNumberPitch;
-uint8_t motorNumberRoll;
-uint8_t maxPWMmotorPitch;
-uint8_t maxPWMmotorRoll;
-uint16_t refVoltageBat;    // Ubat reference, unit = volts*100
-uint16_t cutoffVoltage;    // Ubat cutoff, unit = volts*100
-bool motorPowerScale;
-bool rcAbsolutePitch;
-bool rcAbsoluteRoll;
-int8_t maxRCPitch;
-int8_t maxRCRoll;
-int8_t minRCPitch;
-int8_t minRCRoll;
-int16_t rcGainPitch;
-int16_t rcGainRoll;
-int16_t rcLPFPitch;        // low pass filter for RC absolute mode, units=1/10 sec
-int16_t rcLPFRoll;         
-bool rcModePPMPitch;       // RC mode, true=common RC PPM channel, false=separate RC channels 
-bool rcModePPMRoll;
-bool rcModePPMAux;
-int8_t rcChannelPitch;     // input channel for pitch
-int8_t rcChannelRoll;      // input channel for roll
-int8_t rcChannelAux;       // input channel for auxiliary functions
-int16_t rcMid;             // rc channel center ms
-
-bool accOutput;
-bool enableGyro;           // enable gyro attitude update
-bool enableACC;            // enable acc attitude update
-bool axisReverseZ;
-bool axisSwapXY;
-int8_t fpvSwPitch;         // fpv switch pitch: -1=always on, 0=off, 1=auxSW1, 2=auxSW2 
-int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
-int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
-int16_t accTimeConstant2;  // alternate constant
-uint8_t crc8;
+  uint8_t vers;
+  uint8_t versEEPROM;
+  int32_t gyroPitchKp; 
+  int32_t gyroPitchKi;   
+  int32_t gyroPitchKd;
+  int32_t gyroRollKp;
+  int32_t gyroRollKi;
+  int32_t gyroRollKd;
+  int16_t accTimeConstant;
+  int8_t  mpuLPF;             // mpu LPF 0..6, 0=fastest(256Hz) 6=slowest(5Hz)
+  int16_t angleOffsetPitch;   // angle offset, deg*100
+  int16_t angleOffsetRoll;
+  int8_t dirMotorPitch;
+  int8_t dirMotorRoll;
+  uint8_t motorNumberPitch;
+  uint8_t motorNumberRoll;
+  uint8_t maxPWMmotorPitch;
+  uint8_t maxPWMmotorRoll;
+  uint16_t refVoltageBat;    // Ubat reference, unit = volts*100
+  uint16_t cutoffVoltage;    // Ubat cutoff, unit = volts*100
+  bool motorPowerScale;
+  bool rcAbsolutePitch;
+  bool rcAbsoluteRoll;
+  int8_t maxRCPitch;
+  int8_t maxRCRoll;
+  int8_t minRCPitch;
+  int8_t minRCRoll;
+  int16_t rcGainPitch;
+  int16_t rcGainRoll;
+  int16_t rcLPFPitch;        // low pass filter for RC absolute mode, units=1/10 sec
+  int16_t rcLPFRoll;         
+  bool rcModePPMPitch;       // RC mode, true=common RC PPM channel, false=separate RC channels 
+  bool rcModePPMRoll;
+  bool rcModePPMAux;
+  int8_t rcChannelPitch;     // input channel for pitch
+  int8_t rcChannelRoll;      // input channel for roll
+  int8_t rcChannelAux;       // input channel for auxiliary functions
+  int16_t rcMid;             // rc channel center ms
+  
+  bool accOutput;            
+  traceModeType trace;       // trace output mode (uint8_t)
+  
+  bool enableGyro;           // enable gyro attitude update
+  bool enableACC;            // enable acc attitude update
+  bool axisReverseZ;
+  bool axisSwapXY;
+  int8_t fpvSwPitch;         // fpv switch pitch: -1=always on, 0=off, 1=auxSW1, 2=auxSW2 
+  int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
+  int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
+  int16_t accTimeConstant2;  // alternate constant
+  uint8_t crc8;
 } config;
 
 void recalcMotorStuff();
@@ -99,6 +103,7 @@ void setDefaultParameters()
   config.rcChannelAux = -1;
   config.rcMid = MID_RC;
   config.accOutput=false;
+  config.trace=TRC_OFF;
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;

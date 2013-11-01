@@ -20,9 +20,9 @@
 #define DT_INT_INV (MOTORUPDATE_FREQ)        // dT, integer, inverse, (Hz)
 
 
-#define POUT_FREQ 25     // rate of ACC print output in Hz, 25 Hz is default
-
-#define LOCK_TIME_SEC 5  // gimbal fast lock time at startup 
+#define POUT_FREQ 25      // rate of ACC print output in Hz, 25 Hz is default
+#define TRACE_OUT_FREQ 10 // rate of Trace Outoput in Hz, 10Hz is default 
+#define LOCK_TIME_SEC 5   // gimbal fast lock time at startup 
 
 // LP filter coefficient
 #define LOWPASS_K_FLOAT(TAU) (DT_FLOAT/(TAU+DT_FLOAT))
@@ -63,6 +63,8 @@
 #define MIN_RC 1000
 #define MID_RC 1500
 #define MAX_RC 2000
+#define MIN_RC_VALID 900
+#define MAX_RC_VALID 2100
 #define RC_DEADBAND 50
 #define RC_TIMEOUT 100000
 

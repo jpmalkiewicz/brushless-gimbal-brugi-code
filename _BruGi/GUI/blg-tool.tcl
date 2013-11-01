@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "49 r177"
+set VERSION "49 r178"
 
 #####################################################################################
 # Big hexdata
@@ -376,7 +376,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPMPitch rcModePPMRoll rcModePPMAux rcChannelPitch rcChannelRoll rcMid accOutput enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant mpuLPF angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPMPitch rcModePPMRoll rcModePPMAux rcChannelPitch rcChannelRoll rcChannelAux rcMid accOutput trace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -403,6 +403,7 @@ set par(maxPWMmotorPitch,scale) 2.5
 set par(maxPWMmotorRoll,scale) 2.5
 set par(rcChannelPitch,offset) 1
 set par(rcChannelRoll,offset) 1
+set par(rcChannelAux,offset) 1
 set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
 set par(refVoltageBat,scale) 100.0
@@ -1229,7 +1230,7 @@ proc launchBrowser url {
 # the GUI
 #####################################################################################
 
-wm title . "Brushless-Gimbal-Tool (for v$VERSION)"
+wm title . "Brushless-Gimbal-Tool (v$VERSION)"
 
 
 proc update_mpu {n1 n2 op} {
@@ -1271,10 +1272,13 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	labelframe .note.general.settings -text "General"
 	pack .note.general.settings -side top -expand yes -fill both
 
-		labelframe .note.general.settings.rc -text "RC"
-		pack .note.general.settings.rc -side left -expand yes -fill both
-
-			gui_slider .note.general.settings.rc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"
+	labelframe .note.general.settings.power -text "Motor Power"
+	pack .note.general.settings.power -side left -expand yes -fill both
+ 
+		gui_check .note.general.settings.power.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. when battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
+		gui_spin .note.general.settings.power.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
+		gui_spin .note.general.settings.power.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
+		gui_button .note.general.settings.power.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and use it as reference in variable config.refVoltageBat" set_batteryVoltage
 	
 		labelframe .note.general.settings.sensor -text "Sensor"
 		pack .note.general.settings.sensor -side left -expand yes -fill both
@@ -1298,18 +1302,6 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 				pack .note.general.settings.sensor.img.canv -side left
 				.note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
 				update_mpu 0 0 0
-
-	labelframe .note.general.power -text "Motor Power"
-	pack .note.general.power -side top -expand no -fill both
-
-	frame .note.general.power.line1
-	pack .note.general.power.line1 -side top -expand no -fill x
-  
-		gui_check .note.general.power.line1.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
-		gui_spin .note.general.power.line1.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
-		gui_spin .note.general.power.line1.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
-		gui_button .note.general.power.line1.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and update config.refVoltageBat" set_batteryVoltage
-
 				
 	labelframe .note.general.buttons -text "File"
 	pack .note.general.buttons -side top -expand no -fill both
@@ -1377,7 +1369,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.roll.rc -text "RC" -padx 10 -pady 10
 		pack .note.roll.rc -side top -expand no -fill x
 
-      gui_check  .note.roll.rc.rcModePPMRoll rcModePPMRoll         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+      gui_check  .note.roll.rc.rcModePPMRoll rcModePPMRoll          "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
 			gui_spin   .note.roll.rc.rcChannelRoll rcChannelRoll 0 16 1   "RC Channel"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 			gui_check  .note.roll.rc.rcAbsolute rcAbsoluteRoll            "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
 			gui_slider .note.roll.rc.rcGain rcGainRoll -200 200.0 0.1     "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
@@ -1386,6 +1378,28 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.roll.rc.rcmax  maxRCRoll -120 120 1          "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
 			gui_slider .note.roll.rc.aop angleOffsetRoll -120 120 0.1     "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
+	ttk::frame .note.aux
+	.note add .note.aux -text "Auxiliary"
+
+    labelframe .note.aux.rc -text "RC Auxiliary Switch Channel (still experimental)" -padx 10 -pady 10
+    pack .note.aux.rc -side top -expand no -fill x
+        gui_check  .note.aux.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.aux.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_spin   .note.aux.rc.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.aux.rc.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
+
+    #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
+    #pack .note.aux.rcMisc -side top -expand no -fill x
+
+      # not used any more
+      #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
+    
+    labelframe .note.aux.debug -text "Debug (just for development)" -padx 10 -pady 10
+    pack .note.aux.debug -side top -expand no -fill x
+
+      gui_spin .note.aux.debug.trace     trace      0 6 1 "Trace Mode"  "trace" "config.trace"
+      gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
+      
 frame .chartview
 pack .chartview -side top -expand no -fill x
 	labelframe .chartview.chart -text "Chart"
