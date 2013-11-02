@@ -78,10 +78,10 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcModePPMPitch",   BOOL,  &config.rcModePPMPitch,   &initRCPins},
   {"rcModePPMRoll",    BOOL,  &config.rcModePPMRoll,    &initRCPins},
   {"rcModePPMAux",     BOOL,  &config.rcModePPMAux,     &initRCPins},
-  {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   NULL},
-  {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    NULL},
-  {"rcChannelAux",     INT8,  &config.rcChannelAux,     NULL},
-  {"rcMid",            INT16, &config.rcMid,            NULL},
+  {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   &initRCPins},
+  {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    &initRCPins},
+  {"rcChannelAux",     INT8,  &config.rcChannelAux,     &initRCPins},
+  {"rcMid",            INT16, &config.rcMid,            &initRCPins},
   
   {"accOutput",        BOOL,  &config.accOutput,        NULL},
   {"trace",            UINT8, &config.trace,            NULL},
@@ -96,7 +96,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"fpvSwRoll",        INT8, &config.fpvSwRoll,         NULL},
 
   {"altSwAccTime",     INT8, &config.altSwAccTime,      NULL},
-  {"accTimeConstant2", INT16, &config.accTimeConstant2, &initIMU},
+  {"accTimeConstant2", INT16, &config.accTimeConstant2, &initIMUtc},
     
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };

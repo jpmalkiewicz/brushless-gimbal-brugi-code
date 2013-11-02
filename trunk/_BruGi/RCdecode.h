@@ -65,11 +65,11 @@ inline void intDecodePPM()
   else if (channel_idx < RC_PPM_RX_MAX_CHANNELS)
   {
     rcData_t* data = 0; 
-    if (channel_idx == config.rcChannelPitch) 
+    if ((channel_idx == config.rcChannelPitch) && (config.rcModePPMPitch)) 
       data = &rcData[RC_DATA_PITCH];
-    if (channel_idx == config.rcChannelRoll)
+    else if ((channel_idx == config.rcChannelRoll) && (config.rcModePPMRoll))
       data = &rcData[RC_DATA_ROLL];
-    if (channel_idx == config.rcChannelAux)
+    else if ((channel_idx == config.rcChannelAux) && (config.rcModePPMAux))
       data = &rcData[RC_DATA_AUX];
     if (data)
     {
@@ -114,8 +114,6 @@ void intDecodePWM_Ch0()
     decodePWM(&rcData[RC_DATA_PITCH]);
   if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
     decodePWM(&rcData[RC_DATA_AUX]);
-    
-
 }
 
 // Connector Channel 2 (A1)
@@ -130,7 +128,6 @@ void intDecodePWM_Ch1()
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
-  else 
   if ((config.rcChannelRoll == 1) && (config.rcModePPMRoll == false))
     decodePWM(&rcData[RC_DATA_ROLL]);
   if ((config.rcChannelPitch == 1) && (config.rcModePPMPitch == false))
@@ -151,14 +148,12 @@ void intDecodePWM_Ch2()
     if (PCintPort::pinState==HIGH) intDecodePPM();
 #endif  
   }
-  else 
   if ((config.rcChannelRoll == 2) && (config.rcModePPMRoll == false))
     decodePWM(&rcData[RC_DATA_ROLL]);
   if ((config.rcChannelPitch == 2) && (config.rcModePPMPitch == false))
     decodePWM(&rcData[RC_DATA_PITCH]);
   if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
     decodePWM(&rcData[RC_DATA_AUX]);
-
 }
 
 
@@ -216,11 +211,6 @@ void initRCPins()
     rcData[id].rcAuxSwitch2     = false;
     sei();
   }
-  
-  // sanity check of RC channel assignment
-  config.rcChannelPitch = constrain(config.rcChannelPitch, -1, RC_DATA_SIZE-1);
-  config.rcChannelRoll = constrain(config.rcChannelRoll, -1, RC_DATA_SIZE-1);
-  config.rcChannelAux = constrain(config.rcChannelAux, -1, RC_DATA_SIZE-1);
   
 }
 
