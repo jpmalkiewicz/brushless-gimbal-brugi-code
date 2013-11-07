@@ -48,7 +48,6 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroRollKi",       INT32, &config.gyroRollKi,       &initPIDs},
   {"gyroRollKd",       INT32, &config.gyroRollKd,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMUtc},
-  {"mpuLPF",           INT8,  &config.mpuLPF,           &initMPUlpf},
   
   {"angleOffsetPitch", INT16, &config.angleOffsetPitch, NULL},
   {"angleOffsetRoll",  INT16, &config.angleOffsetRoll,  NULL},
@@ -78,9 +77,21 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcModePPMPitch",   BOOL,  &config.rcModePPMPitch,   &initRCPins},
   {"rcModePPMRoll",    BOOL,  &config.rcModePPMRoll,    &initRCPins},
   {"rcModePPMAux",     BOOL,  &config.rcModePPMAux,     &initRCPins},
+  {"rcModePPMFpvP",    BOOL,  &config.rcModePPMFpvPitch, &initRCPins},
+  {"rcModePPMFpvR",    BOOL,  &config.rcModePPMFpvRoll, &initRCPins},
+  
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   &initRCPins},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    &initRCPins},
   {"rcChannelAux",     INT8,  &config.rcChannelAux,     &initRCPins},
+  {"rcChannelFpvP",    INT8,  &config.rcChannelFpvPitch, &initRCPins},
+  {"rcChannelFpvR",    INT8,  &config.rcChannelFpvRoll,  &initRCPins},
+
+  {"fpvGainPitch",     INT8,  &config.fpvGainPitch,     NULL},
+  {"fpvGainRoll",      INT8,  &config.fpvGainRoll,      NULL},
+  
+  {"rcLPFPitchFpv",    INT16, &config.rcLPFPitchFpv,    &initRC},
+  {"rcLPFRollFpv",     INT16, &config.rcLPFRollFpv,     &initRC},
+  
   {"rcMid",            INT16, &config.rcMid,            &initRCPins},
   
   {"accOutput",        BOOL,  &config.accOutput,        NULL},
@@ -221,7 +232,6 @@ void updateAllParameters() {
   recalcMotorStuff();
   initPIDs();
   initIMU();
-  initMPUlpf();
   initSensorOrientation();
   initRCPins();
   initRC();
@@ -265,7 +275,6 @@ void gyroRecalibrate()
 {
   mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
-  initMPUlpf();
   Serial.println(F("recalibration: done"));
 }
 

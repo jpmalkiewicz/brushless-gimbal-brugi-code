@@ -42,8 +42,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r178"
-#define VERSION_EEPROM 7 // change this number when eeprom data structure has changed
+#define REVISION "r180"
+#define VERSION_EEPROM 9 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -70,20 +70,6 @@ SerialCommand sCmd;     // Create SerialCommand object
 #include "SerialCom.h"            // Serial Protocol for Configuration and Communication
 
 
-void initMPUlpf() {
-  // Set Gyro Low Pass Filter(0..6, 0=fastest, 6=slowest)
-  switch (config.mpuLPF) {
-    case 0:  mpu.setDLPFMode(MPU6050_DLPF_BW_256);  break;
-    case 1:  mpu.setDLPFMode(MPU6050_DLPF_BW_188);  break;
-    case 2:  mpu.setDLPFMode(MPU6050_DLPF_BW_98);   break;
-    case 3:  mpu.setDLPFMode(MPU6050_DLPF_BW_42);   break;
-    case 4:  mpu.setDLPFMode(MPU6050_DLPF_BW_20);   break;
-    case 5:  mpu.setDLPFMode(MPU6050_DLPF_BW_10);   break;
-    case 6:  mpu.setDLPFMode(MPU6050_DLPF_BW_5);    break;
-    default: mpu.setDLPFMode(MPU6050_DLPF_BW_256);  break;
-  }
-}
-  
 /**********************************************/
 /* Initialization                             */
 /**********************************************/
@@ -162,8 +148,8 @@ void setup()
   // Init MPU Stuff
   mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
   mpu.setFullScaleGyroRange(MPU6050_GYRO_FS);           // Set Gyro Sensitivity to config.h
-  mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);       //+- 2G
-  initMPUlpf();                                         // Set Gyro Low Pass Filter
+  mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);       // +- 2G
+  mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
   mpu.setRate(0);                                       // 0=1kHz, 1=500Hz, 2=333Hz, 3=250Hz, 4=200Hz
   mpu.setSleepEnabled(false); 
   
@@ -171,7 +157,7 @@ void setup()
   Serial.println(F("Gyro calibration: do not move"));
   mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
-  initMPUlpf();
+  mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
   Serial.println(F("Gyro calibration: done"));
   
   LEDPIN_OFF
@@ -339,12 +325,16 @@ void loop()
     }
 
     // Evaluate RC-Signals
-    if(config.rcAbsolutePitch==1) {
+    if (fpvModePitch) {
+      utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPFPitchFpv_tc);
+    } else if(config.rcAbsolutePitch==1) {
       utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPFPitch_tc); // t=16us
     } else {
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
     }
-    if(config.rcAbsoluteRoll==1) {
+    if (fpvModeRoll) {
+      utilLP_float(&rollAngleSet, RollPhiSet, rcLPFRollFpv_tc);
+    } else if(config.rcAbsoluteRoll==1) {
       utilLP_float(&rollAngleSet, RollPhiSet, rcLPFRoll_tc); // t=28us
     } else {
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
@@ -421,16 +411,21 @@ void loop()
       break;
     case 7:
       // td = 26/76us, total
-      // RC Pitch function
-      if (rcData[RC_DATA_PITCH].valid) {
+      // RC Pitch function 
+      if (fpvModePitch) {
+        if (rcData[RC_DATA_FPV_PITCH].valid) {
+          PitchPhiSet = rcData[RC_DATA_FPV_PITCH].setpoint;
+        } else {
+          PitchPhiSet = 0;
+        } 
+      } else if (rcData[RC_DATA_PITCH].valid) {
         if(config.rcAbsolutePitch==1) {
-            PitchPhiSet = rcData[RC_DATA_PITCH].setpoint;
-        }
-        else {
-          if(abs(rcData[RC_DATA_PITCH].rcSpeed)>0.01) {
+          PitchPhiSet = rcData[RC_DATA_PITCH].setpoint;
+        } else {
+          if (abs(rcData[RC_DATA_PITCH].rcSpeed)>0.01) {
             PitchPhiSet += rcData[RC_DATA_PITCH].rcSpeed * 0.01;
           }
-        }
+        } 
       } else {
         PitchPhiSet = 0;
       }
@@ -443,7 +438,13 @@ void loop()
     case 8:
       // td = 26/76us, total
       // RC roll function
-      if (rcData[RC_DATA_ROLL].valid){
+      if (fpvModeRoll) {
+        if (rcData[RC_DATA_FPV_ROLL].valid) {
+          RollPhiSet = rcData[RC_DATA_FPV_ROLL].setpoint;
+        } else {
+          RollPhiSet = 0;
+        } 
+      } else if (rcData[RC_DATA_ROLL].valid){
         if(config.rcAbsoluteRoll==1){
           RollPhiSet = rcData[RC_DATA_ROLL].setpoint;
         } else {
@@ -462,16 +463,8 @@ void loop()
       break;
     case 9:
       // evaluate RC-Signals
-      if(config.rcAbsolutePitch==1) {
-        evaluateRCAbsolutePitch();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
-      } else {
-        evaluateRCProportionalPitch(); // gives rollRCSpeed, pitchRCSpeed
-      }
-      if(config.rcAbsoluteRoll==1) {
-        evaluateRCAbsoluteRoll();  // t=30/142us,  returns rollRCSetPoint, pitchRCSetpoint
-      } else {
-        evaluateRCProportionalRoll(); // gives rollRCSpeed, pitchRCSpeed
-      }
+      evaluateRCPitch();
+      evaluateRCRoll();
       evaluateRCAux();
       
       // check RC channel timeouts
@@ -485,6 +478,9 @@ void loop()
         // 600 us
         if (config.accOutput) {
           Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);         
+          //Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(pitchAngleSet*1000);         
+          //Serial.print(PitchPhiSet*1000); Serial.print(F(" ACC "));Serial.println(pitchAngleSet*1000);        
+          //Serial.print(PitchPhiSet*1000); Serial.print(F(" ACC "));Serial.println(((float)rcData[RC_DATA_PITCH].rx - 1500) * 1000);        
         }
         pOutCnt = 0;
       }
