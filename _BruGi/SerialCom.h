@@ -94,8 +94,8 @@ const t_configDef PROGMEM configListPGM[] = {
   
   {"rcMid",            INT16, &config.rcMid,            &initRCPins},
   
-  {"accOutput",        BOOL,  &config.accOutput,        NULL},
-  {"trace",            UINT8, &config.trace,            NULL},
+  {"fTrace",           UINT8, &config.fTrace,           NULL},
+  {"sTrace",           UINT8, &config.sTrace,           NULL},
 
   {"enableGyro",       BOOL,  &config.enableGyro,       NULL},
   {"enableACC",        BOOL,  &config.enableACC,        NULL},
@@ -244,17 +244,17 @@ void setDefaultParametersAndUpdate() {
 
 void writeEEPROM()
 {
-  bool oldAcc = config.accOutput;
-  traceModeType oldTrace = config.trace;
+  traceModeType oldfTrace = config.fTrace;
+  traceModeType oldsTrace = config.sTrace;
   
-  config.accOutput = false; // do not save enabled OAC output mode
-  config.trace = TRC_OFF;    
+  config.fTrace = TRC_OFF;    
+  config.sTrace = TRC_OFF;    
   
   config.crc8 = crcSlow((crc *)&config, sizeof(config)-1); // set proper CRC 
   EEPROM_writeAnything(0, config);
   
-  config.accOutput = oldAcc;
-  config.trace = oldTrace;
+  config.fTrace = oldfTrace;
+  config.sTrace = oldsTrace;
 }
 
 void readEEPROM()

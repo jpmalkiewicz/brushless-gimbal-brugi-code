@@ -56,8 +56,8 @@ struct config_t
   
   int16_t rcMid;             // rc channel center ms
   
-  bool accOutput;            
-  traceModeType trace;       // trace output mode (uint8_t)
+  traceModeType fTrace;       // trace output mode (uint8_t)
+  traceModeType sTrace;       // trace output mode (uint8_t)
   
   bool enableGyro;           // enable gyro attitude update
   bool enableACC;            // enable acc attitude update
@@ -120,8 +120,8 @@ void setDefaultParameters()
   config.rcLPFPitchFpv = 10;  // 1 sec
   config.rcLPFRollFpv = 10;  // 1 sec
   config.rcMid = MID_RC;
-  config.accOutput=false;
-  config.trace=TRC_OFF;
+  config.fTrace=TRC_OFF; // fast trace
+  config.sTrace=TRC_OFF; // slow trace
   config.enableGyro=true;
   config.enableACC=true;
   config.axisReverseZ=true;
