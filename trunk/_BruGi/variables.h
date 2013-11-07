@@ -15,7 +15,6 @@ struct config_t
   int32_t gyroRollKi;
   int32_t gyroRollKd;
   int16_t accTimeConstant;
-  int8_t  mpuLPF;             // mpu LPF 0..6, 0=fastest(256Hz) 6=slowest(5Hz)
   int16_t angleOffsetPitch;   // angle offset, deg*100
   int16_t angleOffsetRoll;
   int8_t dirMotorPitch;
@@ -40,9 +39,21 @@ struct config_t
   bool rcModePPMPitch;       // RC mode, true=common RC PPM channel, false=separate RC channels 
   bool rcModePPMRoll;
   bool rcModePPMAux;
+  bool rcModePPMFpvPitch;
+  bool rcModePPMFpvRoll;
+  
   int8_t rcChannelPitch;     // input channel for pitch
   int8_t rcChannelRoll;      // input channel for roll
   int8_t rcChannelAux;       // input channel for auxiliary functions
+  int8_t rcChannelFpvPitch;  // input channel for fpv channel pitch
+  int8_t rcChannelFpvRoll;   // input channel for fpv channel roll
+  
+  int8_t fpvGainPitch;       // gain of FPV channel pitch
+  int8_t fpvGainRoll;        // gain of FPV channel roll
+  
+  int16_t rcLPFPitchFpv;     // low pass filter in FPV mode
+  int16_t rcLPFRollFpv;      // low pass filter in FPV mode
+  
   int16_t rcMid;             // rc channel center ms
   
   bool accOutput;            
@@ -73,7 +84,6 @@ void setDefaultParameters()
   config.gyroRollKi = 8000;
   config.gyroRollKd = 30000;
   config.accTimeConstant = 7;
-  config.mpuLPF = 0;
   config.angleOffsetPitch = 0;
   config.angleOffsetRoll = 0;
   config.dirMotorPitch = 1;
@@ -98,9 +108,17 @@ void setDefaultParameters()
   config.rcModePPMPitch = false;
   config.rcModePPMRoll = false;
   config.rcModePPMAux = false;
+  config.rcModePPMFpvPitch = false;
+  config.rcModePPMFpvRoll = false;
   config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
   config.rcChannelAux = -1;
+  config.rcChannelFpvPitch = -1;
+  config.rcChannelFpvRoll = -1;
+  config.fpvGainPitch = 0;
+  config.fpvGainRoll = 0;
+  config.rcLPFPitchFpv = 10;  // 1 sec
+  config.rcLPFRollFpv = 10;  // 1 sec
   config.rcMid = MID_RC;
   config.accOutput=false;
   config.trace=TRC_OFF;
@@ -220,6 +238,9 @@ rcData_t rcData[RC_DATA_SIZE];
 
 float rcLPFPitch_tc = 1.0;
 float rcLPFRoll_tc = 1.0;
+
+float rcLPFPitchFpv_tc = 1.0;
+float rcLPFRollFpv_tc = 1.0;
 
 // Gimbal State
 enum gimStateType {

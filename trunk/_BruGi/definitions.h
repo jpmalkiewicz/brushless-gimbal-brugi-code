@@ -50,10 +50,12 @@
 
 
 // RC data size and channel assigment
-#define RC_DATA_SIZE  3
+#define RC_DATA_SIZE  5
 #define RC_DATA_PITCH 0
 #define RC_DATA_ROLL  1
 #define RC_DATA_AUX   2
+#define RC_DATA_FPV_PITCH 3
+#define RC_DATA_FPV_ROLL 4
 
 // RC PPM pin A0, A1 or A2
 #define RC_PIN_PPM_A2

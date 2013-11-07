@@ -5,6 +5,7 @@
 enum traceModeType {
  TRC_OFF=0, 
  TRC_RC,
+ TRC_AUX, 
  TRC_IMU,
  TRC_ACC,
  TRC_GYRO,

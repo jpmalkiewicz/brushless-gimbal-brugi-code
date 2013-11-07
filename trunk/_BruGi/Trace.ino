@@ -29,6 +29,19 @@ void printTrace(traceModeType traceMode)
       }
       break;
       
+    case TRC_AUX:
+      // *******  AUX  *********
+      Serial.print(F(" AUX"));
+      Serial.print(F(" "));
+      Serial.print(fpvModePitch);
+      
+      Serial.print(F(" "));
+      Serial.print(fpvModeRoll);
+      
+      Serial.print(F(" "));
+      Serial.print(altModeAccTime);
+      
+      break;
       
     case TRC_IMU:
       // *******  IMU  *********
