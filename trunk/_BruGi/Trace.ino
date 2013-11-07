@@ -31,8 +31,7 @@ void printTrace(traceModeType traceMode)
       
     case TRC_AUX:
       // *******  AUX  *********
-      Serial.print(F(" AUX"));
-      Serial.print(F(" "));
+      Serial.print(F(" AUX "));
       Serial.print(fpvModePitch);
       
       Serial.print(F(" "));
@@ -45,8 +44,7 @@ void printTrace(traceModeType traceMode)
       
     case TRC_IMU:
       // *******  IMU  *********
-      Serial.print(F(" IMU"));
-      Serial.print(F(" "));
+      Serial.print(F(" IMU "));
       Serial.print(EstG.V.X);
       Serial.print(F(" "));
       Serial.print(EstG.V.Y);
@@ -94,9 +92,8 @@ void printTrace(traceModeType traceMode)
 
     case TRC_PID_PITCH:
       // *******  PID Pitch  *********
-      Serial.print(F(" PID_PITCH"));
+      Serial.print(F(" PID_PITCH "));
       
-      Serial.print(F(" "));
       Serial.print(pitchAngleSet);
       
       Serial.print(F(" "));
@@ -109,9 +106,8 @@ void printTrace(traceModeType traceMode)
 
     case TRC_PID_ROLL:
       // *******  PID Roll  *********
-      Serial.print(F(" PID_ROLL"));
+      Serial.print(F(" PID_ROLL "));
       
-      Serial.print(F(" "));
       Serial.print(rollAngleSet);
       
       Serial.print(F(" "));
@@ -120,6 +116,14 @@ void printTrace(traceModeType traceMode)
       Serial.print(F(" "));
       Serial.print(rollMotorDrive);
       
+      break;
+
+    case TRC_OAC:
+      // *******  OAC mode 2 (replaces oac/acc mode)  *********
+      Serial.print(F(" ACC2 "));
+      Serial.print(angle[PITCH]); 
+      Serial.print(F(" "));
+      Serial.print(angle[ROLL]);       
       break;
             
     default:

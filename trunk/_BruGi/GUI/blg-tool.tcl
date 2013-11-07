@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "49 r180"
+set VERSION "49 r181"
 
 #####################################################################################
 # Big hexdata
@@ -376,7 +376,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv rcMid accOutput trace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv rcMid accOutput fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -484,14 +484,14 @@ proc draw_chart {} {
 	}
 	if {$chart == 1} {
 		set chart 0
-		.bottom.info configure -text "SEND: par accOutput 0"
-        	puts -nonewline $Serial "par accOutput 0\n"
+		.bottom.info configure -text "SEND: par fTrace 0"
+        	puts -nonewline $Serial "par fTrace 0\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Start"
 	} else {
 		set chart 1
-		.bottom.info configure -text "SEND: par accOutput 1"
-        	puts -nonewline $Serial "par accOutput 1\n"
+		.bottom.info configure -text "SEND: par fTrace 8"
+        	puts -nonewline $Serial "par fTrace 8\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Stop"
 	}
@@ -755,16 +755,16 @@ proc rd_chid {chid} {
 
 				} elseif {[info exists par($var,scale)]} {
 					set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
-				} elseif {[string match "* ACC *" $buffer]} {
+				} elseif {[string match "traceData ACC2 * *" $buffer]} {
 					set chart 1
 					.bottom.info configure -text "OAC: $buffer"
 					global LastValX
 					global LastValY
 					global CHART_SCALE
-					set ValX [expr [lindex $buffer 0] / 1000.0]
 					set TEST [lindex $buffer 1]
-					set ValY [expr [lindex $buffer 2] / 1000.0]
-					if {($TEST == "ACC") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
+					set ValX [expr [lindex $buffer 2] / 1000.0]
+					set ValY [expr [lindex $buffer 3] / 1000.0]
+					if {($TEST == "ACC2") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
 						incr chart_count 1
 						if {$chart_count >= 450} {
 							set chart_count 0
@@ -1421,10 +1421,11 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       # not used any more
       #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
     
-    labelframe .note.aux.debug -text "Debug (just for development)" -padx 10 -pady 10
+    labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
     pack .note.aux.debug -side top -expand no -fill x
 
-      gui_spin .note.aux.debug.trace     trace      0 7 1 "Trace Mode"  "trace" "config.trace"
+      gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
+      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
       gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
       
 frame .chartview

@@ -42,8 +42,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r180"
-#define VERSION_EEPROM 9 // change this number when eeprom data structure has changed
+#define REVISION "r181"
+#define VERSION_EEPROM 10 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -279,6 +279,7 @@ void loop()
   
   static char pOutCnt = 0;
   static char tOutCnt = 0;
+  static char tOutCntSub = 0;
   static int stateCount = 0;
   uint8_t ledBlinkCnt = 0;
   uint8_t ledBlinkOnTime = 10;
@@ -476,22 +477,29 @@ void loop()
       if (pOutCnt == (LOOPUPDATE_FREQ/10/POUT_FREQ))
       {
         // 600 us
-        if (config.accOutput) {
-          Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(angle[ROLL]);         
-          //Serial.print(angle[PITCH]); Serial.print(F(" ACC "));Serial.println(pitchAngleSet*1000);         
-          //Serial.print(PitchPhiSet*1000); Serial.print(F(" ACC "));Serial.println(pitchAngleSet*1000);        
-          //Serial.print(PitchPhiSet*1000); Serial.print(F(" ACC "));Serial.println(((float)rcData[RC_DATA_PITCH].rx - 1500) * 1000);        
+        if (config.fTrace != TRC_OFF) {
+          printTrace(config.fTrace);
         }
         pOutCnt = 0;
       }
       
-      // regular ACC output
+      // print regular trace output
       tOutCnt++;
       if (tOutCnt == (LOOPUPDATE_FREQ/10/TRACE_OUT_FREQ))
       {
-        if (config.trace != TRC_OFF) {
-          printTrace(config.trace);
+        tOutCntSub++;
+        if (tOutCntSub > STRACE_IDX) {
+          tOutCntSub = 1;
         }
+
+        if (config.sTrace == TRC_ALL) {
+            // cycle all trace types
+            printTrace((traceModeType)tOutCntSub);      
+        } else if (config.sTrace != TRC_OFF) {
+            // use specific trace type
+            printTrace(config.sTrace);
+        }
+        
         tOutCnt = 0;
       }
 
