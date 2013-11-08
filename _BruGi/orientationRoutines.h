@@ -46,18 +46,14 @@ void gyroOffsetCalibration()
   enableMotorUpdates = false;
 
   // wait 1 second
-  for (i=0; i<100; i++) {
-    delayMicroseconds(10000); // 1 ms 
-  }
+  delayT1(1000);
   
   while(calibGCounter>0)
   {
 
     if(calibGCounter==GYRO_INTERATIONS)
     {
-      for (i=0; i<70; i++) { // wait 0.7sec if calibration failed
-        delayMicroseconds(10000); // 10 ms 
-      }
+      delayT1(700);
       mpu.getRotation(&gyro[0], &gyro[1], &gyro[2]); 
       for (i=0; i<3; i++) {
         fp_gyroOffset[i] = 0;
