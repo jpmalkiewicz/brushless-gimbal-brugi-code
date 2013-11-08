@@ -321,6 +321,12 @@ static int16_t acc_25deg = 25;      //** TODO: check
 
 static int32_t angle[2]    = {0,0};  // absolute angle inclination in multiple of 0.01 degree    180 deg = 18000
 
+static float angleOffsetRoll_f = 0;
+static float angleOffsetPitch_f = 0;
+
+static int32_t angleOffsetRoll = 0;
+static int32_t angleOffsetPitch = 0;
+
 
 // DEBUG only
 uint32_t stackTop = 0xffffffff;

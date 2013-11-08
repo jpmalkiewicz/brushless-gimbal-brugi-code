@@ -42,7 +42,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r181"
+#define REVISION "r182"
 #define VERSION_EEPROM 10 // change this number when eeprom data structure has changed
 
 
@@ -408,6 +408,9 @@ void loop()
       
       // handle mode switches
       decodeModeSwitches();
+      
+      // lpf avoids jerking during offset config
+      updateLPFangleOffset();
       
       break;
     case 7:

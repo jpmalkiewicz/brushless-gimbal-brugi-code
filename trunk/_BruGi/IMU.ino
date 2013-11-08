@@ -105,6 +105,14 @@ void initIMUtc() {
   setACCFastMode(false, config.accTimeConstant);
 }
 
+// lpf avoids jerking during offset config
+void updateLPFangleOffset() {
+   utilLP_float(&angleOffsetPitch_f, (int32_t)config.angleOffsetPitch * 10, DT_FLOAT*10.0 / 1.0); // 1.0 sec
+   utilLP_float(&angleOffsetRoll_f, (int32_t)config.angleOffsetRoll * 10, DT_FLOAT*10.0 / 1.0);
+   angleOffsetPitch = angleOffsetPitch_f;
+   angleOffsetRoll = angleOffsetRoll_f;
+ }
+
 void initIMU() {
  
   // resolutionDevider=131, scale = 0.000133
@@ -214,9 +222,9 @@ void getAttiduteAngles() {
 
   // attitude of the estimated vector  
   // 200us
-  angle[ROLL]  = ((int32_t)config.angleOffsetRoll * 10) +  Rajan_FastArcTan2_deg1000(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
+  angle[ROLL]  = angleOffsetRoll +  Rajan_FastArcTan2_deg1000(EstG.V.X , sqrt(EstG.V.Z*EstG.V.Z+EstG.V.Y*EstG.V.Y));
   // 142 us
-  angle[PITCH] = ((int32_t)config.angleOffsetPitch * 10) + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);
+  angle[PITCH] = angleOffsetPitch + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);
 
 }
 
