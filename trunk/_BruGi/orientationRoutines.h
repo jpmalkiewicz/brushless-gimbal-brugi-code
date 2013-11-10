@@ -45,6 +45,9 @@ void gyroOffsetCalibration()
   // Set voltage on all motor phases to zero 
   enableMotorUpdates = false;
 
+  // set to slow mode during calibration
+  mpu.setDLPFMode(MPU6050_DLPF_BW_5);
+  
   // wait 1 second
   delayT1(1000);
   
@@ -95,6 +98,9 @@ void gyroOffsetCalibration()
     //Serial.print(F("gyroOffset="));Serial.println(fp_gyroOffset[i], 3);
   }
 
+  // restore MPU mode
+  initMPU();
+    
   enableMotorUpdates = true;
 }
        

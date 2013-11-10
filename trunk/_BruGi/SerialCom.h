@@ -273,7 +273,6 @@ void readEEPROM()
 
 void gyroRecalibrate()
 {
-  mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
   Serial.println(F("recalibration: done"));
 }

@@ -26,6 +26,15 @@
 #define scos(val) 1.0f
 
 
+// init MPU modes
+void initMPU() {
+  mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
+  mpu.setFullScaleGyroRange(MPU6050_GYRO_FS);           // Set Gyro Sensitivity to config.h
+  mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);       // +- 2G
+  mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
+  mpu.setRate(0);                                       // 0=1kHz, 1=500Hz, 2=333Hz, 3=250Hz, 4=200Hz
+  mpu.setSleepEnabled(false);
+}
 
 // set default sensor orientation (sensor upside)
 void initSensorOrientationDefault() {
