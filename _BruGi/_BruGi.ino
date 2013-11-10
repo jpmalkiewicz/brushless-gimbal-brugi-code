@@ -139,29 +139,19 @@ void setup()
       Serial.println(F("MPU6050 falied"));  
     }
   }
- 
-  CH2_ON
-  
-  // set sensor orientation (from config)
-  initSensorOrientation();
-  
-  // Init MPU Stuff
-  mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
-  mpu.setFullScaleGyroRange(MPU6050_GYRO_FS);           // Set Gyro Sensitivity to config.h
-  mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);       // +- 2G
-  mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
-  mpu.setRate(0);                                       // 0=1kHz, 1=500Hz, 2=333Hz, 3=250Hz, 4=200Hz
-  mpu.setSleepEnabled(false); 
+
+  // Init MPU mode
+  initMPU();
   
   // Gyro Offset calibration
   Serial.println(F("Gyro calibration: do not move"));
-  mpu.setDLPFMode(MPU6050_DLPF_BW_5);  // experimental AHa: set to slow mode during calibration
   gyroOffsetCalibration();
-  mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
   Serial.println(F("Gyro calibration: done"));
   
-  LEDPIN_OFF
   
+  // set sensor orientation (from config)
+  initSensorOrientation();
+    
    // Init BL Controller
   initBlController();
   // switch off PWM Power
@@ -175,6 +165,7 @@ void setup()
   
   Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
 
+  LEDPIN_OFF
   CH2_OFF
   CH3_OFF
  
@@ -207,6 +198,10 @@ inline int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPo
 
 
 /******************************************************************
+
+important note: 
+   profiling numbers might be obsolete since r175
+
 
 main loop execution time budget
 
@@ -412,6 +407,9 @@ void loop()
       // lpf avoids jerking during offset config
       updateLPFangleOffset();
       
+      // check RC channel timeouts
+      checkRcTimeouts();
+      
       break;
     case 7:
       // td = 26/76us, total
@@ -526,20 +524,14 @@ void loop()
     count++;
        
     //****************************
-    // check RC channel timeouts
-    //****************************
-
-    checkRcTimeouts();
-
-    //****************************
     // Evaluate Serial inputs 
     //****************************
     sCmd.readSerial();
 
     // worst-case finalize after
-    //    1.81 ms (w/o RC)
-    //    1.90 ms (with 1 RC channel)
-    //    1.92 ms (with 2 RC channels)
+    //    -- ms (w/o RC)
+    //    -- ms (with 1 RC channel)
+    //    -- ms (with 2 RC channels)
 
     CH2_OFF
   }
