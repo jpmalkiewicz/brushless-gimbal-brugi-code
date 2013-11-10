@@ -27,22 +27,9 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 // Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
 */
 
-
-// FOR CHANGES PLEASE READ: ReleaseHistory.txt
-
-// Serial Programming for Settings!!!
-/* HOWTO:
-- edit setDefaultParameters() in variables.h if you want to.
-- Upload Firmware.
-- Open Arduino Terminal and enable NL in the lower right corner of the window.
-- Type in HE 
--... enjoy
-*/
-
-
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r182"
+#define REVISION "r184"
 #define VERSION_EEPROM 10 // change this number when eeprom data structure has changed
 
 
@@ -87,13 +74,22 @@ void setup()
   CH2_PINMODE
   CH3_PINMODE
   
+  // Init BL Controller
+  initBlController();
+  // Init Sinus Arrays
+  initMotorStuff();
+  
+  // switch off PWM Power
+  MoveMotorPosSpeed(config.motorNumberPitch, 0, 0); 
+  MoveMotorPosSpeed(config.motorNumberRoll, 0, 0);
+  
   // Start Serial Port
   Serial.begin(115200);
 
   // Set Serial Protocol Commands
   setSerialProtocol();
   
-  // Read Config, fill with default settings if versions do not match or CRC fails
+  // Read Config, initialize if versions do not match or CRC fails
   readEEPROM();
   if ((config.vers != VERSION) || (config.versEEPROM != VERSION_EEPROM))
   {
@@ -101,30 +97,16 @@ void setup()
     setDefaultParameters();
     writeEEPROM();
   }
-    
-  // Init Sinus Arrays
-  initMotorStuff();
-  
-  // Init PIDs to reduce floating point operations.
-  initPIDs();
-
-  // init RC variables
-  initRC();
-  
+   
   // Start I2C and Configure Frequency
   Wire.begin();
   TWSR = 0;                                  // no prescaler => prescaler = 1
   TWBR = ((16000000L / I2C_SPEED) - 16) / 2; // change the I2C clock rate
   TWCR = 1<<TWEN;                            // enable twi module, no interrupt
  
-   // Init BL Controller
-  initBlController();
   // Initialize MPU 
   initResolutionDevider();
-  
-  // Init IMU variables
-  initIMU();
-  
+    
   // Auto detect MPU address
   mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
   mpu.initialize();
@@ -147,28 +129,27 @@ void setup()
   Serial.println(F("Gyro calibration: do not move"));
   gyroOffsetCalibration();
   Serial.println(F("Gyro calibration: done"));
-  
-  
-  // set sensor orientation (from config)
+ 
+  // Init IMU variables
+  initIMU();
+  // set sensor orientation
   initSensorOrientation();
-    
-   // Init BL Controller
-  initBlController();
-  // switch off PWM Power
-  MoveMotorPosSpeed(config.motorNumberPitch, 0, 0); 
-  MoveMotorPosSpeed(config.motorNumberRoll, 0, 0);
   
-  // motorTest();
+  // Init PIDs parameters
+  initPIDs();
+
+  // init RC variables
+  initRC();
 
   // Init RC-Input
   initRCPins();
   
-  Serial.println(F("GO! Type HE for help, activate NL in Arduino Terminal!"));
+  Serial.println(F("BruGi ready."));
 
   LEDPIN_OFF
   CH2_OFF
   CH3_OFF
- 
+
 }
 
 /************************/
@@ -362,7 +343,7 @@ void loop()
         case GIM_IDLE :
           // wait 2 sec to settle ACC, before PID controlerbecomes active 
           stateCount++;
-          if (stateCount >= LOOPUPDATE_FREQ/10*2)  
+          if (stateCount >= LOOPUPDATE_FREQ/10*1) // 1 sec 
           {
             gimState = GIM_UNLOCKED;
             stateCount = 0;
@@ -383,20 +364,24 @@ void loop()
       }
       // gimbal state actions 
       switch (gimState) {
-        case GIM_IDLE :
+        case GIM_IDLE : // allow settling IMU
           enableMotorUpdates = false;
-          setACCFastMode(true, config.accTimeConstant);
+          setACCtc(0.2);
+          disableAccGtest = true;
           break;
-        case GIM_UNLOCKED :
+        case GIM_UNLOCKED : // fast settling of desired position
           enableMotorUpdates = true;
-          setACCFastMode(true, config.accTimeConstant);
+          disableAccGtest = true;
+          setACCtc(2.0);
+          disableAccGtest = true;
           break;
-        case GIM_LOCKED :
+        case GIM_LOCKED : // normal operation
           enableMotorUpdates = true;
+          disableAccGtest = false;
           if (altModeAccTime) { // alternate time constant mode switch
-            setACCFastMode(false, config.accTimeConstant2);
+            setACCtc(config.accTimeConstant2);
           } else {
-            setACCFastMode(false, config.accTimeConstant);
+            setACCtc(config.accTimeConstant);
           }
           break;
       }

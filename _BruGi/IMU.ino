@@ -102,16 +102,12 @@ void initSensorOrientation() {
   }
 }
 
-void setACCFastMode (bool fastMode, int16_t accTimeConstant) {
-  if (fastMode) {
-    AccComplFilterConst = (float)DT_FLOAT/(2.0 + DT_FLOAT); // 2 sec
-  } else {
-    AccComplFilterConst = (float)DT_FLOAT/(accTimeConstant + DT_FLOAT);
-  }
+void setACCtc (int16_t accTimeConstant) {
+  AccComplFilterConst = (float)DT_FLOAT/(accTimeConstant + DT_FLOAT);
 }
 
 void initIMUtc() {
-  setACCFastMode(false, config.accTimeConstant);
+  setACCtc(config.accTimeConstant);
 }
 
 // lpf avoids jerking during offset config
@@ -129,7 +125,7 @@ void initIMU() {
   gyroScale =  1.0 / resolutionDevider / 180.0 * 3.14159265359 * DT_FLOAT;  // convert to radians
   
   // initialize complementary filter timw constant
-  setACCFastMode(false, config.accTimeConstant);
+  setACCtc(config.accTimeConstant);
  
   accMag = ACC_1G*ACC_1G; // magnitude = 1G initially
  
@@ -218,7 +214,7 @@ void updateACCAttitude(){
   // Apply complimentary filter (Gyro drift correction)
   // If accel magnitude >1.4G or <0.6G and ACC vector outside of the limit range => we neutralize the effect of accelerometers in the angle estimation.
   // To do that, we just skip filter, as EstV already rotated by Gyro
-  if ( 36 < accMag && accMag < 196 ) {
+  if (( 36 < accMag && accMag < 196 ) || disableAccGtest) {
     for (axis = 0; axis < 3; axis++) {
       //utilLP_float(&EstG.A[axis], accLPF[axis], AccComplFilterConst);
       EstG.A[axis] = EstG.A[axis] * (1.0 - AccComplFilterConst) + accLPF[axis] * AccComplFilterConst; // note: this is different from MultiWii (wrong brackets postion in MultiWii ??.
