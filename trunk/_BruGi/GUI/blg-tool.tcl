@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "49 r181"
+set VERSION "for BruGi Firmware v49-r181 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -1234,7 +1234,7 @@ proc launchBrowser url {
 # the GUI
 #####################################################################################
 
-wm title . "Brushless-Gimbal-Tool (v$VERSION)"
+wm title . "Brushless-Gimbal-Tool ($VERSION)"
 
 
 proc update_mpu {n1 n2 op} {

@@ -36,20 +36,17 @@ void gyroOffsetCalibration()
 {
   int i;
   #define TOL 64
-  #define GYRO_INTERATIONS 2000
+  #define GYRO_INTERATIONS 4000
   int16_t prevGyro[3],gyro[3];
   float fp_gyroOffset[3];
   uint8_t tiltDetected = 0;
   int calibGCounter = GYRO_INTERATIONS;
   
-  // Set voltage on all motor phases to zero 
-  enableMotorUpdates = false;
-
   // set to slow mode during calibration
   mpu.setDLPFMode(MPU6050_DLPF_BW_5);
   
-  // wait 1 second
-  delayT1(1000);
+  // wait 2 seconds
+  delayT1(2000);
   
   while(calibGCounter>0)
   {
@@ -100,7 +97,6 @@ void gyroOffsetCalibration()
 
   // restore MPU mode
   initMPU();
-    
-  enableMotorUpdates = true;
+
 }
        

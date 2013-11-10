@@ -314,6 +314,7 @@ static t_fp_vector EstG;
 
 static float accLPF[3] = {0.0,};
 static float accMag = 0;
+static bool disableAccGtest = false;
 
 static float AccComplFilterConst = 0;  // filter constant for complementary filter
 
