@@ -1,3 +1,21 @@
+10.11.2013
+Version 049 r184
+* free some processing slots at readACC (thanks to Michi)
+
+10.11.2013
+Version 049 r184
+fixed misc startup issues
+* IMU attitude could hang at wrong position, under certain conditions
+* motors were switched on to early with bad drive values
+* extended time for gyro calibration
+r183
+bug fix at gyro recalibration, thanks to micha-24 for the hint
+
+r182
+minor update
+  GUI screenshots added/update
+  angleOffset configuration more smooth
+
 7.11.2013
 Version 049 r181
 preparations for improved data view in GUI

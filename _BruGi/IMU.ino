@@ -166,15 +166,18 @@ void readGyros() {
   
 }
 
-void readACC(axisDef axis) {
-  // get acceleration
-  // 382 us
-  char idx;
-  int16_t val;
-  idx = sensorDef.Acc[axis].idx;
-  val = mpu.getAccelerationN(idx);  // TODO: 370us 
-  val *= sensorDef.Acc[axis].dir;
-  accADC[axis] = val;
+// get acceleration for 3-axis
+void readACCs()
+{
+  int16_t devVal[3];
+  mpu.getAcceleration(
+    &devVal[sensorDef.Acc[ROLL].idx],
+    &devVal[sensorDef.Acc[PITCH].idx],
+    &devVal[sensorDef.Acc[YAW].idx]
+    );
+  for (int8_t axis = 0; axis < 3; axis++) {
+    accADC[axis] = devVal[axis]*sensorDef.Acc[axis].dir;
+  }
 }
 
 void updateGyroAttitude(){
@@ -189,7 +192,7 @@ void updateGyroAttitude(){
   
   // 111 us
   rotateV(&EstG.V,deltaGyroAngle);
-  
+ 
 }
 
 void updateACC(){

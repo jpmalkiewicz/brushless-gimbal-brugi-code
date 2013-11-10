@@ -325,18 +325,14 @@ void loop()
     //****************************
     switch (count) {
     case 1:
-      readACC(ROLL); break;
+      readACCs(); break;
     case 2:
-      readACC(PITCH); break;
-    case 3:
-      readACC(YAW); break;
-    case 4:
       updateACC(); break;
-    case 5:
+    case 3:
       // td = 289us, total
       voltageCompensation();
       break;
-    case 6:
+    case 4:
       // gimbal state transitions 
       switch (gimState)
       {
@@ -396,7 +392,7 @@ void loop()
       checkRcTimeouts();
       
       break;
-    case 7:
+    case 5:
       // td = 26/76us, total
       // RC Pitch function 
       if (fpvModePitch) {
@@ -422,7 +418,7 @@ void loop()
         PitchPhiSet = constrain(PitchPhiSet, config.maxRCPitch, config.minRCPitch);
       }
       break;
-    case 8:
+    case 6:
       // td = 26/76us, total
       // RC roll function
       if (fpvModeRoll) {
@@ -448,7 +444,7 @@ void loop()
         RollPhiSet = constrain(RollPhiSet, config.maxRCRoll, config.minRCRoll);
       }
       break;
-    case 9:
+    case 7:
       // evaluate RC-Signals
       evaluateRCPitch();
       evaluateRCRoll();
@@ -456,6 +452,12 @@ void loop()
       
       // check RC channel timeouts
       checkRcTimeouts();
+      break;
+    case 8:
+      // unused slot
+      break;
+    case 9:
+      // unused slot
       break;
     case 10:    
       // regular ACC output

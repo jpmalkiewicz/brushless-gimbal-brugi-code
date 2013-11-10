@@ -1813,7 +1813,6 @@ int16_t MPU6050::getAccelerationN(char idx) {
     return (((int16_t)buffer[idxa]) << 8) | buffer[idxb];
 }
 
-
 /** Get Z-axis accelerometer reading.
  * @return Z-axis acceleration measurement in 16-bit 2's complement format
  * @see getMotion6()
