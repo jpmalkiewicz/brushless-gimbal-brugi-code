@@ -99,74 +99,77 @@ inline void intDecodePPM()
 void intDecodePWM_Ch0()
 { 
   microsNow = microsT1();
-  sei(); // re-enable interrupts
   
   // PWM: 6 / 10 us (min/max)
   // PPM: 0.5 / 12 us (min/max)
-  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll)
-  {
 #ifdef RC_PIN_PPM_A2
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
     if (PCintPort::pinState==HIGH) intDecodePPM();
-#endif  
+  } else {
+#endif
+    if ((config.rcChannelRoll == 0) && (config.rcModePPMRoll == false))
+      decodePWM(&rcData[RC_DATA_ROLL]);
+    if ((config.rcChannelPitch == 0) && (config.rcModePPMPitch == false))
+      decodePWM(&rcData[RC_DATA_PITCH]);
+    if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
+      decodePWM(&rcData[RC_DATA_AUX]);
+    if ((config.rcChannelFpvPitch == 0) && (config.rcModePPMFpvPitch == false))
+      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+    if ((config.rcChannelFpvRoll == 0) && (config.rcModePPMFpvRoll == false))
+      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#ifdef RC_PIN_PPM_A2
   }
-  if ((config.rcChannelRoll == 0) && (config.rcModePPMRoll == false))
-    decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 0) && (config.rcModePPMPitch == false))
-    decodePWM(&rcData[RC_DATA_PITCH]);
-  if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
-    decodePWM(&rcData[RC_DATA_AUX]);
-  if ((config.rcChannelFpvPitch == 0) && (config.rcModePPMFpvPitch == false))
-    decodePWM(&rcData[RC_DATA_FPV_PITCH]);
-  if ((config.rcChannelFpvRoll == 0) && (config.rcModePPMFpvRoll == false))
-    decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#endif  
 }
 
 // Connector Channel 2 (A1)
 void intDecodePWM_Ch1()
 { 
   microsNow = microsT1();
-  sei(); // re-enable interrupts
 
-  if (config.rcModePPMPitch || config.rcModePPMRoll )
-  {
 #ifdef RC_PIN_PPM_A1
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
     if (PCintPort::pinState==HIGH) intDecodePPM();
+  } else {
 #endif  
+    if ((config.rcChannelRoll == 1) && (config.rcModePPMRoll == false))
+      decodePWM(&rcData[RC_DATA_ROLL]);
+    if ((config.rcChannelPitch == 1) && (config.rcModePPMPitch == false))
+      decodePWM(&rcData[RC_DATA_PITCH]);
+    if ((config.rcChannelAux == 1) && (config.rcModePPMAux == false))
+      decodePWM(&rcData[RC_DATA_AUX]);
+    if ((config.rcChannelFpvPitch == 1) && (config.rcModePPMFpvPitch == false))
+      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+    if ((config.rcChannelFpvRoll == 1) && (config.rcModePPMFpvRoll == false))
+      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#ifdef RC_PIN_PPM_A1
   }
-  if ((config.rcChannelRoll == 1) && (config.rcModePPMRoll == false))
-    decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 1) && (config.rcModePPMPitch == false))
-    decodePWM(&rcData[RC_DATA_PITCH]);
-  if ((config.rcChannelAux == 1) && (config.rcModePPMAux == false))
-    decodePWM(&rcData[RC_DATA_AUX]);
-  if ((config.rcChannelFpvPitch == 1) && (config.rcModePPMFpvPitch == false))
-    decodePWM(&rcData[RC_DATA_FPV_PITCH]);
-  if ((config.rcChannelFpvRoll == 1) && (config.rcModePPMFpvRoll == false))
-    decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#endif  
 }
 
 // Connector Channel 3 (A0)
 void intDecodePWM_Ch2()
 { 
   microsNow = microsT1();
-  sei(); // re-enable interrupts
-  
-  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux)
-  {
-#ifdef RC_PIN_PPM_A0
+
+#ifdef RC_PIN_PPM_A0  
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {  {
     if (PCintPort::pinState==HIGH) intDecodePPM();
+  } else {
 #endif  
+    if ((config.rcChannelRoll == 2) && (config.rcModePPMRoll == false))
+      decodePWM(&rcData[RC_DATA_ROLL]);
+    if ((config.rcChannelPitch == 2) && (config.rcModePPMPitch == false))
+      decodePWM(&rcData[RC_DATA_PITCH]);
+    if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
+      decodePWM(&rcData[RC_DATA_AUX]);
+    if ((config.rcChannelFpvPitch == 2) && (config.rcModePPMFpvPitch == false))
+      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+    if ((config.rcChannelFpvRoll == 2) && (config.rcModePPMFpvRoll == false))
+      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#ifdef RC_PIN_PPM_A0  
   }
-  if ((config.rcChannelRoll == 2) && (config.rcModePPMRoll == false))
-    decodePWM(&rcData[RC_DATA_ROLL]);
-  if ((config.rcChannelPitch == 2) && (config.rcModePPMPitch == false))
-    decodePWM(&rcData[RC_DATA_PITCH]);
-  if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
-    decodePWM(&rcData[RC_DATA_AUX]);
-  if ((config.rcChannelFpvPitch == 2) && (config.rcModePPMFpvPitch == false))
-    decodePWM(&rcData[RC_DATA_FPV_PITCH]);
-  if ((config.rcChannelFpvRoll == 2) && (config.rcModePPMFpvRoll == false))
-    decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+#endif  
 }
 
 
@@ -256,7 +259,7 @@ void evalRCChannelProportional(rcData_t* rcData, int16_t rcGain, int16_t rcMid)
 // Absolute
 //******************************************
 
-inline void evalRCChannelAbsolute(rcData_t* rcData, int8_t gain, int8_t rcMin, int8_t rcMax, int16_t rcMid)
+void evalRCChannelAbsolute(rcData_t* rcData, int8_t gain, int8_t rcMin, int8_t rcMax, int16_t rcMid)
 {
   float k;
   float y0;
@@ -294,7 +297,7 @@ void evaluateRCRoll() {
 }
 
 // auxiliary channel, decode switches
-inline void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)
+void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)
 {
   int16_t rx;
   int8_t hyst;

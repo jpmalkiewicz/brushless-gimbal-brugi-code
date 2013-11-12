@@ -202,12 +202,11 @@ void recalcMotorStuff()
   sei();
 }
 
-
 /********************************/
 /* Motor Control IRQ Routine    */
 /********************************/
 // is called every 31.5us
-// minimumize interrupt code (20 instructions) 
+// minimize interrupt code (20 instructions) 
 ISR( TIMER1_OVF_vect )
 {
   freqCounter++;  
