@@ -178,11 +178,7 @@ inline int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPo
 }
 
 
-/******************************************************************
-
-important note: 
-   profiling numbers might be obsolete since r175
-
+/*****************************************************************
 
 main loop execution time budget
 
@@ -190,39 +186,41 @@ main loop execution time budget
 exected each iteration (main tick)
   time(us)   function
   --------------------------------
-     6        motorUpdate
-   386        readGyros
-   160        updateGyroAttitude
-   120        updateACCAttitude
-   352        getAttiduteAngles
-    69        pid pitch
-    69        pid roll
-    44        RC low pass
+   330        readGyros
+   175        updateGyroAttitude
+    21        updateACCAttitude
+   372        getAttiduteAngles
+    92        pid pitch
+    92        pid roll
+     6        motor update
+    84        RC low pass
   --------------------------------
-  1206        sum
-  1400        measured, real, no RC
+  1172        sum
+  1250        measured, real, no RC
 
 executed each 10th iteration (sub tick)
   time(us)   function
   --------------------------------
-   382        readACC
-   289        measure/scale Ubat
-    76        RC roll
-    76        RC pitch
-   142        evaluate RC
+   330        readACC
+   120        updateACC
+   210        voltage compensation
+    56        gimbal state
+    26        RC roll
+    26        RC pitch
+   286        evaluate RC
   --------------------------------
-   382        maximum of all
-   364        measured, real, no RC
+   330        maximum of all
+   --        measured, real, no RC
   --------------------------------
 
 
 total
   time(us)    function
   --------------------------------
-   1080       main tick execution time
-    382       sub tick maximum
+   1172       main tick execution time
+    330       sub tick maximum
   --------------------------------
-   1462       sum 
+   1502       sum 
   ================================
 
 
@@ -257,29 +255,33 @@ void loop()
   static char tOutCnt = 0;
   static char tOutCntSub = 0;
   static int stateCount = 0;
-  uint8_t ledBlinkCnt = 0;
-  uint8_t ledBlinkOnTime = 10;
-  uint8_t ledBlinkPeriod = 20;
+  static uint8_t ledBlinkCnt = 0;
+  static uint8_t ledBlinkOnTime = 10;
+  static uint8_t ledBlinkPeriod = 20;
 
-  if (motorUpdate) // loop runs with motor ISR update rate (1000Hz)
+  if (motorUpdate) // loop runs with motor ISR update rate (500 Hz)
   {
    
     motorUpdate = false;
 
     CH2_ON
     
+    // loop period
+    //     2.105/1.996 ms max/min, (1 x PPM16 1 x PWM)
+    //     2.053/2.035 ms max/min (w/o rc)
+ 
+    
     // update IMU data            
-    readGyros();   // t=386us (*)
- 
-    if (config.enableGyro) updateGyroAttitude(); // t=160us(*)
-    if (config.enableACC) updateACCAttitude(); // t=120us (*)
- 
-    getAttiduteAngles(); // t=352us (*)
+    readGyros();   // td = 330us
+
+    if (config.enableGyro) updateGyroAttitude(); // td = 176 us
+    if (config.enableACC) updateACCAttitude(); // td = 21 us
+    getAttiduteAngles(); // td = 372 us
    
     //****************************
     // pitch PID
     //****************************
-    // t=69us (*)
+    // td = 92 us
     pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
     // motor control
     pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
@@ -287,7 +289,7 @@ void loop()
     //****************************
     // roll PID
     //****************************
-    // t=69us (*)
+    // td = 92 us
     rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
     // motor control
     rollMotorDrive = rollPIDVal * config.dirMotorRoll;
@@ -301,7 +303,7 @@ void loop()
       MoveMotorPosSpeed(config.motorNumberRoll, rollMotorDrive, maxPWMmotorRollScaled);
     }
 
-    // Evaluate RC-Signals
+    // Evaluate RC-Signals, td = 84 us
     if (fpvModePitch) {
       utilLP_float(&pitchAngleSet, PitchPhiSet, rcLPFPitchFpv_tc);
     } else if(config.rcAbsolutePitch==1) {
@@ -316,24 +318,26 @@ void loop()
     } else {
       utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
     }
-
-    // tElapsed = 1.41ms, 1.50ms (new), 1.80ms(with previous RC version)
-    // tEleapsed = 1.58ms, with RC 1.72ms 
+    
+    // tElapsed = 1.250 ms
 
     //****************************
     // slow rate actions
     //****************************
     switch (count) {
     case 1:
-      readACCs(); break;
+      readACCs(); // td = 330us
+      break;
     case 2:
-      updateACC(); break;
+      updateACC(); // td = 120us
+      break;
     case 3:
-      // td = 289us, total
+      // td = 210us, total
       voltageCompensation();
       break;
     case 4:
-      // gimbal state transitions 
+      
+      // gimbal state transitions, td=56us
       switch (gimState)
       {
         case GIM_IDLE :
@@ -381,20 +385,16 @@ void loop()
           }
           break;
       }
-      
       // handle mode switches
-      decodeModeSwitches();
+      decodeModeSwitches();  // td = 4 us
       
       // lpf avoids jerking during offset config
-      updateLPFangleOffset();
-      
-      // check RC channel timeouts
-      checkRcTimeouts();
-      
+      updateLPFangleOffset(); // td = 65 us
+           
       break;
     case 5:
-      // td = 26/76us, total
-      // RC Pitch function 
+      // td = 26 us, total
+      // RC Pitch function
       if (fpvModePitch) {
         if (rcData[RC_DATA_FPV_PITCH].valid) {
           PitchPhiSet = rcData[RC_DATA_FPV_PITCH].setpoint;
@@ -419,7 +419,7 @@ void loop()
       }
       break;
     case 6:
-      // td = 26/76us, total
+      // td = 26us, total
       // RC roll function
       if (fpvModeRoll) {
         if (rcData[RC_DATA_FPV_ROLL].valid) {
@@ -445,13 +445,14 @@ void loop()
       }
       break;
     case 7:
-      // evaluate RC-Signals
+      // evaluate RC-Signals. td = 286 us
       evaluateRCPitch();
       evaluateRCRoll();
       evaluateRCAux();
       
       // check RC channel timeouts
-      checkRcTimeouts();
+      checkRcTimeouts();  // td = 15 us
+
       break;
     case 8:
       // unused slot
@@ -464,7 +465,6 @@ void loop()
       pOutCnt++;
       if (pOutCnt == (LOOPUPDATE_FREQ/10/POUT_FREQ))
       {
-        // 600 us
         if (config.fTrace != TRC_OFF) {
           printTrace(config.fTrace);
         }
@@ -516,9 +516,9 @@ void loop()
     sCmd.readSerial();
 
     // worst-case finalize after
-    //    -- ms (w/o RC)
-    //    -- ms (with 1 RC channel)
-    //    -- ms (with 2 RC channels)
+    //    1.67 ms (w/o RC)
+    //    1.76 ms (with 1 x PPM)
+    //    1.9 ms (with 2 RC channels + 1 x PPM )
 
     CH2_OFF
   }
