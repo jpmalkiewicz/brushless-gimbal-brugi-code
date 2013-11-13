@@ -96,6 +96,7 @@ Version 2.11 (beta) Mon Nov 12 09:33:06 CST 2012
 #define PCINT_VERSION 2190 // This number MUST agree with the version number, above.
 
 #include "stddef.h"
+#include "Timer1.h"
 
 // Thanks to Maurice Beelen, nms277, Akesson Karlpetter, and Orly Andico for these fixes.
 #if defined(ARDUINO) && ARDUINO >= 100
@@ -186,6 +187,7 @@ public:
 	volatile	uint8_t&		portInputReg;
 	static		int8_t attachInterrupt(uint8_t pin, PCIntvoidFuncPtr userFunc, int mode);
 	static		void detachInterrupt(uint8_t pin);
+    static volatile uint32_t microsIsrEnter;
 	INLINE_PCINT void PCint();
 	static volatile uint8_t curr;
 	#ifndef NO_PIN_NUMBER
@@ -238,6 +240,9 @@ protected:
 
 #ifndef LIBCALL_PINCHANGEINT // LIBCALL_PINCHANGEINT ***********************************************
 volatile uint8_t PCintPort::curr=0;
+
+volatile uint32_t PCintPort::microsIsrEnter=0;
+        
 #ifndef NO_PIN_NUMBER
 volatile uint8_t PCintPort::arduinoPin=0;
 #endif
@@ -479,6 +484,9 @@ void PCintPort::PCint() {
     #endif
 	#ifndef DISABLE_PCINT_MULTI_SERVICE
 	uint8_t pcifr;
+        
+        PCintPort::microsIsrEnter = microsT1();
+        
 	while (true) {
 	#endif
 		// get the pin states for the indicated port.

@@ -29,7 +29,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r184"
+#define REVISION "r185"
 #define VERSION_EEPROM 10 // change this number when eeprom data structure has changed
 
 
@@ -267,9 +267,8 @@ void loop()
     CH2_ON
     
     // loop period
-    //     2.105/1.996 ms max/min, (1 x PPM16 1 x PWM)
-    //     2.053/2.035 ms max/min (w/o rc)
- 
+    //     2.053/2.035 ms max/min, error = +5/-13 us (w/o rc)
+    //     2.098/2.003 ms max/min, error = +50/-45 us (1 x PPM16 1 x PWM)
     
     // update IMU data            
     readGyros();   // td = 330us

@@ -219,8 +219,6 @@ int count=0;
 
 // RC control
 
-uint32_t microsNow = 0;
-
 struct rcData_t
 {
  uint32_t microsRisingEdge;
