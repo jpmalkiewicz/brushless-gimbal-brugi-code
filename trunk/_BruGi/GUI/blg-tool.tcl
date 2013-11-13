@@ -471,7 +471,7 @@ proc connect_serial {} {
 		.bottom.info configure -background green
 		.bottom.info configure -text "connected"
 	}
-	after 7000 send_par
+	after 8000 send_par
 }
 
 proc draw_chart {} {

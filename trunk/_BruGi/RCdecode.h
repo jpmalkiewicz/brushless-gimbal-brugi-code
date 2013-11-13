@@ -19,18 +19,18 @@ void initRC()
 
 // pinChange Int driven Functions
 
-inline void decodePWM(rcData_t* rcData)
+inline void decodePWM( uint32_t microsIsrEnter, bool risingEdge, rcData_t* rcData )
 {
   uint16_t pulseInPWM;
 
-  if (PCintPort::pinState==HIGH)
+  if (risingEdge)
   {
-    rcData->microsRisingEdge = microsNow;
+    rcData->microsRisingEdge = microsIsrEnter;
   }
   else
   {
-    rcData->microsLastUpdate = microsNow;
-    pulseInPWM = microsNow - rcData->microsRisingEdge;
+    rcData->microsLastUpdate = microsIsrEnter;
+    pulseInPWM = microsIsrEnter - rcData->microsRisingEdge;
     if ((pulseInPWM >= MIN_RC_VALID) && (pulseInPWM <= MAX_RC_VALID)) 
     {
       // update if within expected RC range
@@ -47,7 +47,7 @@ inline void decodePWM(rcData_t* rcData)
 // PPM Decoder
 //******************************************
 
-inline void intDecodePPM()
+inline void intDecodePPM( uint32_t microsIsrEnter )
 { 
 
   static int32_t microsPPMLastEdge = 0;
@@ -55,8 +55,8 @@ inline void intDecodePPM()
 
   static char channel_idx = 0;
 
-  pulseInPPM = microsNow - microsPPMLastEdge;
-  microsPPMLastEdge = microsNow;
+  pulseInPPM = microsIsrEnter - microsPPMLastEdge;
+  microsPPMLastEdge = microsIsrEnter;
 
   if (pulseInPPM > RC_PPM_GUARD_TIME) 
   {
@@ -77,7 +77,7 @@ inline void intDecodePPM()
       data = &rcData[RC_DATA_FPV_ROLL];
     if (data)
     {
-      data->microsLastUpdate = microsNow;    
+      data->microsLastUpdate = microsIsrEnter;    
       if ((pulseInPPM >= MIN_RC_VALID) && (pulseInPPM <= MAX_RC_VALID)) 
       {
         pulseInPPM = 16*data->rx + (pulseInPPM - data->rx); // noise filter at PPM update rate (micros time resolution os just 32us)
@@ -98,25 +98,27 @@ inline void intDecodePPM()
 // Connector Channel 1 (A2)
 void intDecodePWM_Ch0()
 { 
-  microsNow = microsT1();
+  uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
+  bool risingEdge = PCintPort::pinState==HIGH ? true : false;
+  sei(); // re-enable interrupts
   
   // PWM: 6 / 10 us (min/max)
   // PPM: 0.5 / 12 us (min/max)
 #ifdef RC_PIN_PPM_A2
   if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
-    if (PCintPort::pinState==HIGH) intDecodePPM();
+    if (risingEdge) intDecodePPM(microsIsrEnter);
   } else {
 #endif
     if ((config.rcChannelRoll == 0) && (config.rcModePPMRoll == false))
-      decodePWM(&rcData[RC_DATA_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_ROLL]);
     if ((config.rcChannelPitch == 0) && (config.rcModePPMPitch == false))
-      decodePWM(&rcData[RC_DATA_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_PITCH]);
     if ((config.rcChannelAux == 0) && (config.rcModePPMAux == false))
-      decodePWM(&rcData[RC_DATA_AUX]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_AUX]);
     if ((config.rcChannelFpvPitch == 0) && (config.rcModePPMFpvPitch == false))
-      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_PITCH]);
     if ((config.rcChannelFpvRoll == 0) && (config.rcModePPMFpvRoll == false))
-      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_ROLL]);
 #ifdef RC_PIN_PPM_A2
   }
 #endif  
@@ -125,23 +127,25 @@ void intDecodePWM_Ch0()
 // Connector Channel 2 (A1)
 void intDecodePWM_Ch1()
 { 
-  microsNow = microsT1();
+  uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
+  bool risingEdge = PCintPort::pinState==HIGH ? true : false;
+  sei(); // re-enable interrupts
 
 #ifdef RC_PIN_PPM_A1
   if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
-    if (PCintPort::pinState==HIGH) intDecodePPM();
+    if (risingEdge) intDecodePPM(microsIsrEnter);
   } else {
 #endif  
     if ((config.rcChannelRoll == 1) && (config.rcModePPMRoll == false))
-      decodePWM(&rcData[RC_DATA_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_ROLL]);
     if ((config.rcChannelPitch == 1) && (config.rcModePPMPitch == false))
-      decodePWM(&rcData[RC_DATA_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_PITCH]);
     if ((config.rcChannelAux == 1) && (config.rcModePPMAux == false))
-      decodePWM(&rcData[RC_DATA_AUX]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_AUX]);
     if ((config.rcChannelFpvPitch == 1) && (config.rcModePPMFpvPitch == false))
-      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_PITCH]);
     if ((config.rcChannelFpvRoll == 1) && (config.rcModePPMFpvRoll == false))
-      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_ROLL]);
 #ifdef RC_PIN_PPM_A1
   }
 #endif  
@@ -150,23 +154,25 @@ void intDecodePWM_Ch1()
 // Connector Channel 3 (A0)
 void intDecodePWM_Ch2()
 { 
-  microsNow = microsT1();
-
+  uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
+  bool risingEdge = PCintPort::pinState==HIGH ? true : false;
+  sei(); // re-enable interrupts
+  
 #ifdef RC_PIN_PPM_A0  
   if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {  {
-    if (PCintPort::pinState==HIGH) intDecodePPM();
+    if (risingEdge) intDecodePPM(microsIsrEnter);
   } else {
 #endif  
     if ((config.rcChannelRoll == 2) && (config.rcModePPMRoll == false))
-      decodePWM(&rcData[RC_DATA_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_ROLL]);
     if ((config.rcChannelPitch == 2) && (config.rcModePPMPitch == false))
-      decodePWM(&rcData[RC_DATA_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_PITCH]);
     if ((config.rcChannelAux == 2) && (config.rcModePPMAux == false))
-      decodePWM(&rcData[RC_DATA_AUX]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_AUX]);
     if ((config.rcChannelFpvPitch == 2) && (config.rcModePPMFpvPitch == false))
-      decodePWM(&rcData[RC_DATA_FPV_PITCH]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_PITCH]);
     if ((config.rcChannelFpvRoll == 2) && (config.rcModePPMFpvRoll == false))
-      decodePWM(&rcData[RC_DATA_FPV_ROLL]);
+      decodePWM(microsIsrEnter, risingEdge, &rcData[RC_DATA_FPV_ROLL]);
 #ifdef RC_PIN_PPM_A0  
   }
 #endif  
