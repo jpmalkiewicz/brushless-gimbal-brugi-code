@@ -215,6 +215,10 @@ float RollPhiSet = 0;
 static float pitchAngleSet=0;
 static float rollAngleSet=0;
 
+static float qLPPitch[3] = {0,};
+static float qLPRoll[3] = {0,};
+
+
 int count=0;
 
 // RC control

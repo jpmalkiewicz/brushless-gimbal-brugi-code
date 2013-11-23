@@ -5,11 +5,11 @@
 // init RC config variables
 void initRC() 
 {
-  rcLPFPitch_tc = LOWPASS_K_FLOAT(config.rcLPFPitch*0.1);
-  rcLPFRoll_tc = LOWPASS_K_FLOAT(config.rcLPFRoll*0.1);
+  rcLPFPitch_tc = LOWPASS_K_FLOAT(config.rcLPFPitch*0.1*0.333);
+  rcLPFRoll_tc = LOWPASS_K_FLOAT(config.rcLPFRoll*0.1*0.333);
 
-  rcLPFPitchFpv_tc = LOWPASS_K_FLOAT(config.rcLPFPitchFpv*0.1);
-  rcLPFRollFpv_tc = LOWPASS_K_FLOAT(config.rcLPFRollFpv*0.1);
+  rcLPFPitchFpv_tc = LOWPASS_K_FLOAT(config.rcLPFPitchFpv*0.1*0.333);
+  rcLPFRollFpv_tc = LOWPASS_K_FLOAT(config.rcLPFRollFpv*0.1*0.333);
 }
 
 
