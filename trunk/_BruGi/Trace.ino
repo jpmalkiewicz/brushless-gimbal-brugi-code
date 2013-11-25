@@ -65,12 +65,6 @@ void printTrace(traceModeType traceMode)
       for (char axis = 0; axis < 3; axis++)
       {
         Serial.print(F(" "));
-        Serial.print(gyroOffset[axis]);
-      }
-
-      for (char axis = 0; axis < 3; axis++)
-      {
-        Serial.print(F(" "));
         Serial.print(gyroADC[axis]);
       }
       break;

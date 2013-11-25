@@ -1,3 +1,21 @@
+26.11.2013
+Version 049 r189
+* new feature, ACC calibration
+* gyro calibration stored in eeprom
+* gyro calibration can be skipped at startup
+
+Version 049 r188
+* changed filter for camera movement in absolute RC mode. Reduced camera acceleration due to high order filtering.
+
+Version 049 r187
+* RC detection improvements, read micros timer earlier in isr. RC noise should be reduced
+
+Version 049 r186
+* bug fix in rc reception, re-entrant pin interrupt caused interference between pwm and ppm modes
+
+Version 049 r185
+* free some processing slots at readACC (thanks to Michi)
+
 10.11.2013
 Version 049 r184
 * free some processing slots at readACC (thanks to Michi)

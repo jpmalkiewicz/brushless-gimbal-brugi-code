@@ -376,7 +376,13 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv rcMid accOutput fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2"
+set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll \
+            dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale \
+            rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll \
+            rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
+            rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
+            rcMid accOutput fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
+            gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
 
 foreach var $params {
 	if {$var == "vers"} {
@@ -471,7 +477,7 @@ proc connect_serial {} {
 		.bottom.info configure -background green
 		.bottom.info configure -text "connected"
 	}
-	after 8000 send_par
+	after 9000 send_par
 }
 
 proc draw_chart {} {
@@ -635,6 +641,32 @@ proc save_values2file {} {
 	}
 }
 
+proc acc_cal {} {
+	global Serial
+	global count
+	global device
+	set count 0
+	if {$Serial == 0} {
+		.bottom.info configure -background red
+		.bottom.info configure -text "not connected"
+		return
+	}
+	.bottom.info configure -background green
+	.bottom.info configure -text "ACC calibration"
+	update
+        puts -nonewline $Serial "AC\n"
+	flush $Serial
+	after 2000 send_par
+}
+
+proc acc_cal_reset {} {
+	global device
+  global par
+	set par(accOffsetX) 0
+	set par(accOffsetY) 0
+	set par(accOffsetZ) 0
+}
+
 proc gyro_cal {} {
 	global Serial
 	global count
@@ -645,12 +677,24 @@ proc gyro_cal {} {
 		.bottom.info configure -text "not connected"
 		return
 	}
-	.bottom.info configure -background red
+	.bottom.info configure -background green
 	.bottom.info configure -text "gyro recalibration"
 	update
         puts -nonewline $Serial "GC\n"
 	flush $Serial
+  # this delay time is just a hack, send_par should be called after successful calibration
+	after 5500 send_par     
 }
+
+
+proc gyro_cal_reset {} {
+	global device
+  global par
+	set par(gyrOffsetX) 0
+	set par(gyrOffsetY) 0
+	set par(gyrOffsetZ) 0
+}
+
 
 proc save_to_flash {} {
 	global Serial
@@ -785,6 +829,9 @@ proc rd_chid {chid} {
 
 					#tk_messageBox -icon info -message "Gyro-Recalibration done" -type ok -parent .
 					.bottom.info configure -text "Gyro-Recalibration done"
+					.bottom.info configure -background green
+					update
+				} elseif {[string match "*BruGi ready.*" $buffer]} {
 					.bottom.info configure -background green
 					update
 				} elseif {[string match "* ddddd *" $buffer]} {
@@ -1314,13 +1361,12 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
   
 		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
 		gui_button .note.general.buttons.line1.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
-		gui_button .note.general.buttons.line1.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
+		gui_button .note.general.buttons.line1.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
 
 	frame .note.general.buttons.line2
 	pack .note.general.buttons.line2 -side top -expand no -fill x
   
-		gui_button .note.general.buttons.line2.gyro_cal "Gyro-Cal" "gyro recalibration" gyro_cal
-		gui_button .note.general.buttons.line2.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
+		gui_button .note.general.buttons.line2.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
 		gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 
 	ttk::frame .note.pitch
@@ -1405,7 +1451,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.rollRC.fpv.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
 			gui_slider .note.rollRC.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
-      ttk::frame .note.aux
+    ttk::frame .note.aux
 	.note add .note.aux -text "Auxiliary"
 
     labelframe .note.aux.rc -text "RC Auxiliary Switch Channel (still experimental)" -padx 10 -pady 10
@@ -1427,6 +1473,26 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
       gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
       gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
+
+  ttk::frame .note.cal
+	.note add .note.cal -text "Calibration"
+
+    labelframe .note.cal.acc -text "ACC Sensor" -padx 10 -pady 10
+    pack .note.cal.acc -side top -expand no -fill x
+      gui_spin .note.cal.acc.accOffsetX     accOffsetX  -500 500 1 "Offset X"  "accOffsetX" "config.accOffsetX"
+      gui_spin .note.cal.acc.accOffsetY     accOffsetY  -500 500 1 "Offset Y"  "accOffsetY" "config.accOffsetY"
+      gui_spin .note.cal.acc.accOffsetZ     accOffsetZ  -500 500 1 "Offset Z"  "accOffsetZ" "config.accOffsetZ"
+   		gui_button .note.cal.acc.acc_cal "ACC Calibration" "ACC calibration" acc_cal
+   		gui_button .note.cal.acc.acc_cal_res "Reset" "reset acc calibration" acc_cal_reset
+      
+    labelframe .note.cal.gyro -text "GYRO Sensor" -padx 10 -pady 10
+    pack .note.cal.gyro -side top -expand no -fill x
+  		gui_check .note.cal.gyro.gyroCal      gyroCal   "Calibration" "at Startup ON" "gyroCal" "config.gyroCal: enable gyro calibration at startup"
+      gui_spin .note.cal.gyro.gyroOffsetX   gyrOffsetX  -500 500 1 "Offset X"  "gyroOffsetX" "config.gyrOffsetX"
+      gui_spin .note.cal.gyro.gyroOffsetY   gyrOffsetY  -500 500 1 "Offset Y"  "gyroOffsetY" "config.gyrOffsetY"
+      gui_spin .note.cal.gyro.gyroOffsetZ   gyrOffsetZ  -500 500 1 "Offset Z"  "gyroOffsetZ" "config.gyrOffsetZ"
+      gui_button .note.cal.gyro.gyro_cal "GYRO Calibration" "gyro calibration" gyro_cal
+      gui_button .note.cal.gyro.gyro_cal_res "Reset" "reset gyro calibration" gyro_cal_reset
       
 frame .chartview
 pack .chartview -side top -expand no -fill x

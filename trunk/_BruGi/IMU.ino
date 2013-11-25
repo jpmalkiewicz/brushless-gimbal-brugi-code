@@ -152,16 +152,20 @@ void readGyros() {
 
   // read gyros
   mpu.getRotation(&axisRot[0], &axisRot[1], &axisRot[2]);
+  axisRot[0] -= config.gyrOffsetX;
+  axisRot[1] -= config.gyrOffsetY;
+  axisRot[2] -= config.gyrOffsetZ;
+  
   idx = sensorDef.Gyro[0].idx;
-  gyroADC[ROLL] = axisRot[idx]-gyroOffset[idx];
+  gyroADC[ROLL] = axisRot[idx];
   gyroADC[ROLL] *= sensorDef.Gyro[0].dir;
 
   idx = sensorDef.Gyro[1].idx;
-  gyroADC[PITCH] = axisRot[idx]-gyroOffset[idx];
+  gyroADC[PITCH] = axisRot[idx];
   gyroADC[PITCH] *= sensorDef.Gyro[1].dir;
 
   idx = sensorDef.Gyro[2].idx;
-  gyroADC[YAW] = axisRot[idx]-gyroOffset[idx];  
+  gyroADC[YAW] = axisRot[idx];  
   gyroADC[YAW] *= sensorDef.Gyro[2].dir;
   
 }
@@ -169,16 +173,24 @@ void readGyros() {
 // get acceleration for 3-axis
 void readACCs()
 {
+  int16_t rawVal[3];
   int16_t devVal[3];
+  
   mpu.getAcceleration(
-    &devVal[sensorDef.Acc[ROLL].idx],
-    &devVal[sensorDef.Acc[PITCH].idx],
-    &devVal[sensorDef.Acc[YAW].idx]
+    &rawVal[0],
+    &rawVal[1],
+    &rawVal[2]
     );
+    
+  devVal[sensorDef.Acc[ROLL].idx]  = rawVal[0] - config.accOffsetX;
+  devVal[sensorDef.Acc[PITCH].idx] = rawVal[1] - config.accOffsetY;
+  devVal[sensorDef.Acc[YAW].idx]   = rawVal[2] - config.accOffsetZ;
+  
   for (int8_t axis = 0; axis < 3; axis++) {
     accADC[axis] = devVal[axis]*sensorDef.Acc[axis].dir;
   }
 }
+
 
 void updateGyroAttitude(){
   uint8_t axis;
