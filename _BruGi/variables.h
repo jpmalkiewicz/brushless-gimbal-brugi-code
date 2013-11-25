@@ -67,6 +67,16 @@ struct config_t
   int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
   int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
   int16_t accTimeConstant2;  // alternate constant
+  
+  bool gyroCal;              // gyro calibration at startup 
+  int16_t  gyrOffsetX;       // gyyro calibration offsets
+  int16_t  gyrOffsetY;
+  int16_t  gyrOffsetZ;
+  
+  int16_t  accOffsetX;       // acc calibration offsets
+  int16_t  accOffsetY;
+  int16_t  accOffsetZ;
+  
   uint8_t crc8;
 } config;
 
@@ -130,6 +140,13 @@ void setDefaultParameters()
   config.fpvSwRoll=0;
   config.altSwAccTime=0;
   config.accTimeConstant2 = 2;
+  config.gyroCal = true;
+  config.gyrOffsetX = 0;       // gyyro calibration offset
+  config.gyrOffsetY = 0;
+  config.gyrOffsetZ = 0;
+  config.accOffsetX = 0;       // acc calibration offset
+  config.accOffsetY = 0;
+  config.accOffsetZ = 0;
   config.crc8 = 0;  
 }
 
@@ -301,10 +318,6 @@ t_sensorOrientationDef sensorDef = {
     {{0, 1}, {1, 1}, {2, 1}},    // Gyro
     {{0, 1}, {1, 1}, {2, 1}}     // Acc
   };
-
-// gyro calibration value
-int16_t gyroOffset[3] = {0, 0, 0};
-
 
 
 static float gyroScale=0;

@@ -1,3 +1,5 @@
+#include <limits.h>
+
 /*************************/
 /* MPU6050 Routines      */
 /*************************/
@@ -90,13 +92,94 @@ void gyroOffsetCalibration()
   }
 
   // put result into integer
-  for (i=0; i<3; i++) {
-    gyroOffset[i] = fp_gyroOffset[i];
-    //Serial.print(F("gyroOffset="));Serial.println(fp_gyroOffset[i], 3);
-  }
+  config.gyrOffsetX = fp_gyroOffset[0];
+  config.gyrOffsetY = fp_gyroOffset[1];
+  config.gyrOffsetZ = fp_gyroOffset[2];
 
   // restore MPU mode
   initMPU();
 
 }
+
+
+
+
+//***********************************************************
+//  ACC calibration
+//***********************************************************
+//  compensate for zero point offset
+//  run acc compensation at least for two directions.
+//  e.g.
+//      1st run: 90 deg vertical position (pitch down)
+//      2nd run   0 deg horizontal position
+//
+#define ACC_ITERATIONS 500
+#define ACC_THRESH_FAIL 1000
+#define ACC_THRESH_GMIN 3000
+char accCalibration() {
+  
+  int16_t devVal[3];
+  int16_t minAcc[3] = {INT_MAX, INT_MAX, INT_MAX};
+  int16_t maxAcc[3] = {INT_MIN, INT_MIN, INT_MIN};
+  
+  float fp_accOffset[3] = {0,};
+
+  // wait 0.5 seconds
+  delayT1(500);
+
+  // read acc values, determine average/min/max
+  for (int i=0; i<ACC_ITERATIONS; i++) {
+    mpu.getAcceleration(
+      &devVal[0],
+      &devVal[1],
+      &devVal[2]
+      );
+    for (char j=0; j<3; j++) {
+      fp_accOffset[j] += (float)devVal[j]/ACC_ITERATIONS;
+      if (devVal[j] > maxAcc[j]) {
+        maxAcc[j] = devVal[j];
+      }
+      if (devVal[j] < minAcc[j]) {
+        minAcc[j] = devVal[j];
+      }
+    }
+    delayT1(2);  // 2ms
+  }
+
+#if 0 
+  for (char j=0; j<3; j++) {
+    Serial.print(F("avg/max/min["));
+    Serial.print((int)j);
+    Serial.print(F("] "));
+    Serial.print(fp_accOffset[j], 3);
+    Serial.print(F(" / "));
+    Serial.print(maxAcc[j]);
+    Serial.print(F(" / "));
+    Serial.print(minAcc[j]);
+    Serial.println("");
+  }
+#endif
+  
+  // plausibility check
+  for (char j=0; j<3; j++) {
+    if ((maxAcc[j] - minAcc[j]) > ACC_THRESH_FAIL) {
+      return -1; // failed
+    }
+  }
+
+  // store calibration values
+  if (abs(fp_accOffset[0]) < ACC_THRESH_GMIN) {
+     config.accOffsetX = fp_accOffset[0];
+  }
+  if (abs(fp_accOffset[1]) < ACC_THRESH_GMIN) {
+     config.accOffsetY = fp_accOffset[1];
+  }
+  if (abs(fp_accOffset[2]) < ACC_THRESH_GMIN) {
+     config.accOffsetZ = fp_accOffset[2];
+  }
+  
+  return 0;
+  
+}
+
        

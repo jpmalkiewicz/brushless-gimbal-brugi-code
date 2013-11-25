@@ -29,8 +29,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r188"
-#define VERSION_EEPROM 10 // change this number when eeprom data structure has changed
+#define REVISION "r189"
+#define VERSION_EEPROM 12 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -126,10 +126,11 @@ void setup()
   initMPU();
   
   // Gyro Offset calibration
-  Serial.println(F("Gyro calibration: do not move"));
-  gyroOffsetCalibration();
-  Serial.println(F("Gyro calibration: done"));
- 
+  if (config.gyroCal) {
+    Serial.println(F("Gyro calibration: do not move"));
+    gyroOffsetCalibration();
+    Serial.println(F("Gyro calibration: done"));
+  }
   // Init IMU variables
   initIMU();
   // set sensor orientation

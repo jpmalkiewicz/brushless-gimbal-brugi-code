@@ -109,6 +109,15 @@ const t_configDef PROGMEM configListPGM[] = {
   {"altSwAccTime",     INT8, &config.altSwAccTime,      NULL},
   {"accTimeConstant2", INT16, &config.accTimeConstant2, &initIMUtc},
     
+  {"gyroCal",          BOOL,  &config.gyroCal,          &initSensorOrientation},
+  {"gyrOffsetX",       INT16, &config.gyrOffsetX,       &initSensorOrientation},
+  {"gyrOffsetY",       INT16, &config.gyrOffsetY,       &initSensorOrientation},
+  {"gyrOffsetZ",       INT16, &config.gyrOffsetZ,       &initSensorOrientation},
+  
+  {"accOffsetX",       INT16, &config.accOffsetX,       &initSensorOrientation},
+  {"accOffsetY",       INT16, &config.accOffsetY,       &initSensorOrientation},
+  {"accOffsetZ",       INT16, &config.accOffsetZ,       &initSensorOrientation},
+  
   {"", BOOL, NULL, NULL} // terminating NULL required !!
 };
 
@@ -277,6 +286,16 @@ void gyroRecalibrate()
   Serial.println(F("recalibration: done"));
 }
 
+void accCalibrateCmd()
+{
+  Serial.print(F("ACC Calibration: "));
+  if (accCalibration() >= 0) {
+    Serial.println(F("ok"));
+  } else {
+    Serial.println(F("failed"));
+  }   
+}
+
 void saveBatteryRefVoltage()
 {
   // save the actual battery voltage to configuration
@@ -321,6 +340,7 @@ void setSerialProtocol()
   sCmd.addCommand("re", readEEPROM); 
   sCmd.addCommand("par", parameterMod);
   sCmd.addCommand("gc", gyroRecalibrate);
+  sCmd.addCommand("ac", accCalibrateCmd);
   sCmd.addCommand("sbv", saveBatteryRefVoltage);
 
   sCmd.addCommand("he", printHelpUsage);
