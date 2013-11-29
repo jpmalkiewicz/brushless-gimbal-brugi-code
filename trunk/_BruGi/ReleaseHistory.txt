@@ -1,3 +1,9 @@
+29.11.2013
+Version 049 r189
+* code size reduction and some cleanup
+* rc absolute mode improvement, slight camera movements reduced by a hysteresis on rc channel
+* gui allows higher PID settings
+
 26.11.2013
 Version 049 r189
 * new feature, ACC calibration

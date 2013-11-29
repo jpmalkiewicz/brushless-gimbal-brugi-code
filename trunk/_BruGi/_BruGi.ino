@@ -29,7 +29,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION 49
-#define REVISION "r189"
+#define REVISION "r190"
 #define VERSION_EEPROM 12 // change this number when eeprom data structure has changed
 
 
@@ -93,7 +93,7 @@ void setup()
   readEEPROM();
   if ((config.vers != VERSION) || (config.versEEPROM != VERSION_EEPROM))
   {
-    Serial.print(F("EEPROM version mismatch, initialize EEPROM"));
+    //Serial.print(F("EEPROM version mismatch, initialize EEPROM"));
     setDefaultParameters();
     writeEEPROM();
   }
@@ -159,7 +159,7 @@ void setup()
 // PID integer inplementation
 //   DTms  ... sample period (ms)
 //   DTinv ... sample frequency (Hz), inverse of DT (just to avoid division)
-inline int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
+int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPoint, int32_t *errorSum, int32_t *errorOld, int32_t Kp, int16_t Ki, int32_t Kd)
 {
   int32_t error = setPoint - in;
   int32_t Ierr;
@@ -172,7 +172,7 @@ inline int32_t ComputePID(int32_t DTms, int32_t DTinv, int32_t in, int32_t setPo
   int32_t out = (Kp * error) + *errorSum + Kd * (error - *errorOld) * DTinv;
   *errorOld = error;
 
-  out = out / 4096;
+  out = out / 4096 / 8;
   
   return out;
   
@@ -393,61 +393,19 @@ void loop()
            
       break;
     case 5:
-      // td = 26 us, total
       // RC Pitch function
-      if (fpvModePitch) {
-        if (rcData[RC_DATA_FPV_PITCH].valid) {
-          PitchPhiSet = rcData[RC_DATA_FPV_PITCH].setpoint;
-        } else {
-          PitchPhiSet = 0;
-        } 
-      } else if (rcData[RC_DATA_PITCH].valid) {
-        if(config.rcAbsolutePitch==1) {
-          PitchPhiSet = rcData[RC_DATA_PITCH].setpoint;
-        } else {
-          if (abs(rcData[RC_DATA_PITCH].rcSpeed)>0.01) {
-            PitchPhiSet += rcData[RC_DATA_PITCH].rcSpeed * 0.01;
-          }
-        } 
-      } else {
-        PitchPhiSet = 0;
-      }
-      if (config.minRCPitch < config.maxRCPitch) {
-        PitchPhiSet = constrain(PitchPhiSet, config.minRCPitch, config.maxRCPitch);
-      } else {
-        PitchPhiSet = constrain(PitchPhiSet, config.maxRCPitch, config.minRCPitch);
-      }
+      evaluateRCPitch();
+      // td = 26 us
+      getSetpoint(&PitchPhiSet, RC_DATA_PITCH, RC_DATA_FPV_PITCH, fpvModePitch, config.rcAbsolutePitch, config.maxRCPitch, config.minRCPitch);
       break;
     case 6:
-      // td = 26us, total
       // RC roll function
-      if (fpvModeRoll) {
-        if (rcData[RC_DATA_FPV_ROLL].valid) {
-          RollPhiSet = rcData[RC_DATA_FPV_ROLL].setpoint;
-        } else {
-          RollPhiSet = 0;
-        } 
-      } else if (rcData[RC_DATA_ROLL].valid){
-        if(config.rcAbsoluteRoll==1){
-          RollPhiSet = rcData[RC_DATA_ROLL].setpoint;
-        } else {
-          if(abs(rcData[RC_DATA_ROLL].rcSpeed)>0.01) {
-            RollPhiSet += rcData[RC_DATA_ROLL].rcSpeed * 0.01;
-          }
-        }
-      } else {
-        RollPhiSet = 0;
-      }
-      if (config.minRCRoll < config.maxRCRoll) {
-        RollPhiSet = constrain(RollPhiSet, config.minRCRoll, config.maxRCRoll);
-      } else {
-        RollPhiSet = constrain(RollPhiSet, config.maxRCRoll, config.minRCRoll);
-      }
+      evaluateRCRoll();
+      // td = 26us
+      getSetpoint(&RollPhiSet, RC_DATA_ROLL, RC_DATA_FPV_ROLL, fpvModeRoll, config.rcAbsoluteRoll, config.maxRCRoll, config.minRCRoll);
       break;
     case 7:
-      // evaluate RC-Signals. td = 286 us
-      evaluateRCPitch();
-      evaluateRCRoll();
+      // evaluate RC-Signals. td = 90 us
       evaluateRCAux();
       
       // check RC channel timeouts

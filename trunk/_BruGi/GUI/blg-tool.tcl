@@ -1375,9 +1375,9 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.pitch.pid -text "PID" -padx 10 -pady 10
 		pack .note.pitch.pid -side top -expand no -fill x
 
-			gui_slider .note.pitch.pid.p gyroPitchKp 0 100 0.001 "P" "P-Value" "config.gyroPitchKp: P-Value"
-			gui_slider .note.pitch.pid.i gyroPitchKi 0 100 0.001 "I" "I-Value" "config.gyroPitchKi: I-Value"
-			gui_slider .note.pitch.pid.d gyroPitchKd 0 100 0.001 "D" "D-Value" "config.gyroPitchKd: D-Value"
+			gui_slider .note.pitch.pid.p gyroPitchKp 0 150 0.1 "P" "P-Value" "config.gyroPitchKp: P-Value"
+			gui_slider .note.pitch.pid.i gyroPitchKi 0 500 0.1 "I" "I-Value" "config.gyroPitchKi: I-Value"
+			gui_slider .note.pitch.pid.d gyroPitchKd 0 150 0.1 "D" "D-Value" "config.gyroPitchKd: D-Value"
 
 		labelframe .note.pitch.hw -text "Motor" -padx 10 -pady 10
 		pack .note.pitch.hw -side top -expand no -fill x
@@ -1392,9 +1392,9 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 		labelframe .note.roll.pid -text "PID" -padx 10 -pady 10
 		pack .note.roll.pid -side top -expand no -fill x
 
-			gui_slider .note.roll.pid.p gyroRollKp 0 100 0.001 "P" "P-Value" "config.gyroRollKp: P-Value"
-			gui_slider .note.roll.pid.i gyroRollKi 0 100 0.001 "I" "I-Value" "config.gyroRollKi: I-Value"
-			gui_slider .note.roll.pid.d gyroRollKd 0 100 0.001 "D" "D-Value" "config.gyroRollKd: D-Value"
+			gui_slider .note.roll.pid.p gyroRollKp 0 150 0.1 "P" "P-Value" "config.gyroRollKp: P-Value"
+			gui_slider .note.roll.pid.i gyroRollKi 0 500 0.1 "I" "I-Value" "config.gyroRollKi: I-Value"
+			gui_slider .note.roll.pid.d gyroRollKd 0 150 0.1 "D" "D-Value" "config.gyroRollKd: D-Value"
 
 		labelframe .note.roll.hw -text "Motor" -padx 10 -pady 10
 		pack .note.roll.hw -side top -expand no -fill x
@@ -1451,29 +1451,6 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.rollRC.fpv.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
 			gui_slider .note.rollRC.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
-    ttk::frame .note.aux
-	.note add .note.aux -text "Auxiliary"
-
-    labelframe .note.aux.rc -text "RC Auxiliary Switch Channel (still experimental)" -padx 10 -pady 10
-    pack .note.aux.rc -side top -expand no -fill x
-        gui_check  .note.aux.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.aux.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_spin   .note.aux.rc.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.aux.rc.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
-
-    #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
-    #pack .note.aux.rcMisc -side top -expand no -fill x
-
-      # not used any more
-      #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
-    
-    labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
-    pack .note.aux.debug -side top -expand no -fill x
-
-      gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
-      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
-      gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
-
   ttk::frame .note.cal
 	.note add .note.cal -text "Calibration"
 
@@ -1493,6 +1470,29 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_spin .note.cal.gyro.gyroOffsetZ   gyrOffsetZ  -500 500 1 "Offset Z"  "gyroOffsetZ" "config.gyrOffsetZ"
       gui_button .note.cal.gyro.gyro_cal "GYRO Calibration" "gyro calibration" gyro_cal
       gui_button .note.cal.gyro.gyro_cal_res "Reset" "reset gyro calibration" gyro_cal_reset
+
+  ttk::frame .note.aux
+	.note add .note.aux -text "Auxiliary"
+
+    labelframe .note.aux.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 10
+    pack .note.aux.rc -side top -expand no -fill x
+        gui_check  .note.aux.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.aux.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_spin   .note.aux.rc.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.aux.rc.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
+
+    #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
+    #pack .note.aux.rcMisc -side top -expand no -fill x
+
+      # not used any more
+      #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
+    
+    labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
+    pack .note.aux.debug -side top -expand no -fill x
+
+      gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
+      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
+      gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
       
 frame .chartview
 pack .chartview -side top -expand no -fill x
@@ -1517,9 +1517,11 @@ pack .chartview -side top -expand no -fill x
 			frame .chartview.chart.fr1.scale
 			pack .chartview.chart.fr1.scale -side top -expand no -fill x
 
-				scale .chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 50.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
+				scale .chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 100.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
 				pack .chartview.chart.fr1.scale.slider -side left -expand yes -fill x
 				setTooltip .chartview.chart.fr1.scale.slider "Y-Scale for the chart"
+        spinbox .chartview.chart.fr1.scale.spin -from 0.1 -to 100.0 -increment 0.1 -width 10 -textvariable CHART_SCALE -width 4
+			  pack .chartview.chart.fr1.scale.spin -side left -expand no -fill x
 
 				button .chartview.chart.fr1.scale.help -text "?" -width 1 -command {
 					show_help "Y-Scale for the chart"

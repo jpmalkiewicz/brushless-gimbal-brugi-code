@@ -136,18 +136,16 @@ void initBlController()
   OCR0B = 0;  //D5 
 }
 
-
-// 3 lsb of MotorPos still reserved for precision improvement (TBD) 
-inline void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint16_t maxPWM)
+ 
+void MoveMotorPosSpeed(uint8_t motorNumber, int MotorPos, uint16_t maxPWM)
 {
-  int posStep;
+  uint16_t posStep;
   uint16_t pwm_a;
   uint16_t pwm_b;
   uint16_t pwm_c;
 
   // fetch pwm from sinus table
-  posStep = MotorPos >> 3;
-  posStep &= 0xff;
+  posStep = MotorPos & 0xff;
   pwm_a = pwmSinMotor[(uint8_t)posStep];
   pwm_b = pwmSinMotor[(uint8_t)(posStep + 85)];
   pwm_c = pwmSinMotor[(uint8_t)(posStep + 170)];
@@ -191,11 +189,6 @@ void calcSinusArray()
 }
 
 void initMotorStuff()
-{
-  calcSinusArray();
-}
-
-void recalcMotorStuff()
 {
   cli();
   calcSinusArray();
@@ -243,7 +236,8 @@ ISR( TIMER1_OVF_vect )
 /**********************************************************/
 void voltageCompensation () {
   int uBatValue;
-
+  float pwmMotorScale;
+  
   // measure uBat, 190 us
   uBatValue = analogRead(ADC_VCC_PIN); // 118 us
   uBatValue_f = (float)uBatValue * UBAT_ADC_SCALE * UBAT_SCALE;   
