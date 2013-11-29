@@ -238,7 +238,7 @@ void parameterMod() {
 
 
 void updateAllParameters() {
-  recalcMotorStuff();
+  initMotorStuff();
   initPIDs();
   initIMU();
   initSensorOrientation();
@@ -304,24 +304,22 @@ void saveBatteryRefVoltage()
 
 void printHelpUsage()
 {
-  Serial.println(F("List of available commands:"));
-  Serial.println(F("Explanations are in brackets(), use integer values only !"));
+  Serial.println(F("List of commands:"));
   Serial.println(F(""));
-  Serial.println(F("SD    (Set Defaults)"));
-  Serial.println(F("WE    (Writes active config to eeprom)"));
-  Serial.println(F("RE    (Restores values from eeprom to active config)"));  
-  Serial.println(F("GC    (Recalibrates the Gyro Offsets)"));
-  Serial.println(F("SBV   (save battery voltage to config)"));
-  Serial.println(F("par <parName> <parValue>   (general parameter read/set command)"));
-  Serial.println(F("    example usage:"));
-  Serial.println(F("       par                     ... list all config parameters"));
-  Serial.println(F("       par gyroPitchKi         ... list gyroPitchKi"));
-  Serial.println(F("       par gyroPitchKi 12000   ... set gyroPitchKi to 12000"));
+  Serial.println(F("sd   # set defaults"));
+  Serial.println(F("we   # write config to eeprom"));
+  Serial.println(F("re   # restore config from eeprom"));  
+  Serial.println(F("gc   # calibrate gyro"));
+  Serial.println(F("ac   # calibrate acc"));
+  Serial.println(F("sbv  # save battery voltage"));
+  Serial.println(F("par <parName> <parValue> # general parameter read/set command"));
+  Serial.println(F(" e.g."));
+  Serial.println(F("   par                   # list all config parameters"));
+  Serial.println(F("   par gyroPitchKi       # list gyroPitchKi"));
+  Serial.println(F("   par gyroPitchKi 12000 # set gyroPitchKi to 12000"));
   Serial.println(F(""));
-  Serial.println(F("VER    (show version string)"));  
-  Serial.println(F("HE     (print this output)"));
+  Serial.println(F("he  # print help"));
   Serial.println(F(""));
-  Serial.println(F("Note: command input is case-insensitive, commands are accepted in both upper/lower case"));
 }
 
 void unrecognized(const char *command) 

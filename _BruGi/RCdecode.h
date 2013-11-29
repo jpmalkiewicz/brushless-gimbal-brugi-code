@@ -225,6 +225,7 @@ void initRCPins()
     rcData[id].microsRisingEdge = 0;
     rcData[id].microsLastUpdate = 0;
     rcData[id].rx               = 1500;
+    rcData[id].rx1              = 1500;
     rcData[id].update           = true;
     rcData[id].valid            = true;
     rcData[id].rcSpeed          = 0.0;
@@ -264,18 +265,25 @@ void evalRCChannelProportional(rcData_t* rcData, int16_t rcGain, int16_t rcMid)
 //******************************************
 // Absolute
 //******************************************
-
 void evalRCChannelAbsolute(rcData_t* rcData, int8_t gain, int8_t rcMin, int8_t rcMax, int16_t rcMid)
 {
   float k;
   float y0;
   int16_t rx;
-  
+  const int8_t rx_hyst = 10; // deadband (us)
+
   if(rcData->update == true)
   {
     k = (float)(rcMax - rcMin)/(MAX_RC - MIN_RC);
     y0 = rcMin + k * (MID_RC - MIN_RC);
-    rx = rcData->rx - rcMid;
+    
+    if (rcData->rx > (rcData->rx1 + rx_hyst)) {
+      rcData->rx1 = rcData->rx - rx_hyst;
+    } else if (rcData->rx < (rcData->rx1 - rx_hyst)) {
+      rcData->rx1 = rcData->rx + rx_hyst;
+    }
+
+    rx = rcData->rx1 - rcMid;
     utilLP_float(&rcData->setpoint, y0 + gain*0.01 * k * rx, 0.05);
     rcData->update = false;
   }
@@ -301,6 +309,39 @@ void evaluateRCRoll() {
     evalRCChannelProportional(&rcData[RC_DATA_ROLL ], config.rcGainRoll, config.rcMid);
   }
 }
+
+// derive RC setpoint
+void getSetpoint(float * setPoint, unsigned char rcChannel, unsigned char rcChannelFpv, bool fpvMode, bool rcAbsolute, int8_t maxRC, int8_t minRC) {
+
+  const float hystVal = 0.3;
+  
+  if (fpvMode) {
+    if (rcData[rcChannelFpv].valid) {
+      *setPoint = rcData[rcChannelFpv].setpoint;
+    } else {
+      *setPoint = 0;
+    } 
+  } else if (rcData[rcChannel].valid){
+    if(rcAbsolute){
+        *setPoint = rcData[rcChannel].setpoint;
+    } else {
+      if(abs(rcData[rcChannel].rcSpeed)>0.01) {
+        *setPoint += rcData[rcChannel].rcSpeed * 0.01;
+      }
+    }
+  } else {
+    *setPoint = 0;
+  }
+
+  // respect travel limits
+  if (minRC < maxRC) {
+    *setPoint = constrain(*setPoint, minRC, maxRC);
+  } else {
+    *setPoint = constrain(*setPoint, maxRC, minRC);
+  }
+}
+
+
 
 // auxiliary channel, decode switches
 void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)

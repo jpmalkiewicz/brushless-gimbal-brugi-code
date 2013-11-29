@@ -80,9 +80,6 @@ struct config_t
   uint8_t crc8;
 } config;
 
-void recalcMotorStuff();
-void initPIDs();
-
 void setDefaultParameters()
 {
   config.vers = VERSION;
@@ -212,7 +209,7 @@ uint8_t pwm_c_motor1 = 128;
 // battery voltage
 float voltageBat = 0;
 float uBatValue_f = 0;
-float pwmMotorScale = 0;
+
 
 //scaled Motor Power
 uint16_t maxPWMmotorPitchScaled;
@@ -232,8 +229,8 @@ float RollPhiSet = 0;
 static float pitchAngleSet=0;
 static float rollAngleSet=0;
 
-static float qLPPitch[3] = {0,};
-static float qLPRoll[3] = {0,};
+static float qLPPitch[3] = {0,0,0};
+static float qLPRoll[3] = {0,0,0};
 
 
 int count=0;
@@ -245,6 +242,7 @@ struct rcData_t
  uint32_t microsRisingEdge;
  uint32_t microsLastUpdate;
  uint16_t rx;
+ uint16_t rx1;
  bool     update;
  bool     valid;
  float    rcSpeed;
@@ -327,7 +325,7 @@ static int16_t accADC[3];
 
 static t_fp_vector EstG;
 
-static float accLPF[3] = {0.0,};
+static float accLPF[3] = {0.0,0.0,0.0};
 static float accMag = 0;
 static bool disableAccGtest = false;
 
