@@ -1,5 +1,8 @@
+
 //************************************************************************************
-// general config parameter access routines
+//
+// general parameter modification function
+//
 //************************************************************************************
 
 // types of config parameters
@@ -23,7 +26,7 @@ typedef struct configDef {
 
 t_configDef configDef;
 
-// access decriptor as arry of bytes as well
+// alternatively access config decriptor as array of bytes
 typedef union {
   t_configDef   c;
   char          bytes[sizeof(t_configDef)];
@@ -31,6 +34,7 @@ typedef union {
 
 t_configUnion configUnion;
 
+//******************************************************************************
 //
 // list of all config parameters
 // to be accessed by par command
@@ -38,9 +42,9 @@ t_configUnion configUnion;
 // descriptor is stored in PROGMEN to preserve RAM space
 // see http://www.arduino.cc/en/Reference/PROGMEM
 // and http://jeelabs.org/2011/05/23/saving-ram-space/
+//
+//******************************************************************************
 const t_configDef PROGMEM configListPGM[] = {
-  {"vers",             UINT8, &config.vers,             NULL},
-
   {"gyroPitchKp",      INT32, &config.gyroPitchKp,      &initPIDs},
   {"gyroPitchKi",      INT32, &config.gyroPitchKi,      &initPIDs},
   {"gyroPitchKd",      INT32, &config.gyroPitchKd,      &initPIDs},
@@ -169,7 +173,7 @@ void printConfig(t_configDef * def) {
     }
     Serial.println("");
   } else {
-    Serial.println(F("ERROR: printConfig: illegal parameter"));    
+     printMessage(MSG_WARNING, F("printConfig: illegal parameter"));
   }
 }
 
@@ -188,7 +192,7 @@ void writeConfig(t_configDef * def, int32_t val) {
     // call update function
     if (def->updateFunction != NULL) def->updateFunction();
   } else {
-    Serial.println(F("ERROR: writeConfig: illegal parameter"));    
+    printMessage(MSG_WARNING, F("writeConfig: illegal parameter"));  
   }
 }
 
@@ -202,11 +206,10 @@ void printConfigAll(t_configDef * p) {
     p++; 
   }
   Serial.println(F("done."));
-  // show firmware version after parameter output
-  Serial.print(F("BruGi version "));
-  Serial.print(VERSION);
-  Serial.print(F(" "));
-  Serial.println(F(REVISION));
+  
+  // show firmware version after parameter output (so it appears at older GUIs as well)
+  printMessage(MSG_VERSION, F(""));
+
 }
 
 //******************************************************************************
@@ -237,6 +240,9 @@ void parameterMod() {
 //************************************************************************************
 
 
+//******************************************************************************
+// set config to default
+//*****************************************************************************
 void updateAllParameters() {
   initMotorStuff();
   initPIDs();
@@ -246,11 +252,17 @@ void updateAllParameters() {
   initRC();
 }
 
+//******************************************************************************
+// set config to default and update derived values
+//*****************************************************************************
 void setDefaultParametersAndUpdate() {
   setDefaultParameters();
   updateAllParameters();
 }
 
+//******************************************************************************
+// write EEPROM into config 
+//*****************************************************************************
 void writeEEPROM()
 {
   traceModeType oldfTrace = config.fTrace;
@@ -266,6 +278,9 @@ void writeEEPROM()
   config.sTrace = oldsTrace;
 }
 
+//******************************************************************************
+// read EEPROM into config 
+//*****************************************************************************
 void readEEPROM()
 {
   EEPROM_readAnything(0, config); 
@@ -274,32 +289,53 @@ void readEEPROM()
     updateAllParameters();
   } else {
     // crc failed intialize directly here, as readEEPROM is void
-    Serial.print(F("EEPROM CRC failed, initialize EEPROM"));
+    printMessage(MSG_WARNING, F("EEPROM CRC failed, initialize to default"));
     setDefaultParameters();
     writeEEPROM();
   }
 }
 
-void gyroRecalibrate()
+//******************************************************************************
+// run GYRO calibration 
+//*****************************************************************************
+void gyroCalibrateCmd()
 {
+  printMessage(MSG_WARNING, F("GYRO Calibration, do not move ..."));
   gyroOffsetCalibration();
-  Serial.println(F("recalibration: done"));
+  printMessage(MSG_INFO, F("GYRO Calibration OK"));
 }
 
+//******************************************************************************
+// run ACC calibration 
+//*****************************************************************************
 void accCalibrateCmd()
 {
-  Serial.print(F("ACC Calibration: "));
+  printMessage(MSG_INFO, F("ACC Calibration, do not move ..."));
   if (accCalibration() >= 0) {
     Serial.println(F("ok"));
+    printMessage(MSG_INFO, F("ACC Calibration OK"));
   } else {
-    Serial.println(F("failed"));
+    printMessage(MSG_WARNING, F("ACC Calibration FAILED"));
   }   
 }
 
+//******************************************************************************
+// save battry voltage into config
+//*****************************************************************************
 void saveBatteryRefVoltage()
 {
   // save the actual battery voltage to configuration
   config.refVoltageBat = voltageBat * 100;
+}
+
+
+
+//******************************************************************************
+// send version string
+//*****************************************************************************
+void printVersionString()
+{
+    printMessage(MSG_VERSION, F(""));
 }
 
 void printHelpUsage()
@@ -333,15 +369,16 @@ void unrecognized(const char *command)
 void setSerialProtocol()
 {
   // Setup callbacks for SerialCommand commands
-  sCmd.addCommand("sd", setDefaultParametersAndUpdate);   
-  sCmd.addCommand("we", writeEEPROM);   
-  sCmd.addCommand("re", readEEPROM); 
+  sCmd.addCommand("sd",  setDefaultParametersAndUpdate);   
+  sCmd.addCommand("we",  writeEEPROM);   
+  sCmd.addCommand("re",  readEEPROM); 
   sCmd.addCommand("par", parameterMod);
-  sCmd.addCommand("gc", gyroRecalibrate);
-  sCmd.addCommand("ac", accCalibrateCmd);
+  sCmd.addCommand("gc",  gyroCalibrateCmd);
+  sCmd.addCommand("ac",  accCalibrateCmd);
   sCmd.addCommand("sbv", saveBatteryRefVoltage);
 
-  sCmd.addCommand("he", printHelpUsage);
+  sCmd.addCommand("ver", printVersionString);
+  sCmd.addCommand("he",  printHelpUsage);
   
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't matched  (says "What?")
 }

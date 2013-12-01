@@ -8,7 +8,7 @@
 # any later version. see <http://www.gnu.org/licenses/>
 # 
 
-set VERSION "for BruGi Firmware v49-r181 or higher"
+set VERSION "for BruGi Firmware v50-r191 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -201,7 +201,7 @@ Ryq+QIMw1EARJkQhCpHhBVSsI4Y3xGEOdbhDHholIAA7
 proc setTooltip {widget text} {
 	if { $text != "" } {
 
-		bind $widget <Any-Enter>    [list .helptext configure -text "$text"]
+		bind $widget <Any-Enter>    [list .helptext configure -text "Tooltip: $text"]
 
 #		bind $widget <Any-Enter>    [list after 500 [list showTooltip %W $text]]
 #		bind $widget <Any-Leave>    [list after 500 [list destroy %W.tooltip]]
@@ -255,10 +255,10 @@ menu .menu.file -tearoff 0
 	.menu.file add command -label "Close" -command {
 		close_serial
 	}
-	.menu.file add command -label "Open file..." -command {
+	.menu.file add command -label "Load config from file..." -command {
 		load_values_from_file
 	}
-	.menu.file add command -label "Save file..." -command {
+	.menu.file add command -label "Save config to file..." -command {
 		save_values2file
 	}
 	.menu.file add separator
@@ -271,20 +271,11 @@ menu .menu.options -tearoff 0
 	.menu.options add command -label "set Defaults" -command {
 		set_defaults
 	}
-#	.menu.options add command -label "Load from Board" -command {
-#		send_par
-#	}
-#	.menu.options add command -label "Save to Board" -command {
-#		save_values
-#	}
-	.menu.options add command -label "Load from Flash" -command {
-		load_from_flash
+	.menu.options add command -label "Load config from EEPROM" -command {
+		load_from_eeprom
 	}
-	.menu.options add command -label "Save to Flash" -command {
-		save_to_flash
-	}
-	.menu.options add command -label "Gyro-Cal" -command {
-		gyro_cal
+	.menu.options add command -label "Save config to EEPROM" -command {
+		save_to_eeprom
 	}
 
 if {$HEXDATA != ""} {
@@ -297,12 +288,12 @@ if {$HEXDATA != ""} {
 			ArduinoReset
 			ArduinoSerial_SendCMD $defs(STK_GET_SIGN_ON)
 			if {$ArduinoTimeout != 0} {
-				.bottom.info configure -text "ERROR: upload firmware"
-				.bottom.info configure -background red
+				.bottom.status configure -text "ERROR: upload firmware"
+				.bottom.status configure -background red
 				update
 				after 1000
 			} else {
-				.bottom.info configure -text "start uploading firmware"
+				.bottom.status configure -text "start uploading firmware"
 				ArduinoSendData "0x0000" $HEXDATA
 				ArduinoReset
 			}
@@ -314,9 +305,9 @@ if {$HEXDATA != ""} {
 
 menu .menu.help -tearoff 0
 	.menu add cascade -label "Help" -menu .menu.help -underline 0
-	.menu.help add command -label "Tuning" -command {
-		show_help_tuning
-	}
+#	.menu.help add command -label "Tuning" -command {
+#		show_help_tuning
+#	}
 	.menu.help add separator
 	.menu.help add command -label "Homepage" -command {
 		launchBrowser "http://brushlessgimbal.de/"
@@ -381,7 +372,7 @@ set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd
             rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll \
             rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
             rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
-            rcMid accOutput fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
+            rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
 
 foreach var $params {
@@ -424,6 +415,8 @@ set buffer ""
 set count 0
 set chart_count 0
 
+set BruGiReady 0
+
 #####################################################################################
 # Serial-Functions
 #####################################################################################
@@ -437,13 +430,12 @@ proc Serial_Init {ComPort ComRate} {
 		set iChannel [open $ComPort w+]
 		fconfigure $iChannel -mode $ComRate,n,8,1 -ttycontrol {RTS 1 DTR 0} -blocking FALSE
 		fileevent $iChannel readable [list rd_chid $iChannel]
-		.bottom.version configure -text "Serial-Ok: $ComPort @ $ComRate"
-		.bottom.info configure -text "Serial-Ok: $ComPort @ $ComRate"
+		.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate"
+		.bottom1.linkStatus configure -background lightgrey
 		.device.connect configure -text "Reconnect"
 	}]} {
-		.bottom.version configure -text "Serial-Error: $ComPort @ $ComRate"
-		.bottom.version configure -background red
-		.bottom.info configure -text "Serial-Error: $ComPort @ $ComRate"
+		.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate"
+		.bottom1.linkStatus configure -background red
 		.device.connect configure -text "Connect"
 		return 0
 	}
@@ -454,6 +446,11 @@ proc close_serial {} {
 	global Serial
 	catch {close $Serial}
 	.device.connect configure -text "Connect"
+  .bottom1.linkStatus configure -background red
+	.bottom1.message configure -text "not connected"
+  .bottom1.message configure -background lightgrey
+  .bottom1.bruGiStatus configure -background lightgrey
+  .bottom.bruGiVersion configure -text "Firmware: -----"
 }
 
 #####################################################################################
@@ -465,38 +462,41 @@ proc connect_serial {} {
 	global count
 	global device
 	global buffer
-#	.bottom.info configure -background yellow
+#	.bottom1.linkStatus configure -background yellow
 	set device [.device.spin get]
 	set Serial [Serial_Init $device 115200]
 	set count 0
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
+		.bottom1.message configure -background lightgrey
 		return
 	} else {
-		.bottom.info configure -background green
-		.bottom.info configure -text "connected"
+		.bottom1.linkStatus configure -background green
+		.bottom1.message configure -text "connected"
+    .bottom1.message configure -background lightgrey
 	}
-	after 9000 send_par
+	#after 9000 send_par
 }
 
 proc draw_chart {} {
 	global Serial
 	global chart
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
+    .bottom1.message configure -background lightgrey
 		return
 	}
 	if {$chart == 1} {
 		set chart 0
-		.bottom.info configure -text "SEND: par fTrace 0"
+		.bottom2.txlog configure -text "SEND: par fTrace 0"
         	puts -nonewline $Serial "par fTrace 0\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Start"
 	} else {
 		set chart 1
-		.bottom.info configure -text "SEND: par fTrace 8"
+		.bottom2.txlog configure -text "SEND: par fTrace 8"
         	puts -nonewline $Serial "par fTrace 8\n"
 		flush $Serial
 		.chartview.chart.fr1.button configure -text "Stop"
@@ -510,21 +510,22 @@ proc send_parvar {n1 n2 op} {
 
 	if {$enable_trace == 1} {
 		if {$Serial == 0} {
-			.bottom.info configure -background red
-			.bottom.info configure -text "not connected"
+			.bottom1.linkStatus configure -background red
+			.bottom1.message configure -text "not connected"
+      .bottom1.message configure -background lightgrey
 			return
 		}
 		if {$n2 == "vers"} {
 		} elseif {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
 			if {$par($n2) == 1} {
-				.bottom.info configure -text "SEND: par $n2 -1"
+				.bottom2.txlog configure -text "SEND: par $n2 -1"
 					puts -nonewline $Serial "par $n2 -1\n"
 			} else {
-				.bottom.info configure -text "SEND: par $n2 1"
+				.bottom2.txlog configure -text "SEND: par $n2 1"
 					puts -nonewline $Serial "par $n2 1\n"
 			}
 		} else {
-			.bottom.info configure -text "SEND: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
+			.bottom2.txlog configure -text "SEND: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
 				puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
 		}
 		flush $Serial
@@ -541,12 +542,12 @@ proc send_par {} {
 	set count 0
 	set buffer ""
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
 	set enable_trace 0 
-	.bottom.info configure -text "PAR: reading values..."
+	#.bottom1.message configure -text "PAR: reading values..."
 
         puts -nonewline $Serial "par\n"
 	flush $Serial
@@ -557,12 +558,12 @@ proc save_values {} {
 	global count
 	global device
 	global par
-	.bottom.info configure -text "saving values"
-	.bottom.info configure -background yellow
+	.bottom1.message configure -text "saving values"
+	#.bottom.status configure -background yellow
 	update
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
 	foreach var [array names par] {
@@ -572,8 +573,8 @@ proc save_values {} {
 			after 20
 		}
 	}
-	.bottom.info configure -text "saving values done"
-	.bottom.info configure -background green
+	#.bottom1.message configure -text "saving values done"
+	#.bottom2.message configure -background green
 }
 
 proc load_values_from_file {} {
@@ -600,11 +601,11 @@ proc load_values_from_file {} {
 					after 20
 				}
 			}
-			.bottom.info configure -text "load: done"
+			.bottom1.message configure -text "load: done"
 			update
 
 		} else {
-			.bottom.info configure -text "load: error, reading file: $file"
+			.bottom1.message configure -text "load: error, reading file: $file"
 			update
 		}
 	}
@@ -620,6 +621,10 @@ proc save_values2file {} {
 		{"Text files"		{}		TEXT}
 		{"All files"		*}
 	}
+  # reset trace parameters
+  set par(sTrace) 0
+  set par(fTrace) 0
+  
 	set file [tk_getSaveFile -filetypes $types -parent . -initialfile blg-gimbal -defaultextension .txt]
 	if {$file != ""} {
 		set fp [open $file w]
@@ -647,12 +652,12 @@ proc acc_cal {} {
 	global device
 	set count 0
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
-	.bottom.info configure -background green
-	.bottom.info configure -text "ACC calibration"
+	.bottom1.linkStatus configure -background green
+	#.bottom1.message configure -text "ACC calibration"
 	update
         puts -nonewline $Serial "AC\n"
 	flush $Serial
@@ -673,12 +678,12 @@ proc gyro_cal {} {
 	global device
 	set count 0
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
-	.bottom.info configure -background green
-	.bottom.info configure -text "gyro recalibration"
+	#.bottom1.linkStatus configure -background green
+	#.bottom1.message configure -text "gyro recalibration"
 	update
         puts -nonewline $Serial "GC\n"
 	flush $Serial
@@ -696,34 +701,35 @@ proc gyro_cal_reset {} {
 }
 
 
-proc save_to_flash {} {
+proc save_to_eeprom {} {
 	global Serial
 	global count
 	global device
 	set count 0
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
         puts -nonewline $Serial "WE\n"
 	flush $Serial
+  .bottom1.message configure -text "saved config to EEPROM"
 }
 
-proc load_from_flash {} {
+proc load_from_eeprom {} {
 	global Serial
 	global count
 	global device
 	set count 0
-	.bottom.info configure -text "loading from flash"
 	update
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
         puts -nonewline $Serial "RE\n"
 	flush $Serial
+	.bottom1.message configure -text "loaded config from EEPROM"
 	after 200 send_par
 }
 
@@ -732,15 +738,15 @@ proc set_defaults {} {
 	global count
 	global device
 	set count 0
-	.bottom.info configure -text "setting defaults"
 	update
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
         puts -nonewline $Serial "SD\n"
 	flush $Serial
+	.bottom1.message configure -text "set config to default values"
 	after 200 send_par
 }
 
@@ -749,15 +755,15 @@ proc set_batteryVoltage {} {
 	global count
 	global device
 	set count 0
-	.bottom.info configure -text "get battery voltag"
 	update
 	if {$Serial == 0} {
-		.bottom.info configure -background red
-		.bottom.info configure -text "not connected"
+		.bottom1.linkStatus configure -background red
+		.bottom1.message configure -text "not connected"
 		return
 	}
         puts -nonewline $Serial "SBV\n"
 	flush $Serial
+	.bottom1.message configure -text "read battery voltage"
 	after 200 send_par
 }
 
@@ -772,6 +778,7 @@ proc rd_chid {chid} {
 	global VERSION
 	global par
 	global enable_trace
+  global BruGiReady
 	
 	if {$chid == 0} {
 		return
@@ -781,16 +788,37 @@ proc rd_chid {chid} {
 		if {$ch == "\r"} {
 		} elseif {$ch == "\n"} {
 			if {1 == 1} {
-				.bottom.info configure -text "INFO: $buffer"
+			  .bottom2.rxlog configure -text "$buffer"
 #				update
 				set var [lindex $buffer 0]
 				set val [lindex $buffer 1]
-
-				if {$var == "vers"} {
-					set par(vers) "$val"
-					.bottom.version configure -text "Firmware-Version: $par(vers)"
-					.bottom.version configure -background lightgray
-				} elseif {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
+        
+				if {$var == "message"} {
+          set message [lrange $buffer 2 end]
+          if {$val == "VERSION:"} {
+            .bottom.bruGiVersion configure -text "Firmware: ${message}"
+            #.bottom.bruGiVersion configure -background lightgray
+          }
+          if {$val == "INFO:"} {
+            .bottom1.message configure -text "INFO: ${message}"
+            .bottom1.message configure -background green
+            .bottom1.bruGiStatus configure -background green
+            if {${message} == "BruGi ready"} {
+              set BruGiReady 1
+              after 200 send_par
+            }
+          }
+          if {$val == "WARNING:"} {
+            .bottom1.message configure -text "WARNING: ${message}"
+            .bottom1.message configure -background yellow
+            .bottom1.bruGiStatus configure -background yellow
+          }
+          if {$val == "ERROR:"} {
+            .bottom1.message configure -text "ERROR: ${message}"
+            .bottom1.message configure -background read
+            .bottom1.bruGiStatus configure -background red
+          } 
+        } elseif {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
 					if {$val == -1} {
 						set par($var) 1
 					} else {
@@ -801,7 +829,6 @@ proc rd_chid {chid} {
 					set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
 				} elseif {[string match "traceData ACC2 * *" $buffer]} {
 					set chart 1
-					.bottom.info configure -text "OAC: $buffer"
 					global LastValX
 					global LastValY
 					global CHART_SCALE
@@ -824,19 +851,6 @@ proc rd_chid {chid} {
 						set LastValX $ValX
 						set LastValY $ValY
 					}
-
-				} elseif {[string match "*recalibration: done*" $buffer]} {
-
-					#tk_messageBox -icon info -message "Gyro-Recalibration done" -type ok -parent .
-					.bottom.info configure -text "Gyro-Recalibration done"
-					.bottom.info configure -background green
-					update
-				} elseif {[string match "*BruGi ready.*" $buffer]} {
-					.bottom.info configure -background green
-					update
-				} elseif {[string match "* ddddd *" $buffer]} {
-					.bottom.info configure -text "READY!"
-					.bottom.info configure -background green
 				} else {
 					set enable_trace 1
 				}
@@ -846,6 +860,7 @@ proc rd_chid {chid} {
 			append buffer $ch
 		}
 #	}
+  # get parameters when "INFO: Brugi ready" has been received
 }
 
 #####################################################################################
@@ -868,10 +883,10 @@ proc ArduinoSerial_Init {ComPort ComRate} {
 	if {[catch {
 		set iChannel [open $ComPort w+]
 		fconfigure $iChannel -mode $ComRate,n,8,2 -translation binary -ttycontrol {RTS 1 DTR 0} -blocking FALSE
-		.bottom.info configure -text "ArduinoSerial-OK: $ComPort @ $ComRate"
+		.bottom.status configure -text "ArduinoSerial-OK: $ComPort @ $ComRate"
 		update
 	}]} {
-		.bottom.info configure -text "ArduinoSerial-Error: $ComPort @ $ComRate"
+		.bottom.status configure -text "ArduinoSerial-Error: $ComPort @ $ComRate"
 		update
 	}
 	return $iChannel
@@ -893,7 +908,7 @@ proc ArduinoWait_reply {} {
 		incr counter
 	}
 	if {$counter >= 1000} {
-		.bottom.info configure -text "#### timeout ####"
+		.bottom.status configure -text "#### timeout ####"
 		update
 		set ArduinoTimeout 1
 		after 1000
@@ -910,7 +925,7 @@ proc ArduinoWait_reply {} {
 		incr counter
 	}
 	if {$counter >= 1000} {
-		.bottom.info configure -text "#### timeout ####"
+		.bottom.status configure -text "#### timeout ####"
 		update
 		set ArduinoTimeout 1
 		after 1000
@@ -925,7 +940,7 @@ proc ArduinoWait_reply {} {
 		puts "Error: "
 		puts "	< $ret"
 		puts "	< $ret2"
-		.bottom.info configure -text "Flash-Error"
+		.bottom.status configure -text "Flash-Error"
 		update
 		after 1000
 #		return
@@ -985,7 +1000,7 @@ proc ArduinoSendData {START_ADDR file_data} {
 		foreach BYTE $file_data {
 			lappend BUFFER "$BYTE"
 			if {$COUNT == 127} {
-				.bottom.info configure -text "write: [format 0x%02x $START_ADDR] ([expr [format 0x%x $START_ADDR] * 100 / [format 0x%x $MAX_ADDR]]%)"
+				.bottom.status configure -text "write: [format 0x%02x $START_ADDR] ([expr [format 0x%x $START_ADDR] * 100 / [format 0x%x $MAX_ADDR]]%)"
 				update
 				ArduinoSetAddr "[format 0x%x $START_ADDR]"
 				puts -nonewline $ArduinoSerial "[binary format c $defs(STK_WRITE_PAGE)]"
@@ -1015,7 +1030,7 @@ proc ArduinoSendData {START_ADDR file_data} {
 			lappend BUFFER "0xFF"
 			incr NUM
 		}
-		.bottom.info configure -text "write: [format 0x%02x $START_ADDR] ([expr [format 0x%x $START_ADDR] * 100 / [format 0x%x $MAX_ADDR]]%)"
+		.bottom.status configure -text "write: [format 0x%02x $START_ADDR] ([expr [format 0x%x $START_ADDR] * 100 / [format 0x%x $MAX_ADDR]]%)"
 		update
 		ArduinoSetAddr "[format 0x%x $START_ADDR]"
 		puts -nonewline $ArduinoSerial "[binary format c $defs(STK_WRITE_PAGE)]"
@@ -1033,10 +1048,10 @@ proc ArduinoSendData {START_ADDR file_data} {
 		puts -nonewline $ArduinoSerial "[binary format c $defs(CRC_EOP)]"
 		flush $ArduinoSerial
 		ArduinoWait_reply
-		.bottom.info configure -text "write: done (100%)"
+		.bottom.status configure -text "write: done (100%)"
 		update
 	} else {
-		.bottom.info configure -text "error no data found"
+		.bottom.status configure -text "error no data found"
 		update
 		after 1000
 	}
@@ -1056,7 +1071,7 @@ proc ArduinoConvertData {file_data} {
 		}
 		return $BUFFER
 	} else {
-		.bottom.info configure -text "error no data found"
+		.bottom.status configure -text "error no data found"
 		update
 		after 1000
 	}
@@ -1071,7 +1086,7 @@ proc ArduinoSendBIN {START_ADDR BINFILE} {
 	if {$file_data != ""} {
 		ArduinoSendData $START_ADDR [ArduinoConvertData $file_data]
 	} else {
-		.bottom.info configure -text "error loading BIN-File"
+		.bottom.status configure -text "error loading BIN-File"
 		update
 		after 1000
 	}
@@ -1085,7 +1100,7 @@ proc ArduinoExportBIN {BINFILE} {
 	if {$file_data != ""} {
 		return "[ArduinoConvertData $file_data]"
 	} else {
-		.bottom.info configure -text "error loading BIN-File"
+		.bottom.status configure -text "error loading BIN-File"
 		update
 		after 1000
 	}
@@ -1360,8 +1375,8 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	pack .note.general.buttons.line1 -side top -expand no -fill x
   
 		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
-		gui_button .note.general.buttons.line1.load_from_flash "Load from Flash" "load values from flash into board and gui" load_from_flash
-		gui_button .note.general.buttons.line1.save_to_flash "Save to Flash" "save values from board into flash" save_to_flash
+		gui_button .note.general.buttons.line1.load_from_eeprom "Load from EEPROM" "load values from EEPROM into board and gui" load_from_eeprom
+		gui_button .note.general.buttons.line1.save_to_eeprom "Save to EEPROM" "save values from board into EEPROM" save_to_eeprom
 
 	frame .note.general.buttons.line2
 	pack .note.general.buttons.line2 -side top -expand no -fill x
@@ -1492,7 +1507,6 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
       gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
-      gui_spin .note.aux.debug.accOutput accOutput  0 1 1 "OAC Mode"  "accOutput" "config.accOutput"
       
 frame .chartview
 pack .chartview -side top -expand no -fill x
@@ -1551,19 +1565,50 @@ setTooltip .device "serial port selection"
 	pack .device.close -side left -expand no -fill x
 
  
-label .helptext -relief sunken -text "BLG-Tool"
-pack .helptext -side top -expand no -fill x
+
+
+frame .bottom2
+pack .bottom2 -side top -expand no -fill x
+
+	label .bottom2.rxlog -relief sunken -text ""
+	pack .bottom2.rxlog -side left -expand yes -fill x
+	setTooltip .bottom2.rxlog "receive messages from BruGi"
+
+	label .bottom2.txlog -relief sunken -width 25 -text ""
+	pack .bottom2.txlog -side left -expand no -fill x
+	setTooltip .bottom2.txlog "receive messages from BruGi"
+
+frame .bottom1
+pack .bottom1 -side top -expand no -fill x
+
+	label .bottom1.bruGiStatus -width 12 -text "BruGi"
+	pack .bottom1.bruGiStatus -side left -expand no -fill x
+	setTooltip .bottom1.bruGiStatus "BruGi status"
+
+	label .bottom1.message -text "no message"
+	pack .bottom1.message -side left -expand yes -fill x
+	setTooltip .bottom1.message "BruGi message window"
+
+	label .bottom1.linkStatus -width 10 -text "Link"
+	pack .bottom1.linkStatus -side left -expand no -fill x
+	setTooltip .bottom1.linkStatus "Link Status"
+
+  
+label .helptext -relief sunken -text "Tooltips"
+pack .helptext -side top -expand yes -fill x
 
 frame .bottom
 pack .bottom -side top -expand no -fill x
 
-	label .bottom.version -relief sunken -width 30 -text "Version: $tcl_platform(os)/$tcl_platform(osVersion)"
-	pack .bottom.version -side left -expand no -fill x
-	setTooltip .bottom.version "board/system version"
+	label .bottom.bruGiVersion -width 25 -text "Firmware: -----"
+	pack .bottom.bruGiVersion -side left -expand no -fill x
+	setTooltip .bottom.bruGiVersion "BruGi Firmware Version"
 
-	label .bottom.info -relief sunken -text "Not connected"
-	pack .bottom.info -side left -expand yes -fill x
-	setTooltip .bottom.info "status informations"
+	label .bottom.version -text "Host: $tcl_platform(os)/$tcl_platform(osVersion)"
+	pack .bottom.version -side left -expand yes -fill x
+	setTooltip .bottom.version "Host System Version"
+
+
 
 
 ## Trace parameters to update on change
@@ -1608,34 +1653,6 @@ if {[lindex $argv 0] == "-b" || [lindex $argv 0] == "--help"} {
 }
 
 
-proc show_help_tuning {} {
-	catch {destroy .help}
-	toplevel .help
-	wm title .help "Help: Tuning your Gimbal"
-	frame .help.f -highlightthickness 1 -borderwidth 1 -relief sunken
-	pack .help.f -expand yes -fill both
-	text .help.f.t -yscrollcommand ".help.f.scroll set" -setgrid true -width 120 -height 50 -wrap word -highlightthickness 0 -borderwidth 0
-	pack .help.f.t -side left -expand  yes -fill both
-	scrollbar .help.f.scroll -command ".help.f.t yview"
-	pack .help.f.scroll -side right -fill y
-	.help.f.t tag configure header -font "times 24 bold" -justify center
-	.help.f.t tag configure center -justify center -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
-	.help.f.t tag configure text -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
-	.help.f.t insert end "\n\n\n\n"
-	.help.f.t insert end "Tuning your Gimbal\n" header
-	.help.f.t insert end "when you have uploaded the software and connect to your board, the software will load the default\n" text
-	.help.f.t insert end "settings.You will need to change these to suit your gimbal and motors\n" text
-	.help.f.t insert end "\n      " text
-	.help.f.t insert end "\n" text
-	.help.f.t insert end "Note: help text to be added ... \n" text
-	.help.f.t insert end "\n\n\n" text
-
-	button .help.exit -text "Exit" -width 14 -command {
-		destroy .help
-	}
-	pack .help.exit -side bottom -expand no -fill x
-}
-
 proc show_help_about {} {
 	catch {destroy .help}
 	toplevel .help
@@ -1655,7 +1672,7 @@ proc show_help_about {} {
 	.help.f.t insert end "Brushless Gimbal: By Ludwig Faerber\n" center
 	.help.f.t insert end "GUI: By Oliver Dippel\n" center
 	.help.f.t insert end "Software: By\n" center
-	.help.f.t insert end "Christian Winkler , Ludwig Faerber and Alexander Rehfeld\n" center
+	.help.f.t insert end "Christian Winkler , Ludwig Faerber, Alois Hahn and Alexander Rehfeld\n" center
 	.help.f.t insert end "All rights reserved\n" center
 
 	button .help.exit -text "Exit" -width 14 -command {

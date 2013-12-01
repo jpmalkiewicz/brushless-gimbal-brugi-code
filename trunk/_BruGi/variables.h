@@ -6,7 +6,6 @@
 
 struct config_t
 {
-  uint8_t vers;
   uint8_t versEEPROM;
   int32_t gyroPitchKp; 
   int32_t gyroPitchKi;   
@@ -82,7 +81,6 @@ struct config_t
 
 void setDefaultParameters()
 {
-  config.vers = VERSION;
   config.versEEPROM = VERSION_EEPROM;
   config.gyroPitchKp = 20000;
   config.gyroPitchKi = 10000;
@@ -165,6 +163,11 @@ void initPIDs(void)
   pitchPIDpar.Kd = config.gyroPitchKd/10/250;  // divide by 250 to keep compatibility to previous version
   
 }
+
+static int32_t pitchErrorSum = 0;
+static int32_t rollErrorSum = 0;
+static int32_t pitchErrorOld = 0;
+static int32_t rollErrorOld = 0;
 
 
 // CRC definitions
@@ -263,7 +266,8 @@ float rcLPFRollFpv_tc = 1.0;
 enum gimStateType {
  GIM_IDLE=0,      // no PID
  GIM_UNLOCKED,    // PID on, fast ACC
- GIM_LOCKED       // PID on, slow ACC
+ GIM_LOCKED,      // PID on, slow ACC
+ GIM_ERROR        // error condition
 };
 
 gimStateType gimState = GIM_IDLE;
