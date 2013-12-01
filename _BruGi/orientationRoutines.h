@@ -85,7 +85,7 @@ void gyroOffsetCalibration()
     calibGCounter--;
     if(tiltDetected>=1)
     {
-      Serial.println(F("Motion detected during Gyro calibration. Starting over!"));
+      printMessage(MSG_WARNING, F("Gyro Calibration failed, retrying ..."));
       calibGCounter=GYRO_INTERATIONS;
       tiltDetected=0;
     }

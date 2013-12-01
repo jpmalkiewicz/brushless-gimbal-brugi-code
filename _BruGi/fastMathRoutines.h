@@ -1,4 +1,7 @@
 
+//***************************************************************
+// contrain function for 32-bit values
+//***************************************************************
 inline int32_t constrain_int32(int32_t x , int32_t l, int32_t h) {
   if (x <= l) {
     return l;
@@ -77,6 +80,9 @@ inline void utilLP_float(float * q, float i, float coeff) {
   //*q = *q * (1.0f-coeff) + i * coeff;
 }
 
+//************************
+// low pass 3rd order
+//************************
 float utilLP3_float(float * q, float i, float coeff) {
 
   utilLP_float(&q[2], i, coeff);
@@ -91,7 +97,6 @@ float utilLP3_float(float * q, float i, float coeff) {
 /************************/
 /* Debugging            */
 /************************/
-// TODO: move functions to other file (utilities ?)
 
 inline void stackCheck() {
   int localVar;  

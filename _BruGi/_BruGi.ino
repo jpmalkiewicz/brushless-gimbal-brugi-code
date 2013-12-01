@@ -1,5 +1,5 @@
 
-/*
+/*****************************************************************************************************************************
 Brushless Gimbal Controller Software by Christian Winkler and Alois Hahn (C) 2013
 
 Brushless Gimbal Controller Hardware and Software support 
@@ -25,11 +25,13 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 // Based on InvenSense MPU-6050 register map document rev. 2.0, 5/19/2011 (RM-MPU-6000A-00)
 // 10/3/2011 by Jeff Rowberg <jeff@rowberg.net>
 // Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
-*/
+*****************************************************************************************************************************/
+
+/* Note: software has been tested with Arduino Version 1.5.4 */
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
-#define VERSION 49
-#define REVISION "r190"
+#define VERSION "v50"
+#define REVISION "r191"
 #define VERSION_EEPROM 12 // change this number when eeprom data structure has changed
 
 
@@ -80,20 +82,22 @@ void setup()
   initMotorStuff();
   
   // switch off PWM Power
-  MoveMotorPosSpeed(config.motorNumberPitch, 0, 0); 
-  MoveMotorPosSpeed(config.motorNumberRoll, 0, 0);
+  motorPowerOff();
   
   // Start Serial Port
   Serial.begin(115200);
 
   // Set Serial Protocol Commands
   setSerialProtocol();
+
+  // send Version Number
+  printMessage(MSG_VERSION, F(""));
   
-  // Read Config, initialize if versions do not match or CRC fails
+  // Read Config, initialize if version does not match or CRC fails
   readEEPROM();
-  if ((config.vers != VERSION) || (config.versEEPROM != VERSION_EEPROM))
+  if (config.versEEPROM != VERSION_EEPROM)
   {
-    //Serial.print(F("EEPROM version mismatch, initialize EEPROM"));
+    printMessage(MSG_WARNING, F("EEPROM version mismatch, initialized to default"));
     setDefaultParameters();
     writeEEPROM();
   }
@@ -111,14 +115,15 @@ void setup()
   mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
   mpu.initialize();
   if(mpu.testConnection()) {
-    Serial.println(F("MPU6050 ok (HIGH)"));  
+    printMessage(MSG_INFO, F("MPU6050 ok (HIGH)"));
   } else {
     mpu.setAddr(MPU6050_ADDRESS_AD0_LOW);
     mpu.initialize();
     if(mpu.testConnection()) {
-      Serial.println(F("MPU6050 ok (LOW)"));  
+      printMessage(MSG_INFO, F("MPU6050 ok (LOW)"));
     } else {
-      Serial.println(F("MPU6050 falied"));  
+      printMessage(MSG_ERROR, F("MPU6050 not found on I2C"));
+      gimState = GIM_ERROR;
     }
   }
 
@@ -127,10 +132,9 @@ void setup()
   
   // Gyro Offset calibration
   if (config.gyroCal) {
-    Serial.println(F("Gyro calibration: do not move"));
-    gyroOffsetCalibration();
-    Serial.println(F("Gyro calibration: done"));
+    gyroCalibrateCmd();
   }
+  
   // Init IMU variables
   initIMU();
   // set sensor orientation
@@ -145,7 +149,7 @@ void setup()
   // Init RC-Input
   initRCPins();
   
-  Serial.println(F("BruGi ready."));
+  printMessage(MSG_INFO, F("BruGi ready"));
 
   LEDPIN_OFF
   CH2_OFF
@@ -247,10 +251,6 @@ void loop()
 { 
   int32_t pitchPIDVal;
   int32_t rollPIDVal;
-  static int32_t pitchErrorSum;
-  static int32_t rollErrorSum;
-  static int32_t pitchErrorOld;
-  static int32_t rollErrorOld;
   
   static char pOutCnt = 0;
   static char tOutCnt = 0;
@@ -361,6 +361,9 @@ void loop()
         case GIM_LOCKED :
           // normal operation
           break;
+        case GIM_ERROR :
+          // error state
+          break;        
       }
       // gimbal state actions 
       switch (gimState) {
@@ -384,6 +387,13 @@ void loop()
             setACCtc(config.accTimeConstant);
           }
           break;
+        case GIM_ERROR :
+          // error state
+          // switch off motors
+          enableMotorUpdates = false;
+          // switch off PWM Power
+          motorPowerOff();
+          break;        
       }
       // handle mode switches
       decodeModeSwitches();  // td = 4 us

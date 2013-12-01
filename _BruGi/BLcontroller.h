@@ -264,3 +264,9 @@ void voltageCompensation () {
 }
 
 
+// switch off motor power
+void motorPowerOff() {
+  MoveMotorPosSpeed(config.motorNumberPitch, 0, 0); 
+  MoveMotorPosSpeed(config.motorNumberRoll, 0, 0);
+}
+

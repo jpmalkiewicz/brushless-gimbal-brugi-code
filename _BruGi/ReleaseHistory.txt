@@ -1,3 +1,15 @@
+1.12.2013
+Version 50 r191
+* code cleanup and code size reduction
+* unified status message outputs info, warning, error) 
+* GUI updates for better status display (GUI work still in progress)
+
+30.11.2013
+Version 49 r190
+* code size reduction and some cleanup
+* rc absolute mode improvement, slight camera movements reduced by a hysteresis on rc channel
+* gui allows higher PID settings
+
 29.11.2013
 Version 049 r189
 * code size reduction and some cleanup
