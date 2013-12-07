@@ -7,8 +7,9 @@
 # the Free Software Foundation, either version 3 of the License, or
 # any later version. see <http://www.gnu.org/licenses/>
 # 
+package require Tk
 
-set VERSION "for BruGi Firmware v50-r191 or higher"
+set VERSION "2013-12-07 / for BruGi Firmware v50-r191 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -271,7 +272,7 @@ menu .menu.options -tearoff 0
 	.menu.options add command -label "set Defaults" -command {
 		set_defaults
 	}
-	.menu.options add command -label "Load config from EEPROM" -command {
+	.menu.options add command -label "Get config from EEPROM" -command {
 		load_from_eeprom
 	}
 	.menu.options add command -label "Save config to EEPROM" -command {
@@ -374,7 +375,7 @@ set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd
             rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
             rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
-
+  
 foreach var $params {
 	if {$var == "vers"} {
 	} elseif {! [string match "*,*" $var]} {
@@ -416,6 +417,35 @@ set count 0
 set chart_count 0
 
 set BruGiReady 0
+set liveViewON 0
+
+# trace variables for data logging
+set traceVars "\
+             rcPitch rcRoll rcAux rcFpvPitch rcFpvRoll \
+             rcPitchValid rcRollValid rcAuxValid rcFpvPitchValid rcFpvRollValid \
+             rcAuxSW1 rcAuxSW2 \
+             accX accY accZ accMag \
+             fpvModePitch fpvModeRoll altModeAccTime \
+             estX estY estZ angleRoll anglePitch \
+             gyroX gyroY gyroZ \
+             accX accY accZ accMag \
+             pitchAngleSet anglePitch pitchMotorDrive pitchPidError pitchErrorSum \
+             rollAngleSet angleRoll rollMotorDrive rollPidError rollErrorSum \
+             "
+
+# initialize trace vars             
+proc init_traceVar {} {
+  global traceVars
+  global traceVar
+  
+  foreach var $traceVars {
+    set traceVar($var) 0
+    set traceVar($var,scale) 1
+    set traceVar($var,offset) 0
+  }
+}
+
+init_traceVar
 
 #####################################################################################
 # Serial-Functions
@@ -423,6 +453,7 @@ set BruGiReady 0
 
 proc Serial_Init {ComPort ComRate} {
 	global Serial
+	
 	catch {close $Serial}
 	catch {fileevent $Serial readable ""}
 	set iChannel 0
@@ -430,11 +461,11 @@ proc Serial_Init {ComPort ComRate} {
 		set iChannel [open $ComPort w+]
 		fconfigure $iChannel -mode $ComRate,n,8,1 -ttycontrol {RTS 1 DTR 0} -blocking FALSE
 		fileevent $iChannel readable [list rd_chid $iChannel]
-		.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate"
+		.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate" -background lightgrey
 		.bottom1.linkStatus configure -background lightgrey
 		.device.connect configure -text "Reconnect"
 	}]} {
-		.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate"
+		.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate" -background lightgrey
 		.bottom1.linkStatus configure -background red
 		.device.connect configure -text "Connect"
 		return 0
@@ -444,11 +475,11 @@ proc Serial_Init {ComPort ComRate} {
 
 proc close_serial {} {
 	global Serial
+
 	catch {close $Serial}
 	.device.connect configure -text "Connect"
   .bottom1.linkStatus configure -background red
-	.bottom1.message configure -text "not connected"
-  .bottom1.message configure -background lightgrey
+  .bottom1.message configure -text "not connected"  -background lightgrey
   .bottom1.bruGiStatus configure -background lightgrey
   .bottom.bruGiVersion configure -text "Firmware: -----"
 }
@@ -462,19 +493,18 @@ proc connect_serial {} {
 	global count
 	global device
 	global buffer
+
 #	.bottom1.linkStatus configure -background yellow
 	set device [.device.spin get]
 	set Serial [Serial_Init $device 115200]
 	set count 0
 	if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		.bottom1.message configure -background lightgrey
+		.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	} else {
 		.bottom1.linkStatus configure -background green
-		.bottom1.message configure -text "connected"
-    .bottom1.message configure -background lightgrey
+		.bottom1.message configure -text "connected" -background lightgrey
 	}
 	#after 9000 send_par
 }
@@ -482,10 +512,10 @@ proc connect_serial {} {
 proc draw_chart {} {
 	global Serial
 	global chart
+	
 	if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-    .bottom1.message configure -background lightgrey
+		.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	}
 	if {$chart == 1} {
@@ -511,8 +541,7 @@ proc send_parvar {n1 n2 op} {
 	if {$enable_trace == 1} {
 		if {$Serial == 0} {
 			.bottom1.linkStatus configure -background red
-			.bottom1.message configure -text "not connected"
-      .bottom1.message configure -background lightgrey
+			.bottom1.message configure -text "not connected" -background lightgrey
 			return
 		}
 		if {$n2 == "vers"} {
@@ -539,46 +568,22 @@ proc send_par {} {
 	global device
 	global buffer
 	global enable_trace
+
 	set count 0
 	set buffer ""
 	if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
+		.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	}
 	set enable_trace 0 
-	#.bottom1.message configure -text "PAR: reading values..."
-
-        puts -nonewline $Serial "par\n"
+    puts -nonewline $Serial "par\n"
 	flush $Serial
-}
-
-proc save_values {} {
-	global Serial
-	global count
-	global device
-	global par
-	.bottom1.message configure -text "saving values"
-	#.bottom.status configure -background yellow
-	update
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-	foreach var [array names par] {
-		if {$var == "vers"} {
-		} elseif {! [string match "*,*" $var]} {
-			send_parvar "par" $var "w"
-			after 20
-		}
-	}
-	#.bottom1.message configure -text "saving values done"
-	#.bottom2.message configure -background green
 }
 
 proc load_values_from_file {} {
 	global Serial
+
 	set types {
 		{"Text files"		{.txt}	}
 		{"Text files"		{}		TEXT}
@@ -601,11 +606,11 @@ proc load_values_from_file {} {
 					after 20
 				}
 			}
-			.bottom1.message configure -text "load: done"
+			.bottom1.message configure -text "load: done" -background lightgrey
 			update
 
 		} else {
-			.bottom1.message configure -text "load: error, reading file: $file"
+			.bottom1.message configure -text "load: error, filename = $file" -background red
 			update
 		}
 	}
@@ -616,6 +621,7 @@ proc save_values2file {} {
 	global Serial
 	global device
 	global par
+
 	set types {
 		{"Text files"		{.txt}	}
 		{"Text files"		{}		TEXT}
@@ -650,23 +656,15 @@ proc acc_cal {} {
 	global Serial
 	global count
 	global device
+
 	set count 0
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-	.bottom1.linkStatus configure -background green
-	#.bottom1.message configure -text "ACC calibration"
-	update
-        puts -nonewline $Serial "AC\n"
-	flush $Serial
-	after 2000 send_par
+    link_send_cmd "ac" "acc calibration command" 2000
 }
 
 proc acc_cal_reset {} {
 	global device
   global par
+
 	set par(accOffsetX) 0
 	set par(accOffsetY) 0
 	set par(accOffsetZ) 0
@@ -676,25 +674,15 @@ proc gyro_cal {} {
 	global Serial
 	global count
 	global device
-	set count 0
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-	#.bottom1.linkStatus configure -background green
-	#.bottom1.message configure -text "gyro recalibration"
-	update
-        puts -nonewline $Serial "GC\n"
-	flush $Serial
-  # this delay time is just a hack, send_par should be called after successful calibration
-	after 5500 send_par     
-}
 
+	set count 0
+    link_send_cmd "gc" "gyro calibration command" 5500
+}
 
 proc gyro_cal_reset {} {
 	global device
   global par
+
 	set par(gyrOffsetX) 0
 	set par(gyrOffsetY) 0
 	set par(gyrOffsetZ) 0
@@ -705,66 +693,89 @@ proc save_to_eeprom {} {
 	global Serial
 	global count
 	global device
+
 	set count 0
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-        puts -nonewline $Serial "WE\n"
-	flush $Serial
-  .bottom1.message configure -text "saved config to EEPROM"
+  link_send_cmd "we" "saved config to EEPROM" 200
 }
 
 proc load_from_eeprom {} {
 	global Serial
 	global count
 	global device
+
 	set count 0
 	update
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-        puts -nonewline $Serial "RE\n"
-	flush $Serial
-	.bottom1.message configure -text "loaded config from EEPROM"
-	after 200 send_par
+  link_send_cmd "re" "loaded config from EEPROM" 200
 }
 
 proc set_defaults {} {
 	global Serial
 	global count
 	global device
+
 	set count 0
 	update
-	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
-	}
-        puts -nonewline $Serial "SD\n"
-	flush $Serial
-	.bottom1.message configure -text "set config to default values"
-	after 200 send_par
+  link_send_cmd "sd" "set config to default values" 200
 }
 
 proc set_batteryVoltage {} {
 	global Serial
 	global count
 	global device
+
 	set count 0
 	update
-	if {$Serial == 0} {
+  link_send_cmd "sbv" "read battery voltage" 200
+}
+
+# set update log variable
+proc set_traceVar {name data } {
+  global traceVar
+
+  set traceVar($name) [expr ($data + $traceVar($name,offset)) / $traceVar($name,scale)]
+}
+
+# Live View On button
+proc live_view_on {} {
+	global Serial
+	global count
+	global device
+  global liveViewON
+
+	set count 0
+  set liveViewON 1
+	update
+  link_send_cmd "par sTrace 9" "live monitor ON" 200
+}
+
+# Live View Off button
+proc live_view_off {} {
+	global Serial
+	global count
+	global device
+  global liveViewON
+
+  set count 0
+  set liveViewON 0
+  init_traceVar
+  update
+  link_send_cmd "par sTrace 0" "live monitor OFF" 200
+}
+
+
+# send a command with link check
+proc link_send_cmd {cmd message delay} {
+	global Serial
+    if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected"
-		return
+		.bottom1.message configure -text "not connected" -background lightgrey
+		return 1
 	}
-        puts -nonewline $Serial "SBV\n"
+  puts -nonewline $Serial "$cmd\n"
 	flush $Serial
-	.bottom1.message configure -text "read battery voltage"
-	after 200 send_par
+	.bottom1.message configure -text "$message" -background lightgrey
+	after $delay send_par
+  return 0
 }
 
 #####################################################################################
@@ -779,10 +790,16 @@ proc rd_chid {chid} {
 	global par
 	global enable_trace
   global BruGiReady
-	
+ 	global traceVar
+
+  if { [eof $chid] } {
+    return
+  }  
+
 	if {$chid == 0} {
 		return
 	}
+  
 #	catch {
 		set ch [read $chid 1]
 		if {$ch == "\r"} {
@@ -800,8 +817,7 @@ proc rd_chid {chid} {
             #.bottom.bruGiVersion configure -background lightgray
           }
           if {$val == "INFO:"} {
-            .bottom1.message configure -text "INFO: ${message}"
-            .bottom1.message configure -background green
+            .bottom1.message configure -text "INFO: ${message}"  -background green
             .bottom1.bruGiStatus configure -background green
             if {${message} == "BruGi ready"} {
               set BruGiReady 1
@@ -809,15 +825,89 @@ proc rd_chid {chid} {
             }
           }
           if {$val == "WARNING:"} {
-            .bottom1.message configure -text "WARNING: ${message}"
-            .bottom1.message configure -background yellow
+            .bottom1.message configure -text "WARNING: ${message}" -background yellow
             .bottom1.bruGiStatus configure -background yellow
           }
           if {$val == "ERROR:"} {
-            .bottom1.message configure -text "ERROR: ${message}"
-            .bottom1.message configure -background read
-            .bottom1.bruGiStatus configure -background red
+            .bottom1.message configure -text "ERROR: ${message}"  -background read
           } 
+        } elseif {$var == "traceData"} {
+          if {$val == "RC"} {
+            set_traceVar "rcPitch" [lindex $buffer 2]
+            set_traceVar "rcRoll" [lindex $buffer 3]
+            set_traceVar "rcAux" [lindex $buffer 4]
+            set_traceVar "rcFpvPitch" [lindex $buffer 5]
+            set_traceVar "rcFpvRoll" [lindex $buffer 6]
+            set_traceVar "rcPitchValid" [lindex $buffer 7]
+            set_traceVar "rcRollValid" [lindex $buffer 8]
+            set_traceVar "rcAuxValid" [lindex $buffer 9]
+            set_traceVar "rcFpvPitchValid" [lindex $buffer 10]
+            set_traceVar "rcFpvRollValid" [lindex $buffer 11]
+            set_traceVar "rcAuxSW1" [lindex $buffer 16]
+            set_traceVar "rcAuxSW2" [lindex $buffer 17]
+          }
+          if {$val == "AUX"} {
+            set_traceVar "fpvModePitch" [lindex $buffer 2]
+            set_traceVar "fpvModeRoll" [lindex $buffer 3]
+            set_traceVar "altModeAccTime" [lindex $buffer 4]
+          }
+          if {$val == "IMU"} {
+            set_traceVar "estX" [lindex $buffer 2]
+            set_traceVar "estY" [lindex $buffer 3]
+            set_traceVar "estZ" [lindex $buffer 4]
+            set_traceVar "angleRoll" [lindex $buffer 5]
+            set_traceVar "anglePitch" [lindex $buffer 6]
+          }
+          if {$val == "GYRO"} {
+            set_traceVar "gyroX" [lindex $buffer 2]
+            set_traceVar "gyroY" [lindex $buffer 3]
+            set_traceVar "gyroZ" [lindex $buffer 4]
+          }
+          if {$val == "SENSOR_ACC"} {
+            set_traceVar "accX" [lindex $buffer 2]
+            set_traceVar "accY" [lindex $buffer 3]
+            set_traceVar "accZ" [lindex $buffer 4]
+            set_traceVar "accMag" [lindex $buffer 5]
+          }
+          if {$val == "PID_PITCH"} {
+            set_traceVar "pitchAngleSet" [lindex $buffer 2]
+            set_traceVar "anglePitch" [lindex $buffer 3]
+            set_traceVar "pitchMotorDrive" [lindex $buffer 4]
+            set_traceVar "pitchPidError" [lindex $buffer 5]
+            set_traceVar "pitchErrorSum" [lindex $buffer 6]
+          }
+          if {$val == "PID_ROll"} {
+            set_traceVar "rollAngleSet" [lindex $buffer 2]
+            set_traceVar "angleRoll" [lindex $buffer 3]
+            set_traceVar "rollMotorDrive" [lindex $buffer 4]
+            set_traceVar "rollPidError" [lindex $buffer 5]
+            set_traceVar "rollErrorSum" [lindex $buffer 6]
+          }
+          if {$val == "ACC2"} {
+            set chart 1
+            global LastValX
+            global LastValY
+            global CHART_SCALE
+            set TEST [lindex $buffer 1]
+            set ValX [expr [lindex $buffer 2] / 1000.0]
+            set ValY [expr [lindex $buffer 3] / 1000.0]
+            if {($TEST == "ACC2") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
+              incr chart_count 1
+              if {$chart_count >= 450} {
+                set chart_count 0
+              }
+              .chartview.chart.chart1 delete "line_$chart_count"
+              .chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
+              .chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
+              .chartview.chart.chart1 delete "pos"
+              .chartview.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
+              .chartview.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
+              .chartview.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
+              .chartview.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
+              set LastValX $ValX
+              set LastValY $ValY
+            }
+          }
         } elseif {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
 					if {$val == -1} {
 						set par($var) 1
@@ -827,30 +917,6 @@ proc rd_chid {chid} {
 
 				} elseif {[info exists par($var,scale)]} {
 					set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
-				} elseif {[string match "traceData ACC2 * *" $buffer]} {
-					set chart 1
-					global LastValX
-					global LastValY
-					global CHART_SCALE
-					set TEST [lindex $buffer 1]
-					set ValX [expr [lindex $buffer 2] / 1000.0]
-					set ValY [expr [lindex $buffer 3] / 1000.0]
-					if {($TEST == "ACC2") && [string is double -strict $ValX] && [string is double -strict $ValY]} {
-						incr chart_count 1
-						if {$chart_count >= 450} {
-							set chart_count 0
-						}
-						.chartview.chart.chart1 delete "line_$chart_count"
-						.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
-						.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
-						.chartview.chart.chart1 delete "pos"
-						.chartview.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
-						.chartview.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
-						.chartview.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
-						.chartview.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
-						set LastValX $ValX
-						set LastValY $ValY
-					}
 				} else {
 					set enable_trace 1
 				}
@@ -1292,6 +1358,42 @@ proc launchBrowser url {
 	}
 }
 
+proc gui_monitor {wid variable title sw bar } {
+	global traceVar
+	frame $wid
+	pack $wid -side top -expand yes -fill x
+
+  label $wid.label -text "$title" -width 14 -anchor w
+	pack $wid.label -side left -expand no -fill x
+
+  if {$sw != "no"} {
+    label $wid.sw  -relief sunken -text "$sw" -width 4 -anchor w
+    pack $wid.sw -side left -expand no -fill x
+  }
+  label $wid.value -relief sunken -text "$traceVar($variable)" -width 5
+  pack $wid.value -side left -expand no -fill x
+
+  if {$bar != "no"} {
+    canvas $wid.bar -width 200 -height 17 -bd 1 -relief groove -highlightt 0
+    $wid.bar create rectangle 0 0 0 17 -tags bar -fill navy
+    pack $wid.bar -padx 5 -pady 2 -side left -expand no -fill x
+  }
+  
+}
+
+proc gui_monitor_update_status {wid color} {
+  $wid configure -background $color
+}
+
+proc gui_monitor_update {wid val} {
+  $wid.value configure -text "$val"
+}
+
+proc gui_monitor_update_bar {wid val min max} {
+  $wid.value configure -text "$val"
+	$wid.bar coords bar 0 0 [expr {int(($val-$min)/($max-$min) * 200.0 )} ] 17 
+}
+
 #####################################################################################
 # the GUI
 #####################################################################################
@@ -1368,14 +1470,14 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 				.note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
 				update_mpu 0 0 0
 				
-	labelframe .note.general.buttons -text "File"
+	labelframe .note.general.buttons -text "Config Parameters"
 	pack .note.general.buttons -side top -expand no -fill both
 
 	frame .note.general.buttons.line1
 	pack .note.general.buttons.line1 -side top -expand no -fill x
   
 		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
-		gui_button .note.general.buttons.line1.load_from_eeprom "Load from EEPROM" "load values from EEPROM into board and gui" load_from_eeprom
+		gui_button .note.general.buttons.line1.load_from_eeprom "Get from EEPROM" "get values from EEPROM into board and gui" load_from_eeprom
 		gui_button .note.general.buttons.line1.save_to_eeprom "Save to EEPROM" "save values from board into EEPROM" save_to_eeprom
 
 	frame .note.general.buttons.line2
@@ -1442,6 +1544,13 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.pitchRC.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
 			gui_slider .note.pitchRC.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
 
+    labelframe .note.pitchRC.monitor -text "RC Monitor" -padx 10 -pady 7
+		pack .note.pitchRC.monitor -side top -expand no -fill x
+      gui_monitor .note.pitchRC.monitor.rcPitch rcPitch "RC Pitch" SW bar
+      gui_monitor .note.pitchRC.monitor.rcFpvPitch rcFpvPitch "FPV Pitch" SW bar
+      
+
+      
   ttk::frame .note.rollRC
  	.note add .note.rollRC -text "RC Roll"
 
@@ -1466,6 +1575,12 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_slider .note.rollRC.fpv.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
 			gui_slider .note.rollRC.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
+    labelframe .note.rollRC.monitor -text "RC Monitor" -padx 10 -pady 7
+		pack .note.rollRC.monitor -side top -expand no -fill x
+      gui_monitor .note.rollRC.monitor.rcRoll rcRoll "RC Roll" SW bar
+      gui_monitor .note.rollRC.monitor.rcFpvRoll rcFpvRoll "FPV Roll" SW bar
+   
+      
   ttk::frame .note.cal
 	.note add .note.cal -text "Calibration"
 
@@ -1493,8 +1608,6 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
     pack .note.aux.rc -side top -expand no -fill x
         gui_check  .note.aux.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
         gui_spin   .note.aux.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_spin   .note.aux.rc.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.aux.rc.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
 
     #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
     #pack .note.aux.rcMisc -side top -expand no -fill x
@@ -1502,12 +1615,39 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       # not used any more
       #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
     
+    labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
+		pack .note.aux.monitor -side top -expand no -fill x
+      gui_monitor .note.aux.monitor.rcAux rcPitch "RC Auxiliary" no bar
+      gui_monitor .note.aux.monitor.rcAuxSW1 rcPitch "AuxSW1" no no
+      gui_monitor .note.aux.monitor.rcAuxSW2 rcPitch "AuxSW2" no no
+      
+    labelframe .note.aux.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 10
+    pack .note.aux.altTC -side top -expand no -fill x
+        gui_spin   .note.aux.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.aux.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
+
     labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
     pack .note.aux.debug -side top -expand no -fill x
 
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
       gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
+
       
+labelframe .monitor -text "Monitor"
+pack .monitor -side top -expand no -fill x
+setTooltip .monitor "Monitor Functions"
+
+	button .monitor.liveViewButtonOn -text "Live View ON" -width 13 -command {
+		live_view_on
+	}
+	pack .monitor.liveViewButtonOn -side left -expand no -fill x
+
+	button .monitor.liveViewButtonOff -text "Live View OFF" -width 13 -command {
+		live_view_off
+	}
+	pack .monitor.liveViewButtonOff -side left -expand no -fill x
+
+
 frame .chartview
 pack .chartview -side top -expand no -fill x
 	labelframe .chartview.chart -text "Chart"
@@ -1608,9 +1748,10 @@ pack .bottom -side top -expand no -fill x
 	pack .bottom.version -side left -expand yes -fill x
 	setTooltip .bottom.version "Host System Version"
 
-
-
-
+# GUI end
+##################################################################################### 
+  
+  
 ## Trace parameters to update on change
 foreach var [array names par] {
 	if {$var == "vers"} {
@@ -1619,6 +1760,105 @@ foreach var [array names par] {
 	}
 }
 
+## Trace parameters to update on change
+foreach var [array names traceVar] {
+  trace variable traceVar($var) w update_traceDisplay
+}
+
+# update display of traced variables
+proc update_traceDisplay {n1 n2 op} {
+	global traceVar
+  global liveViewON
+
+  if {$liveViewON == 1} {
+    set bg_color_act "green"
+    set bg_color_inact "yellow"
+  } else {
+    set bg_color_act "lightgrey"
+    set bg_color_inact "lightgrey"
+  }
+
+  # Pitch
+  if {$n2 == "rcPitch"} {
+    gui_monitor_update_bar .note.pitchRC.monitor.rcPitch $traceVar($n2) 900.0 2100.0
+  }
+  if {$n2 == "rcPitchValid"} {
+    if {$traceVar($n2) == 1} {
+       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.value "$bg_color_act"
+    } else {
+       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.value "$bg_color_inact"
+    }
+  }
+  if {$n2 == "rcFpvPitch"} {
+    gui_monitor_update_bar .note.pitchRC.monitor.rcFpvPitch $traceVar($n2) 900.0 2100.0
+  }
+  if {$n2 == "rcFpvPitchValid"} {
+    if {$traceVar($n2) == 1} {
+      gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.value "$bg_color_act"
+    } else {
+      gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.value "$bg_color_inact"
+    }
+  }
+  if {$n2 == "fpvModePitch"} {
+    if {$traceVar($n2) == 1} {
+       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.sw lightgrey
+       gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.sw "$bg_color_act"
+    } else {
+       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.sw "$bg_color_act"
+       gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.sw lightgrey
+    }
+  }
+  
+  # Roll
+  if {$n2 == "rcRoll"} {
+    gui_monitor_update_bar .note.rollRC.monitor.rcRoll $traceVar($n2) 900.0 2100.0
+  }
+  if {$n2 == "rcRollValid"} {
+    if {$traceVar($n2) == 1} {
+       gui_monitor_update_status .note.rollRC.monitor.rcRoll.value "$bg_color_act"
+    } else {
+       gui_monitor_update_status .note.rollRC.monitor.rcRoll.value "$bg_color_inact"
+    }
+  }
+  if {$n2 == "rcFpvRoll"} {
+    gui_monitor_update_bar .note.rollRC.monitor.rcFpvRoll $traceVar($n2) 900.0 2100.0
+  }
+  if {$n2 == "rcFpvRollValid"} {
+    if {$traceVar($n2) == 1} {
+      gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.value "$bg_color_act"
+    } else {
+      gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.value "$bg_color_inact"
+    }
+  }
+  if {$n2 == "fpvModeRoll"} {
+    if {$traceVar($n2) == 1} {
+       gui_monitor_update_status .note.rollRC.monitor.rcRoll.sw lightgrey
+       gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.sw "$bg_color_act"
+    } else {
+       gui_monitor_update_status .note.rollRC.monitor.rcRoll.sw "$bg_color_act"
+       gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.sw lightgrey
+    }
+  }
+
+  # Aux
+  if {$n2 == "rcAux"} {
+    gui_monitor_update_bar .note.aux.monitor.rcAux $traceVar($n2) 900.0 2100.0
+  }
+  if {$n2 == "rcAuxValid"} {
+    if {$traceVar($n2) == 1} {
+       gui_monitor_update_status .note.aux.monitor.rcAux.value "$bg_color_act"
+    } else {
+       gui_monitor_update_status .note.aux.monitor.rcAux.value "$bg_color_inact"
+    }
+  }
+  if {$n2 == "rcAuxSW1"} {
+    gui_monitor_update .note.aux.monitor.rcAuxSW1 $traceVar($n2)
+  }
+  if {$n2 == "rcAuxSW2"} {
+    gui_monitor_update .note.aux.monitor.rcAuxSW2 $traceVar($n2)
+  }
+}
+    
 
 #####################################################################################
 # check arguments
