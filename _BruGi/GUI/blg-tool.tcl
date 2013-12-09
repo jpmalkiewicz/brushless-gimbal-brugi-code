@@ -9,7 +9,7 @@
 # 
 package require Tk
 
-set VERSION "2013-12-07 / for BruGi Firmware v50-r191 or higher"
+set VERSION "2013-12-09 / for BruGi Firmware v50-r191 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -1367,7 +1367,7 @@ proc gui_monitor {wid variable title sw bar } {
 	pack $wid.label -side left -expand no -fill x
 
   if {$sw != "no"} {
-    label $wid.sw  -relief sunken -text "$sw" -width 4 -anchor w
+    label $wid.sw  -relief sunken -text "$sw" -anchor w
     pack $wid.sw -side left -expand no -fill x
   }
   label $wid.value -relief sunken -text "$traceVar($variable)" -width 5
@@ -1391,9 +1391,13 @@ proc gui_monitor_update {wid val} {
 
 proc gui_monitor_update_bar {wid val min max} {
   $wid.value configure -text "$val"
-	$wid.bar coords bar 0 0 [expr {int(($val-$min)/($max-$min) * 200.0 )} ] 17 
+	$wid.bar coords bar 0 0 [expr {int(($val-$min)/($max-$min) * 200.0 )} ] 17
 }
 
+proc gui_monitor_update_bar_color {wid color} {
+  $wid.value configure -background $color
+  $wid.bar itemconfigure bar -fill $color
+}
 #####################################################################################
 # the GUI
 #####################################################################################
@@ -1440,35 +1444,33 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	labelframe .note.general.settings -text "General"
 	pack .note.general.settings -side top -expand yes -fill both
 
-	labelframe .note.general.settings.power -text "Motor Power"
-	pack .note.general.settings.power -side left -expand yes -fill both
- 
-		gui_check .note.general.settings.power.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. when battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
-		gui_spin .note.general.settings.power.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
-		gui_spin .note.general.settings.power.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
-		gui_button .note.general.settings.power.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and use it as reference in variable config.refVoltageBat" set_batteryVoltage
-	
-		labelframe .note.general.settings.sensor -text "Sensor"
-		pack .note.general.settings.sensor -side left -expand yes -fill both
+    labelframe .note.general.settings.power -text "Motor Power"
+    pack .note.general.settings.power -side left -expand yes -fill both
+   
+      gui_check .note.general.settings.power.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. when battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
+      gui_spin .note.general.settings.power.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
+      gui_spin .note.general.settings.power.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
+      gui_button .note.general.settings.power.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and use it as reference in variable config.refVoltageBat" set_batteryVoltage
+    
+      labelframe .note.general.settings.sensor -text "Sensor"
+      pack .note.general.settings.sensor -side left -expand yes -fill both
 
+    frame .note.general.settings.sensor.set
+    pack .note.general.settings.sensor.set -side left -expand yes -fill both
 
-			frame .note.general.settings.sensor.set
-			pack .note.general.settings.sensor.set -side left -expand yes -fill both
+      gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "Reverse Z-axis" "reversed" "Set Sensor Orientation: 0=sensor mounted with component side up, 1=upside down" "Set Sensor Orientation Z-Axis: 0=sensor mounted with component side up, 1=sensor mounted upside down"
+      gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "Swap XY-axis" "swapped" "Set Sensor Orientation XY-Axis: 0=normal, 1=swap X/Y" "Set Sensor Orientation XY-Axis: 0=normal, 1=functions of X/Y axis are exchanged"
+      gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 1 20 1 "ACC Time Const"  "ACC Time Constant(sec)" "tconfig.accTimeConstant: time constant of ACC complementary filter.  Controls how fast the gimbal follows ACC (sec)"
+      gui_check .note.general.settings.sensor.set.enableGyro enableGyro "Gyro Update" "enabled" "Gyro update" "config.enableGyro: enable gyro update: 0=do not use gyro for attitude calcualtion, just for test and adjustment purposes"
+      gui_check .note.general.settings.sensor.set.enableACC enableACC "ACC Update" "enabled" "ACC update" "config.enableACC: enable ACC update: 0=do not use ACC for attitude calculation, just for test and adjustment purposes"
+      
+    frame .note.general.settings.sensor.img
+      pack .note.general.settings.sensor.img -side left -expand no -fill none
 
-				gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "Reverse Z-axis" "reversed" "Set Sensor Orientation: 0=sensor mounted with component side up, 1=upside down" "Set Sensor Orientation Z-Axis: 0=sensor mounted with component side up, 1=sensor mounted upside down"
-				gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "Swap XY-axis" "swapped" "Set Sensor Orientation XY-Axis: 0=normal, 1=swap X/Y" "Set Sensor Orientation XY-Axis: 0=normal, 1=functions of X/Y axis are exchanged"
-				gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 1 20 1 "ACC Time Const"  "ACC Time Constant(sec)" "tconfig.accTimeConstant: time constant of ACC complementary filter.  Controls how fast the gimbal follows ACC (sec)"
-				gui_check .note.general.settings.sensor.set.enableGyro enableGyro "Gyro Update" "enabled" "Gyro update" "config.enableGyro: enable gyro update: 0=do not use gyro for attitude calcualtion, just for test and adjustment purposes"
-				gui_check .note.general.settings.sensor.set.enableACC enableACC "ACC Update" "enabled" "ACC update" "config.enableACC: enable ACC update: 0=do not use ACC for attitude calculation, just for test and adjustment purposes"
-
-
-			frame .note.general.settings.sensor.img
-			pack .note.general.settings.sensor.img -side left -expand no -fill none
-
-				canvas .note.general.settings.sensor.img.canv -relief raised -width 120 -height 120
-				pack .note.general.settings.sensor.img.canv -side left
-				.note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
-				update_mpu 0 0 0
+      canvas .note.general.settings.sensor.img.canv -relief raised -width 120 -height 120
+      pack .note.general.settings.sensor.img.canv -side left
+      .note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
+      update_mpu 0 0 0
 				
 	labelframe .note.general.buttons -text "Config Parameters"
 	pack .note.general.buttons -side top -expand no -fill both
@@ -1523,64 +1525,68 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 	ttk::frame .note.pitchRC
 	.note add .note.pitchRC -text "RC Pitch"
 
-		labelframe .note.pitchRC.rc -text "RC" -padx 10 -pady 10
-		pack .note.pitchRC.rc -side top -expand no -fill x
+	labelframe .note.pitchRC.set
+	pack .note.pitchRC.set -side top -expand yes -fill both
 
-      gui_check  .note.pitchRC.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-			gui_spin   .note.pitchRC.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_check  .note.pitchRC.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.pitchRC.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.pitchRC.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.pitchRC.rc.rcmin  minRCPitch -120 120 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitchRC.rc.rcmax  maxRCPitch -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitchRC.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
+    labelframe .note.pitchRC.set.rc -text "RC" -padx 10 -pady 10
+		pack .note.pitchRC.set.rc -side left -expand yes -fill both
 
-		labelframe .note.pitchRC.fpv -text "FPV" -padx 10 -pady 10
-		pack .note.pitchRC.fpv -side top -expand no -fill x
+      gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+			gui_spin   .note.pitchRC.set.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+			gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+			gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.pitchRC.set.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -120 120 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
-      gui_check  .note.pitchRC.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-      gui_spin   .note.pitchRC.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-      gui_spin   .note.pitchRC.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-			gui_slider .note.pitchRC.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-			gui_slider .note.pitchRC.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+		labelframe .note.pitchRC.set.fpv -text "FPV" -padx 10 -pady 10
+		pack .note.pitchRC.set.fpv -side top -expand no -fill x
 
-    labelframe .note.pitchRC.monitor -text "RC Monitor" -padx 10 -pady 7
-		pack .note.pitchRC.monitor -side top -expand no -fill x
-      gui_monitor .note.pitchRC.monitor.rcPitch rcPitch "RC Pitch" SW bar
-      gui_monitor .note.pitchRC.monitor.rcFpvPitch rcFpvPitch "FPV Pitch" SW bar
-      
+      gui_check  .note.pitchRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+      gui_spin   .note.pitchRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+      gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+			gui_slider .note.pitchRC.set.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+			gui_slider .note.pitchRC.set.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
 
-      
-  ttk::frame .note.rollRC
- 	.note add .note.rollRC -text "RC Roll"
+	labelframe .note.pitchRC.monitor -text "RC Monitor"
+	pack .note.pitchRC.monitor -side top -expand yes -fill both
+    gui_monitor .note.pitchRC.monitor.rcPitch rcPitch "RC Pitch" "SW FPV" bar
+    gui_monitor .note.pitchRC.monitor.rcFpvPitch rcFpvPitch "FPV Pitch" "SW FPV" bar
+    
 
-		labelframe .note.rollRC.rc -text "RC" -padx 10 -pady 10
-		pack .note.rollRC.rc -side top -expand no -fill x
+	ttk::frame .note.rollRC
+	.note add .note.rollRC -text "RC Roll"
 
-      gui_check  .note.rollRC.rc.rcModePPMRoll rcModePPMRoll          "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-			gui_spin   .note.rollRC.rc.rcChannelRoll rcChannelRoll 0 16 1   "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, llegal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_check  .note.rollRC.rc.rcAbsolute rcAbsoluteRoll            "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.rollRC.rc.rcGain rcGainRoll -200 200.0 0.1     "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.rollRC.rc.rcLPF  rcLPFRoll 0.1 20 0.1          "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.rollRC.rc.rcmin  minRCRoll -120 120 1          "RC Min"  "minimum Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.rc.rcmax  maxRCRoll -120 120 1          "RC Max"  "maximum Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.rc.aop angleOffsetRoll -120 120 0.1     "Angle Offset" "angleOffsetRoll" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
+	labelframe .note.rollRC.set
+	pack .note.rollRC.set -side top -expand yes -fill both
 
-		labelframe .note.rollRC.fpv -text "FPV" -padx 10 -pady 10
-		pack .note.rollRC.fpv -side top -expand no -fill x
+    labelframe .note.rollRC.set.rc -text "RC" -padx 10 -pady 10
+		pack .note.rollRC.set.rc -side left -expand yes -fill both
 
-      gui_check  .note.rollRC.fpv.rcModePPMFpv rcModePPMFpvR          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-      gui_spin   .note.rollRC.fpv.rcChannelFpv  rcChannelFpvR 0 16 1  "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-      gui_spin   .note.rollRC.fpv.fpvSw  fpvSwRoll -1 2 1             "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-			gui_slider .note.rollRC.fpv.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-			gui_slider .note.rollRC.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
+      gui_check  .note.rollRC.set.rc.rcModePPMRoll rcModePPMRoll        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+			gui_spin   .note.rollRC.set.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+			gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+			gui_slider .note.rollRC.set.rc.rcGain rcGainRoll -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+			gui_slider .note.rollRC.set.rc.rcLPF  rcLPFRoll 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+			gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -120 120 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
-    labelframe .note.rollRC.monitor -text "RC Monitor" -padx 10 -pady 7
-		pack .note.rollRC.monitor -side top -expand no -fill x
-      gui_monitor .note.rollRC.monitor.rcRoll rcRoll "RC Roll" SW bar
-      gui_monitor .note.rollRC.monitor.rcFpvRoll rcFpvRoll "FPV Roll" SW bar
-   
-      
+		labelframe .note.rollRC.set.fpv -text "FPV" -padx 10 -pady 10
+		pack .note.rollRC.set.fpv -side top -expand no -fill x
+
+      gui_check  .note.rollRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+      gui_spin   .note.rollRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+      gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+			gui_slider .note.rollRC.set.fpv.fpvGain fpvGainRoll -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+			gui_slider .note.rollRC.set.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
+
+	labelframe .note.rollRC.monitor -text "RC Monitor"
+	pack .note.rollRC.monitor -side top -expand yes -fill both
+      gui_monitor .note.rollRC.monitor.rcRoll rcRoll "RC Roll" "SW FPV" bar
+      gui_monitor .note.rollRC.monitor.rcFpvRoll rcFpvRoll "FPV Roll" "SW FPV" bar
+    
   ttk::frame .note.cal
 	.note add .note.cal -text "Calibration"
 
@@ -1604,28 +1610,31 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
   ttk::frame .note.aux
 	.note add .note.aux -text "Auxiliary"
 
-    labelframe .note.aux.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 10
-    pack .note.aux.rc -side top -expand no -fill x
-        gui_check  .note.aux.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.aux.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+  labelframe .note.aux.1 -padx 10 -pady 10
+  pack .note.aux.1 -side top -expand no -fill x
 
-    #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
+    labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 10
+    pack .note.aux.1.rc -side left -expand yes -fill x
+      gui_check  .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+      gui_spin   .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+
+    labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 10
+    pack .note.aux.1.altTC -side left -expand yes -fill x
+        gui_spin   .note.aux.1.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
+
+        #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
     #pack .note.aux.rcMisc -side top -expand no -fill x
 
       # not used any more
       #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
-    
+      
     labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
 		pack .note.aux.monitor -side top -expand no -fill x
-      gui_monitor .note.aux.monitor.rcAux rcPitch "RC Auxiliary" no bar
-      gui_monitor .note.aux.monitor.rcAuxSW1 rcPitch "AuxSW1" no no
-      gui_monitor .note.aux.monitor.rcAuxSW2 rcPitch "AuxSW2" no no
+      gui_monitor .note.aux.monitor.rcAux rcAux "RC Auxiliary" no bar
+      gui_monitor .note.aux.monitor.rcAuxSW1 rcAuxSW1 "AuxSW1" no no
+      gui_monitor .note.aux.monitor.rcAuxSW2 rcAuxSW2 "AuxSW2" no no
       
-    labelframe .note.aux.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 10
-    pack .note.aux.altTC -side top -expand no -fill x
-        gui_spin   .note.aux.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.aux.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
-
     labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
     pack .note.aux.debug -side top -expand no -fill x
 
@@ -1784,9 +1793,9 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcPitchValid"} {
     if {$traceVar($n2) == 1} {
-       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.value "$bg_color_act"
+       gui_monitor_update_bar_color .note.pitchRC.monitor.rcPitch "$bg_color_act"
     } else {
-       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.value "$bg_color_inact"
+       gui_monitor_update_bar_color .note.pitchRC.monitor.rcPitch "$bg_color_inact"
     }
   }
   if {$n2 == "rcFpvPitch"} {
@@ -1794,9 +1803,9 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcFpvPitchValid"} {
     if {$traceVar($n2) == 1} {
-      gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.value "$bg_color_act"
+      gui_monitor_update_bar_color .note.pitchRC.monitor.rcFpvPitch "$bg_color_act"
     } else {
-      gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.value "$bg_color_inact"
+      gui_monitor_update_bar_color .note.pitchRC.monitor.rcFpvPitch "$bg_color_inact"
     }
   }
   if {$n2 == "fpvModePitch"} {
@@ -1815,9 +1824,9 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcRollValid"} {
     if {$traceVar($n2) == 1} {
-       gui_monitor_update_status .note.rollRC.monitor.rcRoll.value "$bg_color_act"
+       gui_monitor_update_bar_color .note.rollRC.monitor.rcRoll "$bg_color_act"
     } else {
-       gui_monitor_update_status .note.rollRC.monitor.rcRoll.value "$bg_color_inact"
+       gui_monitor_update_bar_color .note.rollRC.monitor.rcRoll "$bg_color_inact"
     }
   }
   if {$n2 == "rcFpvRoll"} {
@@ -1825,9 +1834,9 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcFpvRollValid"} {
     if {$traceVar($n2) == 1} {
-      gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.value "$bg_color_act"
+      gui_monitor_update_bar_color .note.rollRC.monitor.rcFpvRoll "$bg_color_act"
     } else {
-      gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.value "$bg_color_inact"
+      gui_monitor_update_bar_color .note.rollRC.monitor.rcFpvRoll "$bg_color_inact"
     }
   }
   if {$n2 == "fpvModeRoll"} {
@@ -1846,9 +1855,9 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcAuxValid"} {
     if {$traceVar($n2) == 1} {
-       gui_monitor_update_status .note.aux.monitor.rcAux.value "$bg_color_act"
+       gui_monitor_update_bar_color .note.aux.monitor.rcAux "$bg_color_act"
     } else {
-       gui_monitor_update_status .note.aux.monitor.rcAux.value "$bg_color_inact"
+       gui_monitor_update_bar_color .note.aux.monitor.rcAux "$bg_color_inact"
     }
   }
   if {$n2 == "rcAuxSW1"} {
