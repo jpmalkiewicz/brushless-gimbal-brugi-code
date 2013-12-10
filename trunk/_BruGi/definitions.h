@@ -62,6 +62,10 @@
 //#define RC_PIN_PPM_A1
 //#define RC_PIN_PPM_A0
 
+#define RC_PIN_CH0 A2 
+#define RC_PIN_CH1 A1 
+#define RC_PIN_CH2 A0 
+
 #define MIN_RC 1000
 #define MID_RC 1500
 #define MAX_RC 2000

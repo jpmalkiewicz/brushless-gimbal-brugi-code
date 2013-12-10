@@ -211,12 +211,46 @@ void initRCPins()
   static bool first = true;
   if (first)
   {
-    pinMode(A2, INPUT); digitalWrite(A2, HIGH);
-    PCintPort::attachInterrupt(A2, &intDecodePWM_Ch0, CHANGE);
-    pinMode(A1, INPUT); digitalWrite(A1, HIGH);
-    PCintPort::attachInterrupt(A1, &intDecodePWM_Ch1, CHANGE);
-    pinMode(A0, INPUT); digitalWrite(A0, HIGH);
-    PCintPort::attachInterrupt(A0, &intDecodePWM_Ch2, CHANGE);
+ 
+    switch (config.rcPinModeCH0) {
+      case 0: // OFF
+        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        break;
+      case 1: // digital RC PWM/PPM
+        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        PCintPort::attachInterrupt(RC_PIN_CH0, &intDecodePWM_Ch0, CHANGE);
+        break;
+      case 2: // analog
+        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        break;
+    }
+ 
+    switch (config.rcPinModeCH1) {
+      case 0: // OFF
+        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        break;
+      case 1: // digital RC PWM
+        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        PCintPort::attachInterrupt(RC_PIN_CH1, &intDecodePWM_Ch1, CHANGE);
+        break;
+      case 2: // analog
+        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        break;
+    }
+ 
+    switch (config.rcPinModeCH2) {
+      case 0: // OFF
+        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        break;
+      case 1: // digital RC PWM
+        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        PCintPort::attachInterrupt(RC_PIN_CH2, &intDecodePWM_Ch2, CHANGE);
+        break;
+      case 2: // analog
+        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        break;
+    }
+    
     first = false;
   }
   for (char id = 0; id < RC_DATA_SIZE; id++)
@@ -425,14 +459,58 @@ void decodeModeSwitches() {
 
 }
 
+//******************************************
+// Read Analog Control
+//******************************************
+
+void readRCAnalogPin(rcData_t* rcData, bool rcModePPM, uint8_t rcChannel) {
+  
+  unsigned int adcValue;
+  bool update = false;
+
+  if (rcModePPM == false) { // PWM mode and Pin = Analog
+    switch (rcChannel) {
+    case 0:
+      if (config.rcPinModeCH0==2) {
+        adcValue = analogRead(RC_PIN_CH0); // 118 us
+        update = true;
+      }
+    break;
+    case 1:
+      if (config.rcPinModeCH1==2) {
+        adcValue = analogRead(RC_PIN_CH1); // 118 us
+        update = true;
+      }
+      break;
+    case 2:
+      if (config.rcPinModeCH2==2) {
+        adcValue = analogRead(RC_PIN_CH2); // 118 us
+        update = true;
+      }
+      break;
+    }
+
+    // emulate RC reception,taking input from ADC as RC PWM time  
+    if (update) {
+      adcValue = (int)adcValue - 512 + MID_RC;
+      rcData->rx = constrain(adcValue, MIN_RC, MAX_RC);
+      rcData->valid=true;
+      rcData->update=true;
+    }
+    
+  }
+}
 
 
+void readRCAnalog() {
+  
+  // pitch
+  readRCAnalogPin(&rcData[RC_DATA_PITCH], config.rcModePPMPitch, config.rcChannelPitch);
+  // roll
+  readRCAnalogPin(&rcData[RC_DATA_ROLL],  config.rcModePPMRoll,  config.rcChannelRoll);
+  // aux
+  readRCAnalogPin(&rcData[RC_DATA_AUX],  config.rcModePPMAux,    config.rcChannelAux);
 
-
-
-
-
-
-
+}
 
 

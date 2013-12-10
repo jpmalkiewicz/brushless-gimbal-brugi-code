@@ -9,7 +9,7 @@
 # 
 package require Tk
 
-set VERSION "2013-12-09 / for BruGi Firmware v50-r191 or higher"
+set VERSION "2013-12-10 / for BruGi Firmware v50-r195 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -372,6 +372,7 @@ set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd
             dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale \
             rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll \
             rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
+            rcPinModeCH0 rcPinModeCH1 rcPinModeCH2 \
             rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
             rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
@@ -413,7 +414,6 @@ set par(cutoffVoltage,scale) 100.0
 
 set CHART_SCALE 0.5
 set buffer ""
-set count 0
 set chart_count 0
 
 set BruGiReady 0
@@ -453,7 +453,7 @@ init_traceVar
 
 proc Serial_Init {ComPort ComRate} {
 	global Serial
-	
+	global chart
 	catch {close $Serial}
 	catch {fileevent $Serial readable ""}
 	set iChannel 0
@@ -464,10 +464,12 @@ proc Serial_Init {ComPort ComRate} {
 		.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate" -background lightgrey
 		.bottom1.linkStatus configure -background lightgrey
 		.device.connect configure -text "Reconnect"
-	}]} {
+  }]} {
 		.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate" -background lightgrey
 		.bottom1.linkStatus configure -background red
 		.device.connect configure -text "Connect"
+    set chart 0
+    .chartview.chart.fr1.button configure -text "Start"
 		return 0
 	}
 	return $iChannel
@@ -476,10 +478,18 @@ proc Serial_Init {ComPort ComRate} {
 proc close_serial {} {
 	global Serial
 
+  set liveViewON 0
+  init_traceVar
+  update
+  link_send_cmd "par sTrace 0" "live monitor OFF" 300
+
 	catch {close $Serial}
+  set Serial 0
 	.device.connect configure -text "Connect"
   .bottom1.linkStatus configure -background red
   .bottom1.message configure -text "not connected"  -background lightgrey
+  set chart 0
+  .chartview.chart.fr1.button configure -text "Start"
   .bottom1.bruGiStatus configure -background lightgrey
   .bottom.bruGiVersion configure -text "Firmware: -----"
 }
@@ -490,14 +500,17 @@ proc close_serial {} {
 
 proc connect_serial {} {
 	global Serial
-	global count
 	global device
 	global buffer
 
 #	.bottom1.linkStatus configure -background yellow
+
+  if {$Serial != 0} {
+    close_serial
+  }
+
 	set device [.device.spin get]
 	set Serial [Serial_Init $device 115200]
-	set count 0
 	if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
 		.bottom1.message configure -text "not connected" -background lightgrey
@@ -564,12 +577,10 @@ proc send_parvar {n1 n2 op} {
 
 proc send_par {} {
 	global Serial
-	global count
 	global device
 	global buffer
 	global enable_trace
 
-	set count 0
 	set buffer ""
 	if {$Serial == 0} {
 		.bottom1.linkStatus configure -background red
@@ -654,11 +665,9 @@ proc save_values2file {} {
 
 proc acc_cal {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
-    link_send_cmd "ac" "acc calibration command" 2000
+  link_send_cmd "ac" "acc calibration command" 2000
 }
 
 proc acc_cal_reset {} {
@@ -672,11 +681,9 @@ proc acc_cal_reset {} {
 
 proc gyro_cal {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
-    link_send_cmd "gc" "gyro calibration command" 5500
+  link_send_cmd "gc" "gyro calibration command" 5500
 }
 
 proc gyro_cal_reset {} {
@@ -691,39 +698,31 @@ proc gyro_cal_reset {} {
 
 proc save_to_eeprom {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
   link_send_cmd "we" "saved config to EEPROM" 200
 }
 
 proc load_from_eeprom {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
 	update
   link_send_cmd "re" "loaded config from EEPROM" 200
 }
 
 proc set_defaults {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
 	update
   link_send_cmd "sd" "set config to default values" 200
 }
 
 proc set_batteryVoltage {} {
 	global Serial
-	global count
 	global device
 
-	set count 0
 	update
   link_send_cmd "sbv" "read battery voltage" 200
 }
@@ -738,11 +737,9 @@ proc set_traceVar {name data } {
 # Live View On button
 proc live_view_on {} {
 	global Serial
-	global count
 	global device
   global liveViewON
 
-	set count 0
   set liveViewON 1
 	update
   link_send_cmd "par sTrace 9" "live monitor ON" 200
@@ -751,11 +748,9 @@ proc live_view_on {} {
 # Live View Off button
 proc live_view_off {} {
 	global Serial
-	global count
 	global device
   global liveViewON
 
-  set count 0
   set liveViewON 0
   init_traceVar
   update
@@ -784,7 +779,6 @@ proc link_send_cmd {cmd message delay} {
 
 proc rd_chid {chid} {
 	global buffer
-	global count
 	global chart_count
 	global VERSION
 	global par
@@ -1628,6 +1622,12 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 
       # not used any more
       #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
+
+    labelframe .note.aux.rcpin -text "Mode of Control Input (OFF/digital/analog)" -padx 10 -pady 10
+    pack .note.aux.rcpin -side top -expand no -fill x
+      gui_spin  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 0 2 1       "Input 1 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
+      gui_spin  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 0 2 1       "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
+      gui_spin  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 0 2 1       "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
       
     labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
 		pack .note.aux.monitor -side top -expand no -fill x
