@@ -84,6 +84,10 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcModePPMFpvP",    BOOL,  &config.rcModePPMFpvPitch, &initRCPins},
   {"rcModePPMFpvR",    BOOL,  &config.rcModePPMFpvRoll, &initRCPins},
   
+  {"rcPinModeCH0",     UINT8, &config.rcPinModeCH0,     &initRCPins},
+  {"rcPinModeCH1",     UINT8, &config.rcPinModeCH1,     &initRCPins},
+  {"rcPinModeCH2",     UINT8, &config.rcPinModeCH2,     &initRCPins},
+  
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   &initRCPins},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    &initRCPins},
   {"rcChannelAux",     INT8,  &config.rcChannelAux,     &initRCPins},

@@ -40,7 +40,11 @@ struct config_t
   bool rcModePPMAux;
   bool rcModePPMFpvPitch;
   bool rcModePPMFpvRoll;
-  
+
+  uint8_t rcPinModeCH0;      // 0=Channel OFF, 1=use digital PWM/PPM control, 2=use analog control
+  uint8_t rcPinModeCH1;      // 
+  uint8_t rcPinModeCH2;      // 
+ 
   int8_t rcChannelPitch;     // input channel for pitch
   int8_t rcChannelRoll;      // input channel for roll
   int8_t rcChannelAux;       // input channel for auxiliary functions
@@ -115,13 +119,16 @@ void setDefaultParameters()
   config.rcModePPMAux = false;
   config.rcModePPMFpvPitch = false;
   config.rcModePPMFpvRoll = false;
-  config.rcChannelRoll = 0;
   config.rcChannelPitch = 1;
+  config.rcChannelRoll = 0;
   config.rcChannelAux = -1;
   config.rcChannelFpvPitch = -1;
   config.rcChannelFpvRoll = -1;
   config.fpvGainPitch = 0;
   config.fpvGainRoll = 0;
+  config.rcPinModeCH0 = 1;      // 1 = use digital control
+  config.rcPinModeCH1 = 1;
+  config.rcPinModeCH2 = 1;
   config.rcLPFPitchFpv = 10;  // 1 sec
   config.rcLPFRollFpv = 10;  // 1 sec
   config.rcMid = MID_RC;

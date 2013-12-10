@@ -31,8 +31,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r191"
-#define VERSION_EEPROM 12 // change this number when eeprom data structure has changed
+#define REVISION "r195"
+#define VERSION_EEPROM 13 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -423,7 +423,8 @@ void loop()
 
       break;
     case 8:
-      // unused slot
+      // read RC Anlog inputs
+      readRCAnalog(); // td = 354 us (if all 3 enabled, 118 us each analog channel)
       break;
     case 9:
       // unused slot
