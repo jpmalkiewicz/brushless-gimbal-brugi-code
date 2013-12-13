@@ -1,3 +1,24 @@
+10.12.2013
+Version 50 r196
+bug fix: swapXY sensor orientation had direction conflict between ACC and gyro
+
+
+10.12.2013
+Version 50 r195
+new features
+* can use analog inputs instead RC, e.g. a potentiometer can be connected, configurable for each input A0/A1/A2
+* can switch off any RC input on A0/A1/A2
+
+9.12.2013
+Version 50 r194
+GUI update, rearranged RC tabs to reduce windows size
+
+7.12.2013
+Version 50 r193
+GUI blg-tool enhancements
+* LiveView feature added, RC channels and switch states are displayed now
+* bug fix at line connect
+
 1.12.2013
 Version 50 r191
 * code cleanup and code size reduction
