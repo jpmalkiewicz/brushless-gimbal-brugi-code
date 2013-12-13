@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r195"
+#define REVISION "r196"
 #define VERSION_EEPROM 13 // change this number when eeprom data structure has changed
 
 
