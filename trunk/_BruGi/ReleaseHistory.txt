@@ -1,7 +1,11 @@
+14.12.2013
+Version 50 r197
+* bug fix: swapXY sensor orientation, yaw gyro direction was wrong, pitch down >45 deg did not work
+* GUI windows y size reduced
+
 10.12.2013
 Version 50 r196
-bug fix: swapXY sensor orientation had direction conflict between ACC and gyro
-
+* bug fix: swapXY sensor orientation had direction conflict between ACC and gyro
 
 10.12.2013
 Version 50 r195
