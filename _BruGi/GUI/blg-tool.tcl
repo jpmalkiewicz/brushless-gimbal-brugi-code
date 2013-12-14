@@ -1530,8 +1530,8 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
 			gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
 			gui_slider .note.pitchRC.set.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -120 120 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -140 140 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
+			gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -140 140 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
 			gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
 		labelframe .note.pitchRC.set.fpv -text "FPV" -padx 10 -pady 10
@@ -1563,9 +1563,9 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
 			gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
 			gui_slider .note.rollRC.set.rc.rcGain rcGainRoll -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
 			gui_slider .note.rollRC.set.rc.rcLPF  rcLPFRoll 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -120 120 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -120 120 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
+			gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -50 50 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+			gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
 		labelframe .note.rollRC.set.fpv -text "FPV" -padx 10 -pady 10
 		pack .note.rollRC.set.fpv -side top -expand no -fill x
@@ -1604,15 +1604,15 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
   ttk::frame .note.aux
 	.note add .note.aux -text "Auxiliary"
 
-  labelframe .note.aux.1 -padx 10 -pady 10
+  labelframe .note.aux.1 -padx 10 -pady 7
   pack .note.aux.1 -side top -expand no -fill x
 
-    labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 10
+    labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 7
     pack .note.aux.1.rc -side left -expand yes -fill x
       gui_check  .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
       gui_spin   .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 
-    labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 10
+    labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 7
     pack .note.aux.1.altTC -side left -expand yes -fill x
         gui_spin   .note.aux.1.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
         gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
@@ -1623,7 +1623,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       # not used any more
       #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
 
-    labelframe .note.aux.rcpin -text "Mode of Control Input (OFF/digital/analog)" -padx 10 -pady 10
+    labelframe .note.aux.rcpin -text "Mode of Control Input (OFF/digital/analog)" -padx 10 -pady 7
     pack .note.aux.rcpin -side top -expand no -fill x
       gui_spin  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 0 2 1       "Input 1 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
       gui_spin  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 0 2 1       "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
@@ -1635,14 +1635,14 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_monitor .note.aux.monitor.rcAuxSW1 rcAuxSW1 "AuxSW1" no no
       gui_monitor .note.aux.monitor.rcAuxSW2 rcAuxSW2 "AuxSW2" no no
       
-    labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 10
+    labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 7
     pack .note.aux.debug -side top -expand no -fill x
 
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
-      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
+#      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
 
       
-labelframe .monitor -text "Monitor"
+labelframe .monitor -text "Monitor"  -padx 10 -pady 7
 pack .monitor -side top -expand no -fill x
 setTooltip .monitor "Monitor Functions"
 
