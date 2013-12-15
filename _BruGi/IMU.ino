@@ -26,6 +26,30 @@
 #define scos(val) 1.0f
 
 
+// init and check I2C connection
+bool initI2C() {
+ 
+  bool success = true;
+  
+  // Auto detect MPU address
+  mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
+  mpu.initialize();
+  if(mpu.testConnection()) {
+//    printMessage(MSG_INFO, F("MPU6050 (HIGH)"));
+  } else {
+    mpu.setAddr(MPU6050_ADDRESS_AD0_LOW);
+    mpu.initialize();
+    if(mpu.testConnection()) {
+//      printMessage(MSG_INFO, F("MPU6050 (LOW)"));
+    } else {
+      printMessage(MSG_ERROR, F("MPU6050 not found on I2C")); 
+      success = false;
+    }
+  }
+  return success;
+}
+
+
 // init MPU modes
 void initMPU() {
   mpu.setClockSource(MPU6050_CLOCK_PLL_ZGYRO);          // Set Clock to ZGyro
@@ -34,7 +58,9 @@ void initMPU() {
   mpu.setDLPFMode(MPU6050_DLPF_BW_256);                 // Set Gyro Low Pass Filter
   mpu.setRate(0);                                       // 0=1kHz, 1=500Hz, 2=333Hz, 3=250Hz, 4=200Hz
   mpu.setSleepEnabled(false);
+  mpu.i2cErrors = 0;
 }
+
 
 // set default sensor orientation (sensor upside)
 void initSensorOrientationDefault() {
@@ -248,5 +274,4 @@ void getAttiduteAngles() {
   angle[PITCH] = angleOffsetPitch + Rajan_FastArcTan2_deg1000(EstG.V.Y , EstG.V.Z);
 
 }
-
 

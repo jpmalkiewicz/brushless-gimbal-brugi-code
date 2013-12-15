@@ -86,6 +86,13 @@ void printTrace(traceModeType traceMode)
       printTrace_int(rollErrorSum);
       break;
 
+    case TRC_MPU:
+      // *******  Main Status  *********
+      Serial.print(F(" MPU"));
+      printTrace_int(mpu.readRealTemperature());
+      printTrace_int(mpu.i2cErrors);
+      break;
+
     case TRC_OAC:
       // *******  OAC mode 2 (replaces oac/acc mode)  *********
       Serial.print(F(" ACC2"));

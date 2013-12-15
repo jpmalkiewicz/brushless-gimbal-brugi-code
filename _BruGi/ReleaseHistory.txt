@@ -1,3 +1,12 @@
+15.12.2013
+Version 50 r198
+* added I2C error checks
+* GUI improvements 
+   - window arrangment should fit MinLaptop 1024x600 screens
+     thanks to Sebastiaan Terlouw for the contribution!
+   - MPU I2C error and temperature display
+   - improved status messages at startup, e.g. if no sensor present
+
 14.12.2013
 Version 50 r197
 * bug fix: swapXY sensor orientation, yaw gyro direction was wrong, pitch down >45 deg did not work

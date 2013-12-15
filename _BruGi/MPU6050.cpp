@@ -51,6 +51,7 @@ MPU6050::MPU6050() {
  */
 MPU6050::MPU6050(uint8_t address) {
     devAddr = address;
+    i2cErrors = 0;
 }
 
 /** Power on and prepare for general usage.
@@ -72,8 +73,16 @@ void MPU6050::initialize() {
  * @return True if connection is valid, false otherwise
  */
 bool MPU6050::testConnection() {
-    return getDeviceID() == 0x34;
+    bool success = getDeviceID() == 0x34;
+    i2cErrors += success ? 0 : 1;
+    return success; 
 }
+
+
+int8_t MPU6050::readRealTemperature() {
+    return (getTemperature()/340) + 37;
+}
+
 
 // AUX_VDDIO register (InvenSense demo code calls this RA_*G_OFFS_TC)
 
@@ -1777,7 +1786,7 @@ void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int
  * @see MPU6050_RA_GYRO_XOUT_H
  */
 void MPU6050::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
-    I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 6, buffer);
+    i2cErrors += (I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 6, buffer) <= 0) ? 1 : 0;
     *x = (((int16_t)buffer[0]) << 8) | buffer[1];
     *y = (((int16_t)buffer[2]) << 8) | buffer[3];
     *z = (((int16_t)buffer[4]) << 8) | buffer[5];
@@ -1870,7 +1879,7 @@ int16_t MPU6050::getTemperature() {
  * @see MPU6050_RA_GYRO_XOUT_H
  */
 void MPU6050::getRotation(int16_t* x, int16_t* y, int16_t* z) {
-    I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_XOUT_H, 6, buffer);
+    i2cErrors += (I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_XOUT_H, 6, buffer) <= 0) ? 1 : 0;
     *x = (((int16_t)buffer[0]) << 8) | buffer[1];
     *y = (((int16_t)buffer[2]) << 8) | buffer[3];
     *z = (((int16_t)buffer[4]) << 8) | buffer[5];
@@ -2716,7 +2725,7 @@ void MPU6050::setFIFOByte(uint8_t data) {
  * @see MPU6050_WHO_AM_I_LENGTH
  */
 uint8_t MPU6050::getDeviceID() {
-    I2Cdev::readBits(devAddr, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer);
+    i2cErrors += (I2Cdev::readBits(devAddr, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer) <= 0) ? 1 : 0;
     return buffer[0];
 }
 /** Set Device ID.
