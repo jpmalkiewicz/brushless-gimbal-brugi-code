@@ -404,8 +404,12 @@ class MPU6050 {
         MPU6050();
         MPU6050(uint8_t address);
 
+        unsigned int i2cErrors;
+
         void initialize();
         bool testConnection();
+        int8_t readRealTemperature();
+        
         void setAddr(uint8_t source);
 
         // AUX_VDDIO register

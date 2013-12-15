@@ -9,7 +9,7 @@
 # 
 package require Tk
 
-set VERSION "2013-12-10 / for BruGi Firmware v50-r195 or higher"
+set VERSION "2013-12-15 / for BruGi Firmware v50-r198 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -202,7 +202,7 @@ Ryq+QIMw1EARJkQhCpHhBVSsI4Y3xGEOdbhDHholIAA7
 proc setTooltip {widget text} {
 	if { $text != "" } {
 
-		bind $widget <Any-Enter>    [list .helptext configure -text "Tooltip: $text"]
+		bind $widget <Any-Enter>    [list  .common.helptext configure -text "Tooltip: $text"]
 
 #		bind $widget <Any-Enter>    [list after 500 [list showTooltip %W $text]]
 #		bind $widget <Any-Leave>    [list after 500 [list destroy %W.tooltip]]
@@ -284,8 +284,8 @@ if {$HEXDATA != ""} {
 	.menu add cascade -label "Firmware" -menu .menu.firmware -underline 0
 		.menu.firmware add command -label "Upload" -command {
 			close_serial
-			set device [.device.spin get]
-			set ArduinoSerial [ArduinoSerial_Init [.device.spin get] 57600]
+			set device [.common.device.spin get]
+			set ArduinoSerial [ArduinoSerial_Init [.common.device.spin get] 57600]
 			ArduinoReset
 			ArduinoSerial_SendCMD $defs(STK_GET_SIGN_ON)
 			if {$ArduinoTimeout != 0} {
@@ -378,8 +378,7 @@ set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
   
 foreach var $params {
-	if {$var == "vers"} {
-	} elseif {! [string match "*,*" $var]} {
+	if {! [string match "*,*" $var]} {
 		set par($var) 0
 		set par($var,scale) 1
 		set par($var,offset) 0
@@ -431,6 +430,7 @@ set traceVars "\
              accX accY accZ accMag \
              pitchAngleSet anglePitch pitchMotorDrive pitchPidError pitchErrorSum \
              rollAngleSet angleRoll rollMotorDrive rollPidError rollErrorSum \
+             mpuTemp mpuI2cErrors \
              "
 
 # initialize trace vars             
@@ -461,37 +461,48 @@ proc Serial_Init {ComPort ComRate} {
 		set iChannel [open $ComPort w+]
 		fconfigure $iChannel -mode $ComRate,n,8,1 -ttycontrol {RTS 1 DTR 0} -blocking FALSE
 		fileevent $iChannel readable [list rd_chid $iChannel]
-		.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate" -background lightgrey
-		.bottom1.linkStatus configure -background lightgrey
-		.device.connect configure -text "Reconnect"
+		.common.bottom1.message configure -text "Serial-Ok: $ComPort @ $ComRate" -background lightgrey
+		.common.bottom1.linkStatus configure -background lightgrey
+		.common.device.connect configure -text "Reconnect"
   }]} {
-		.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate" -background lightgrey
-		.bottom1.linkStatus configure -background red
-		.device.connect configure -text "Connect"
+		.common.bottom1.message configure -text "Serial-Error: $ComPort @ $ComRate" -background lightgrey
+		.common.bottom1.linkStatus configure -background red
+		.common.device.connect configure -text "Connect"
     set chart 0
-    .chartview.chart.fr1.button configure -text "Start"
+    .common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
 		return 0
 	}
+
+  .common.monitor.liveViewButton configure -background lightgrey
+  # init the trace display fields in any case
+  init_traceDisplay
+  update
+  
 	return $iChannel
 }
 
 proc close_serial {} {
 	global Serial
 
-  set liveViewON 0
-  init_traceVar
-  update
-  link_send_cmd "par sTrace 0" "live monitor OFF" 300
+#  set liveViewON 0
+#  init_traceVar
+#  update
+#  link_send_cmd "par sTrace 0" "live monitor OFF" 300
 
 	catch {close $Serial}
   set Serial 0
-	.device.connect configure -text "Connect"
-  .bottom1.linkStatus configure -background red
-  .bottom1.message configure -text "not connected"  -background lightgrey
+	.common.device.connect configure -text "Connect"
+  .common.bottom1.linkStatus configure -background red
+  .common.bottom1.message configure -text "not connected"  -background lightgrey
   set chart 0
-  .chartview.chart.fr1.button configure -text "Start"
-  .bottom1.bruGiStatus configure -background lightgrey
-  .bottom.bruGiVersion configure -text "Firmware: -----"
+  .common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
+  .common.bottom1.bruGiStatus configure -background lightgrey
+  .common.bottom.bruGiVersion configure -text "Firmware: -----"
+  
+  .common.monitor.liveViewButton configure -background lightgrey
+  # init the trace display fields
+  init_traceDisplay
+  update
 }
 
 #####################################################################################
@@ -503,21 +514,21 @@ proc connect_serial {} {
 	global device
 	global buffer
 
-#	.bottom1.linkStatus configure -background yellow
+#	.common.bottom1.linkStatus configure -background yellow
 
   if {$Serial != 0} {
     close_serial
   }
 
-	set device [.device.spin get]
+	set device [.common.device.spin get]
 	set Serial [Serial_Init $device 115200]
 	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected" -background lightgrey
+		.common.bottom1.linkStatus configure -background red
+		.common.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	} else {
-		.bottom1.linkStatus configure -background green
-		.bottom1.message configure -text "connected" -background lightgrey
+		.common.bottom1.linkStatus configure -background green
+		.common.bottom1.message configure -text "connected" -background lightgrey
 	}
 	#after 9000 send_par
 }
@@ -527,22 +538,22 @@ proc draw_chart {} {
 	global chart
 	
 	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected" -background lightgrey
+		.common.bottom1.linkStatus configure -background red
+		.common.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	}
 	if {$chart == 1} {
 		set chart 0
-		.bottom2.txlog configure -text "SEND: par fTrace 0"
+		.common.bottom2.txlog configure -text "TX: par fTrace 0"
         	puts -nonewline $Serial "par fTrace 0\n"
 		flush $Serial
-		.chartview.chart.fr1.button configure -text "Start"
+		.common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
 	} else {
 		set chart 1
-		.bottom2.txlog configure -text "SEND: par fTrace 8"
-        	puts -nonewline $Serial "par fTrace 8\n"
+		.common.bottom2.txlog configure -text "TX: par fTrace 254"
+        	puts -nonewline $Serial "par fTrace 254\n"
 		flush $Serial
-		.chartview.chart.fr1.button configure -text "Stop"
+		.common.chartview.chart.fr1.button configure -text "Stop" -background green
 	}
 }
 
@@ -553,21 +564,20 @@ proc send_parvar {n1 n2 op} {
 
 	if {$enable_trace == 1} {
 		if {$Serial == 0} {
-			.bottom1.linkStatus configure -background red
-			.bottom1.message configure -text "not connected" -background lightgrey
+			.common.bottom1.linkStatus configure -background red
+			.common.bottom1.message configure -text "not connected" -background lightgrey
 			return
 		}
-		if {$n2 == "vers"} {
-		} elseif {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
+		if {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
 			if {$par($n2) == 1} {
-				.bottom2.txlog configure -text "SEND: par $n2 -1"
+				.common.bottom2.txlog configure -text "TX: par $n2 -1"
 					puts -nonewline $Serial "par $n2 -1\n"
 			} else {
-				.bottom2.txlog configure -text "SEND: par $n2 1"
+				.common.bottom2.txlog configure -text "TX: par $n2 1"
 					puts -nonewline $Serial "par $n2 1\n"
 			}
 		} else {
-			.bottom2.txlog configure -text "SEND: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
+			.common.bottom2.txlog configure -text "TX: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
 				puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
 		}
 		flush $Serial
@@ -583,8 +593,8 @@ proc send_par {} {
 
 	set buffer ""
 	if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected" -background lightgrey
+		.common.bottom1.linkStatus configure -background red
+		.common.bottom1.message configure -text "not connected" -background lightgrey
 		return
 	}
 	set enable_trace 0 
@@ -617,11 +627,11 @@ proc load_values_from_file {} {
 					after 20
 				}
 			}
-			.bottom1.message configure -text "load: done" -background lightgrey
+			.common.bottom1.message configure -text "load: done" -background lightgrey
 			update
 
 		} else {
-			.bottom1.message configure -text "load: error, filename = $file" -background red
+			.common.bottom1.message configure -text "load: error, filename = $file" -background red
 			update
 		}
 	}
@@ -646,8 +656,7 @@ proc save_values2file {} {
 	if {$file != ""} {
 		set fp [open $file w]
 		foreach var [array names par] {
-			if {$var == "vers"} {
-			} elseif {! [string match "*,*" $var]} {
+      if {! [string match "*,*" $var]} {
 				if {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
 					if {$par($var) == 1} {
 					        puts -nonewline $fp "par $var -1\n"
@@ -735,40 +744,36 @@ proc set_traceVar {name data } {
 }
 
 # Live View On button
-proc live_view_on {} {
+proc live_view {} {
 	global Serial
 	global device
   global liveViewON
 
-  set liveViewON 1
-	update
-  link_send_cmd "par sTrace 9" "live monitor ON" 200
+  if {$liveViewON == 0} {
+    .common.monitor.liveViewButton configure -background green
+    set liveViewON 1
+    update
+    link_send_cmd "par sTrace 255" "live monitor ON" 200
+  } else {
+    .common.monitor.liveViewButton configure -background lightgrey
+    set liveViewON 0
+    init_traceDisplay
+    update
+    link_send_cmd "par sTrace 0" "live monitor OFF" 200
+  }  
 }
-
-# Live View Off button
-proc live_view_off {} {
-	global Serial
-	global device
-  global liveViewON
-
-  set liveViewON 0
-  init_traceVar
-  update
-  link_send_cmd "par sTrace 0" "live monitor OFF" 200
-}
-
 
 # send a command with link check
 proc link_send_cmd {cmd message delay} {
 	global Serial
     if {$Serial == 0} {
-		.bottom1.linkStatus configure -background red
-		.bottom1.message configure -text "not connected" -background lightgrey
+		.common.bottom1.linkStatus configure -background red
+		.common.bottom1.message configure -text "not connected" -background lightgrey
 		return 1
 	}
   puts -nonewline $Serial "$cmd\n"
 	flush $Serial
-	.bottom1.message configure -text "$message" -background lightgrey
+	.common.bottom1.message configure -text "$message" -background lightgrey
 	after $delay send_par
   return 0
 }
@@ -799,7 +804,7 @@ proc rd_chid {chid} {
 		if {$ch == "\r"} {
 		} elseif {$ch == "\n"} {
 			if {1 == 1} {
-			  .bottom2.rxlog configure -text "$buffer"
+			  .common.bottom2.rxlog configure -text "$buffer"
 #				update
 				set var [lindex $buffer 0]
 				set val [lindex $buffer 1]
@@ -807,23 +812,23 @@ proc rd_chid {chid} {
 				if {$var == "message"} {
           set message [lrange $buffer 2 end]
           if {$val == "VERSION:"} {
-            .bottom.bruGiVersion configure -text "Firmware: ${message}"
+            .common.bottom.bruGiVersion configure -text "Firmware: ${message}"
             #.bottom.bruGiVersion configure -background lightgray
           }
           if {$val == "INFO:"} {
-            .bottom1.message configure -text "INFO: ${message}"  -background green
-            .bottom1.bruGiStatus configure -background green
+            .common.bottom1.message configure -text "INFO: ${message}"  -background green
+            .common.bottom1.bruGiStatus configure -background green
             if {${message} == "BruGi ready"} {
               set BruGiReady 1
               after 200 send_par
             }
           }
           if {$val == "WARNING:"} {
-            .bottom1.message configure -text "WARNING: ${message}" -background yellow
-            .bottom1.bruGiStatus configure -background yellow
+            .common.bottom1.message configure -text "WARNING: ${message}" -background yellow
+            .common.bottom1.bruGiStatus configure -background yellow
           }
           if {$val == "ERROR:"} {
-            .bottom1.message configure -text "ERROR: ${message}"  -background read
+            .common.bottom1.message configure -text "ERROR: ${message}"  -background red
           } 
         } elseif {$var == "traceData"} {
           if {$val == "RC"} {
@@ -877,6 +882,10 @@ proc rd_chid {chid} {
             set_traceVar "rollPidError" [lindex $buffer 5]
             set_traceVar "rollErrorSum" [lindex $buffer 6]
           }
+          if {$val == "MPU"} {
+            set_traceVar "mpuTemp" [lindex $buffer 2]
+            set_traceVar "mpuI2cErrors" [lindex $buffer 3]
+          }
           if {$val == "ACC2"} {
             set chart 1
             global LastValX
@@ -890,14 +899,14 @@ proc rd_chid {chid} {
               if {$chart_count >= 450} {
                 set chart_count 0
               }
-              .chartview.chart.chart1 delete "line_$chart_count"
-              .chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
-              .chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
-              .chartview.chart.chart1 delete "pos"
-              .chartview.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
-              .chartview.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
-              .chartview.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
-              .chartview.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
+              .common.chartview.chart.chart1 delete "line_$chart_count"
+              .common.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValX / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValX * $CHART_SCALE / 2 + 50)] -fill orange -tags "line_$chart_count"
+              .common.chartview.chart.chart1 create line $chart_count [expr 100 - ($LastValY / 2 * $CHART_SCALE + 50)] [expr $chart_count + 1] [expr 100 - ($ValY * $CHART_SCALE / 2 + 50)] -fill green -tags "line_$chart_count"
+              .common.chartview.chart.chart1 delete "pos"
+              .common.chartview.chart.chart1 create line [expr $chart_count + 1] 0 [expr $chart_count + 1] 100 -fill yellow -tags "pos"
+              .common.chartview.chart.chart1 create text 5 10 -text "Pitch: $ValX" -anchor w -fill orange -tags "pos"
+              .common.chartview.chart.chart1 create text 5 25 -text "Roll:  $ValY" -anchor w -fill green -tags "pos"
+              .common.chartview.chart.chart1 create text 5 90 -text "Scale:  $CHART_SCALE" -anchor w -fill green -tags "pos"
               set LastValX $ValX
               set LastValY $ValY
             }
@@ -908,7 +917,6 @@ proc rd_chid {chid} {
 					} else {
 						set par($var) 0
 					}
-
 				} elseif {[info exists par($var,scale)]} {
 					set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
 				} else {
@@ -1375,7 +1383,7 @@ proc gui_monitor {wid variable title sw bar } {
   
 }
 
-proc gui_monitor_update_status {wid color} {
+proc gui_monitor_update_color {wid color} {
   $wid configure -background $color
 }
 
@@ -1395,31 +1403,29 @@ proc gui_monitor_update_bar_color {wid color} {
 #####################################################################################
 # the GUI
 #####################################################################################
-
 wm title . "Brushless-Gimbal-Tool ($VERSION)"
-
-
+  
 proc update_mpu {n1 n2 op} {
-	global par
-	.note.general.settings.sensor.img.canv delete "arrows"
-	if {$par(axisSwapXY) == 1} {
-		.note.general.settings.sensor.img.canv create line 18 38 60 15 -fill green -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create line 18 38 50 75 -fill red -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create text 55 75 -text "X" -fill red -tag arrows
-		.note.general.settings.sensor.img.canv create text 65 15 -text "Y" -fill green -tag arrows
-	} else {
-		.note.general.settings.sensor.img.canv create line 18 38 60 15 -fill red -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create line 18 38 50 75 -fill green -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create text 65 15 -text "X" -fill red -tag arrows
-		.note.general.settings.sensor.img.canv create text 55 75 -text "Y" -fill green -tag arrows
-	}
-	if {$par(axisReverseZ) == 1} {
-		.note.general.settings.sensor.img.canv create line 18 38 18 100 -fill blue -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create text 23 100 -text "Z" -fill blue -tag arrows
-	} else {
-		.note.general.settings.sensor.img.canv create line 18 38 18 5 -fill blue -arrow last -tag arrows
-		.note.general.settings.sensor.img.canv create text 23 7 -text "Z" -fill blue -tag arrows
-	}
+        global par
+        .note.general.settings.sensor.img.canv delete "arrows"
+        if {$par(axisSwapXY) == 1} {
+                .note.general.settings.sensor.img.canv create line 18 38 60 15 -fill green -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create line 18 38 50 75 -fill red -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create text 55 75 -text "X" -fill red -tag arrows
+                .note.general.settings.sensor.img.canv create text 65 15 -text "Y" -fill green -tag arrows
+        } else {
+                .note.general.settings.sensor.img.canv create line 18 38 60 15 -fill red -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create line 18 38 50 75 -fill green -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create text 65 15 -text "X" -fill red -tag arrows
+                .note.general.settings.sensor.img.canv create text 55 75 -text "Y" -fill green -tag arrows
+        }
+        if {$par(axisReverseZ) == 1} {
+                .note.general.settings.sensor.img.canv create line 18 38 18 100 -fill blue -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create text 23 100 -text "Z" -fill blue -tag arrows
+        } else {
+                .note.general.settings.sensor.img.canv create line 18 38 18 5 -fill blue -arrow last -tag arrows
+                .note.general.settings.sensor.img.canv create text 23 7 -text "Z" -fill blue -tag arrows
+        }
 }
 
 trace variable par(axisReverseZ) w update_mpu
@@ -1427,174 +1433,179 @@ trace variable par(axisSwapXY) w update_mpu
 
 
 ttk::notebook .note
-pack .note -fill both -expand yes -fill both -padx 2 -pady 3
+pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
-	ttk::frame .note.general
-	.note add .note.general -text "Settings"
+  ttk::frame .note.general
+  .note add .note.general -text "Settings"
 
-	label .note.general.image -relief flat -anchor center -image "logo"
-	pack .note.general.image -side top -fill none -expand no
+    label .note.general.image -relief flat -anchor center -image "logo"
+    pack .note.general.image -side top -fill none -expand no
 
-	labelframe .note.general.settings -text "General"
-	pack .note.general.settings -side top -expand yes -fill both
+    frame .note.general.settings 
+    pack .note.general.settings -side top -expand yes -fill both
 
-    labelframe .note.general.settings.power -text "Motor Power"
-    pack .note.general.settings.power -side left -expand yes -fill both
-   
-      gui_check .note.general.settings.power.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. when battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
-      gui_spin .note.general.settings.power.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
-      gui_spin .note.general.settings.power.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
-      gui_button .note.general.settings.power.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and use it as reference in variable config.refVoltageBat" set_batteryVoltage
+      labelframe .note.general.settings.power -text "Motor Power"
+      pack .note.general.settings.power -side left -expand yes -fill both
+       
+        gui_check .note.general.settings.power.motorPowerScale  motorPowerScale   "Power Scale" "On" "compensate for battery voltage changes" "config.motorPowerScale: motor power is compensated for battery voltage changes, e.g. when battery voltage drops during operation, needs a 1k to 2k2 voltage divider from Ubat to input A3 (Multi)"
+        gui_spin .note.general.settings.power.refVoltageBat   refVoltageBat   6 20 0.1 "Battery Voltage"  "refVoltageBat" "config.refVoltageBat: this is the reference battery voltage, at which control loop parameters (P,I,D, PWM) have been set"
+        gui_spin .note.general.settings.power.cutoffVoltage   cutoffVoltage   6 20 0.1 "Cutoff Voltage"  "cutoffVoltage" "config.cutoffVoltage: this the minium battery voltage, motors are disabled when battery voltage drops below this voltage"
+        gui_button .note.general.settings.power.setrefVoltageBat "Get Battery Voltage" "get actual battery voltage and use it as reference in variable config.refVoltageBat" set_batteryVoltage
     
       labelframe .note.general.settings.sensor -text "Sensor"
-      pack .note.general.settings.sensor -side left -expand yes -fill both
+      pack .note.general.settings.sensor -side left -expand no -fill both
 
-    frame .note.general.settings.sensor.set
-    pack .note.general.settings.sensor.set -side left -expand yes -fill both
+        frame .note.general.settings.sensor.set
+        pack .note.general.settings.sensor.set -side left -expand yes -fill both
 
-      gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "Reverse Z-axis" "reversed" "Set Sensor Orientation: 0=sensor mounted with component side up, 1=upside down" "Set Sensor Orientation Z-Axis: 0=sensor mounted with component side up, 1=sensor mounted upside down"
-      gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "Swap XY-axis" "swapped" "Set Sensor Orientation XY-Axis: 0=normal, 1=swap X/Y" "Set Sensor Orientation XY-Axis: 0=normal, 1=functions of X/Y axis are exchanged"
-      gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 1 20 1 "ACC Time Const"  "ACC Time Constant(sec)" "tconfig.accTimeConstant: time constant of ACC complementary filter.  Controls how fast the gimbal follows ACC (sec)"
-      gui_check .note.general.settings.sensor.set.enableGyro enableGyro "Gyro Update" "enabled" "Gyro update" "config.enableGyro: enable gyro update: 0=do not use gyro for attitude calcualtion, just for test and adjustment purposes"
-      gui_check .note.general.settings.sensor.set.enableACC enableACC "ACC Update" "enabled" "ACC update" "config.enableACC: enable ACC update: 0=do not use ACC for attitude calculation, just for test and adjustment purposes"
+          gui_check .note.general.settings.sensor.set.axisReverseZ axisReverseZ "Reverse Z-axis" "reversed" "Set Sensor Orientation: 0=sensor mounted with component side up, 1=upside down" "Set Sensor Orientation Z-Axis: 0=sensor mounted with component side up, 1=sensor mounted upside down"
+          gui_check .note.general.settings.sensor.set.axisSwapXY axisSwapXY "Swap XY-axis" "swapped" "Set Sensor Orientation XY-Axis: 0=normal, 1=swap X/Y" "Set Sensor Orientation XY-Axis: 0=normal, 1=functions of X/Y axis are exchanged"
+          gui_slider .note.general.settings.sensor.set.accTimeConstant accTimeConstant 1 20 1 "ACC Time Const"  "ACC Time Constant(sec)" "tconfig.accTimeConstant: time constant of ACC complementary filter.  Controls how fast the gimbal follows ACC (sec)"
+          gui_check .note.general.settings.sensor.set.enableGyro enableGyro "Gyro Update" "enabled" "Gyro update" "config.enableGyro: enable gyro update: 0=do not use gyro for attitude calcualtion, just for test and adjustment purposes"
+          gui_check .note.general.settings.sensor.set.enableACC enableACC "ACC Update" "enabled" "ACC update" "config.enableACC: enable ACC update: 0=do not use ACC for attitude calculation, just for test and adjustment purposes"
+ 
+          labelframe .note.general.settings.sensor.set.mpuMonitor
+          pack .note.general.settings.sensor.set.mpuMonitor -side bottom -expand no -fill x
+            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors mpuI2cErrors "i2cErrors" no no
+            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuTemp mpuTemp "Temp" no no
       
-    frame .note.general.settings.sensor.img
-      pack .note.general.settings.sensor.img -side left -expand no -fill none
+        frame .note.general.settings.sensor.img
+          pack .note.general.settings.sensor.img -side left -expand no -fill none
 
-      canvas .note.general.settings.sensor.img.canv -relief raised -width 120 -height 120
-      pack .note.general.settings.sensor.img.canv -side left
-      .note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
-      update_mpu 0 0 0
-				
-	labelframe .note.general.buttons -text "Config Parameters"
-	pack .note.general.buttons -side top -expand no -fill both
+          canvas .note.general.settings.sensor.img.canv -relief raised -width 120 -height 120
+          pack .note.general.settings.sensor.img.canv -side left
+          .note.general.settings.sensor.img.canv create image 0 0 -anchor nw -image sensor
+          update_mpu 0 0 0
+                                
+    labelframe .note.general.buttons -text "Config Parameters"
+    pack .note.general.buttons -side top -expand no -fill both
 
-	frame .note.general.buttons.line1
-	pack .note.general.buttons.line1 -side top -expand no -fill x
-  
-		gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
-		gui_button .note.general.buttons.line1.load_from_eeprom "Get from EEPROM" "get values from EEPROM into board and gui" load_from_eeprom
-		gui_button .note.general.buttons.line1.save_to_eeprom "Save to EEPROM" "save values from board into EEPROM" save_to_eeprom
+      frame .note.general.buttons.line1
+      pack .note.general.buttons.line1 -side top -expand no -fill x
 
-	frame .note.general.buttons.line2
-	pack .note.general.buttons.line2 -side top -expand no -fill x
-  
-		gui_button .note.general.buttons.line2.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
-		gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
+        gui_button .note.general.buttons.line1.defaults "Set Defaults" "set defaults values" set_defaults
+        gui_button .note.general.buttons.line1.load_from_eeprom "Get from EEPROM" "get values from EEPROM into board and gui" load_from_eeprom
+        gui_button .note.general.buttons.line1.save_to_eeprom "Save to EEPROM" "save values from board into EEPROM" save_to_eeprom
 
-	ttk::frame .note.pitch
-	.note add .note.pitch -text "PID Pitch"
+      frame .note.general.buttons.line2
+      pack .note.general.buttons.line2 -side top -expand no -fill x
 
-		labelframe .note.pitch.pid -text "PID" -padx 10 -pady 10
-		pack .note.pitch.pid -side top -expand no -fill x
+        gui_button .note.general.buttons.line2.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
+        gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 
-			gui_slider .note.pitch.pid.p gyroPitchKp 0 150 0.1 "P" "P-Value" "config.gyroPitchKp: P-Value"
-			gui_slider .note.pitch.pid.i gyroPitchKi 0 500 0.1 "I" "I-Value" "config.gyroPitchKi: I-Value"
-			gui_slider .note.pitch.pid.d gyroPitchKd 0 150 0.1 "D" "D-Value" "config.gyroPitchKd: D-Value"
+  ttk::frame .note.pitch
+  .note add .note.pitch -text "PID Pitch"
 
-		labelframe .note.pitch.hw -text "Motor" -padx 10 -pady 10
-		pack .note.pitch.hw -side top -expand no -fill x
+    labelframe .note.pitch.pid -text "PID" -padx 10 -pady 10
+    pack .note.pitch.pid -side top -expand no -fill x
 
-			gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberPitch: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
-			gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "reverse" "Motor-Direction" "config.Direction: this is for reversing your motor if it is rotating in the wrong direction"
-			gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorPitch: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
+      gui_slider .note.pitch.pid.p gyroPitchKp 0 150 0.1 "P" "P-Value" "config.gyroPitchKp: P-Value"
+      gui_slider .note.pitch.pid.i gyroPitchKi 0 500 0.1 "I" "I-Value" "config.gyroPitchKi: I-Value"
+      gui_slider .note.pitch.pid.d gyroPitchKd 0 150 0.1 "D" "D-Value" "config.gyroPitchKd: D-Value"
 
-	ttk::frame .note.roll
-	.note add .note.roll -text "PID Roll"
+    labelframe .note.pitch.hw -text "Motor" -padx 10 -pady 10
+    pack .note.pitch.hw -side top -expand no -fill x
 
-		labelframe .note.roll.pid -text "PID" -padx 10 -pady 10
-		pack .note.roll.pid -side top -expand no -fill x
+      gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberPitch: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
+      gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "reverse" "Motor-Direction" "config.Direction: this is for reversing your motor if it is rotating in the wrong direction"
+      gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorPitch: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
 
-			gui_slider .note.roll.pid.p gyroRollKp 0 150 0.1 "P" "P-Value" "config.gyroRollKp: P-Value"
-			gui_slider .note.roll.pid.i gyroRollKi 0 500 0.1 "I" "I-Value" "config.gyroRollKi: I-Value"
-			gui_slider .note.roll.pid.d gyroRollKd 0 150 0.1 "D" "D-Value" "config.gyroRollKd: D-Value"
+  ttk::frame .note.roll
+  .note add .note.roll -text "PID Roll"
 
-		labelframe .note.roll.hw -text "Motor" -padx 10 -pady 10
-		pack .note.roll.hw -side top -expand no -fill x
+    labelframe .note.roll.pid -text "PID" -padx 10 -pady 10
+    pack .note.roll.pid -side top -expand no -fill x
 
-			gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberRoll: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
-			gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "reverse" "Motor-Direction" "config.dirMotorRoll: this is for reversing your motor if it is rotating in the wrong direction"
-			gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorRoll: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
+      gui_slider .note.roll.pid.p gyroRollKp 0 150 0.1 "P" "P-Value" "config.gyroRollKp: P-Value"
+      gui_slider .note.roll.pid.i gyroRollKi 0 500 0.1 "I" "I-Value" "config.gyroRollKi: I-Value"
+      gui_slider .note.roll.pid.d gyroRollKd 0 150 0.1 "D" "D-Value" "config.gyroRollKd: D-Value"
 
-	ttk::frame .note.pitchRC
-	.note add .note.pitchRC -text "RC Pitch"
+    labelframe .note.roll.hw -text "Motor" -padx 10 -pady 10
+    pack .note.roll.hw -side top -expand no -fill x
 
-	labelframe .note.pitchRC.set
-	pack .note.pitchRC.set -side top -expand yes -fill both
+      gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberRoll: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
+      gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "reverse" "Motor-Direction" "config.dirMotorRoll: this is for reversing your motor if it is rotating in the wrong direction"
+      gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorRoll: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
 
-    labelframe .note.pitchRC.set.rc -text "RC" -padx 10 -pady 10
-		pack .note.pitchRC.set.rc -side left -expand yes -fill both
+  ttk::frame .note.pitchRC
+  .note add .note.pitchRC -text "RC Pitch"
 
-      gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-			gui_spin   .note.pitchRC.set.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.pitchRC.set.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -140 140 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -140 140 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
-			gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
+    labelframe .note.pitchRC.set
+    pack .note.pitchRC.set -side top -expand yes -fill both
 
-		labelframe .note.pitchRC.set.fpv -text "FPV" -padx 10 -pady 10
-		pack .note.pitchRC.set.fpv -side top -expand no -fill x
+      labelframe .note.pitchRC.set.rc -text "RC" -padx 10 -pady 10
+      pack .note.pitchRC.set.rc -side left -expand yes -fill both
 
-      gui_check  .note.pitchRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-      gui_spin   .note.pitchRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-      gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-			gui_slider .note.pitchRC.set.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-			gui_slider .note.pitchRC.set.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+        gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.pitchRC.set.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+        gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+        gui_slider .note.pitchRC.set.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+        gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -140 140 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
+        gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -140 140 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
+        gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
-	labelframe .note.pitchRC.monitor -text "RC Monitor"
-	pack .note.pitchRC.monitor -side top -expand yes -fill both
-    gui_monitor .note.pitchRC.monitor.rcPitch rcPitch "RC Pitch" "SW FPV" bar
-    gui_monitor .note.pitchRC.monitor.rcFpvPitch rcFpvPitch "FPV Pitch" "SW FPV" bar
+      labelframe .note.pitchRC.set.fpv -text "FPV" -padx 10 -pady 10
+      pack .note.pitchRC.set.fpv -side top -expand no -fill x
+
+        gui_check  .note.pitchRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.pitchRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.pitchRC.set.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.pitchRC.set.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+
+    labelframe .note.pitchRC.monitor -text "RC Monitor"
+    pack .note.pitchRC.monitor -side top -expand yes -fill both
+      gui_monitor .note.pitchRC.monitor.rcPitch rcPitch "RC Pitch" "SW FPV" bar
+      gui_monitor .note.pitchRC.monitor.rcFpvPitch rcFpvPitch "FPV Pitch" "SW FPV" bar
     
 
-	ttk::frame .note.rollRC
-	.note add .note.rollRC -text "RC Roll"
+  ttk::frame .note.rollRC
+  .note add .note.rollRC -text "RC Roll"
 
-	labelframe .note.rollRC.set
-	pack .note.rollRC.set -side top -expand yes -fill both
+    labelframe .note.rollRC.set
+    pack .note.rollRC.set -side top -expand yes -fill both
 
-    labelframe .note.rollRC.set.rc -text "RC" -padx 10 -pady 10
-		pack .note.rollRC.set.rc -side left -expand yes -fill both
+      labelframe .note.rollRC.set.rc -text "RC" -padx 10 -pady 10
+      pack .note.rollRC.set.rc -side left -expand yes -fill both
 
-      gui_check  .note.rollRC.set.rc.rcModePPMRoll rcModePPMRoll        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-			gui_spin   .note.rollRC.set.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-			gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
-			gui_slider .note.rollRC.set.rc.rcGain rcGainRoll -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
-			gui_slider .note.rollRC.set.rc.rcLPF  rcLPFRoll 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-			gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -50 50 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
-			gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
+        gui_check  .note.rollRC.set.rc.rcModePPMRoll rcModePPMRoll        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+        gui_slider .note.rollRC.set.rc.rcGain rcGainRoll -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
+        gui_slider .note.rollRC.set.rc.rcLPF  rcLPFRoll 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
+        gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -50 50 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+        gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+        gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
-		labelframe .note.rollRC.set.fpv -text "FPV" -padx 10 -pady 10
-		pack .note.rollRC.set.fpv -side top -expand no -fill x
+      labelframe .note.rollRC.set.fpv -text "FPV" -padx 10 -pady 10
+      pack .note.rollRC.set.fpv -side top -expand no -fill x
 
-      gui_check  .note.rollRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-      gui_spin   .note.rollRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-      gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-			gui_slider .note.rollRC.set.fpv.fpvGain fpvGainRoll -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-			gui_slider .note.rollRC.set.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
+        gui_check  .note.rollRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.rollRC.set.fpv.fpvGain fpvGainRoll -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.rollRC.set.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
-	labelframe .note.rollRC.monitor -text "RC Monitor"
-	pack .note.rollRC.monitor -side top -expand yes -fill both
+    labelframe .note.rollRC.monitor -text "RC Monitor"
+    pack .note.rollRC.monitor -side top -expand yes -fill both
       gui_monitor .note.rollRC.monitor.rcRoll rcRoll "RC Roll" "SW FPV" bar
       gui_monitor .note.rollRC.monitor.rcFpvRoll rcFpvRoll "FPV Roll" "SW FPV" bar
     
   ttk::frame .note.cal
-	.note add .note.cal -text "Calibration"
+  .note add .note.cal -text "Calibration"
 
     labelframe .note.cal.acc -text "ACC Sensor" -padx 10 -pady 10
     pack .note.cal.acc -side top -expand no -fill x
       gui_spin .note.cal.acc.accOffsetX     accOffsetX  -500 500 1 "Offset X"  "accOffsetX" "config.accOffsetX"
       gui_spin .note.cal.acc.accOffsetY     accOffsetY  -500 500 1 "Offset Y"  "accOffsetY" "config.accOffsetY"
       gui_spin .note.cal.acc.accOffsetZ     accOffsetZ  -500 500 1 "Offset Z"  "accOffsetZ" "config.accOffsetZ"
-   		gui_button .note.cal.acc.acc_cal "ACC Calibration" "ACC calibration" acc_cal
-   		gui_button .note.cal.acc.acc_cal_res "Reset" "reset acc calibration" acc_cal_reset
-      
+      gui_button .note.cal.acc.acc_cal "ACC Calibration" "ACC calibration" acc_cal
+      gui_button .note.cal.acc.acc_cal_res "Reset" "reset acc calibration" acc_cal_reset
+
     labelframe .note.cal.gyro -text "GYRO Sensor" -padx 10 -pady 10
     pack .note.cal.gyro -side top -expand no -fill x
-  		gui_check .note.cal.gyro.gyroCal      gyroCal   "Calibration" "at Startup ON" "gyroCal" "config.gyroCal: enable gyro calibration at startup"
+      gui_check .note.cal.gyro.gyroCal      gyroCal   "Calibration" "at Startup ON" "gyroCal" "config.gyroCal: enable gyro calibration at startup"
       gui_spin .note.cal.gyro.gyroOffsetX   gyrOffsetX  -500 500 1 "Offset X"  "gyroOffsetX" "config.gyrOffsetX"
       gui_spin .note.cal.gyro.gyroOffsetY   gyrOffsetY  -500 500 1 "Offset Y"  "gyroOffsetY" "config.gyrOffsetY"
       gui_spin .note.cal.gyro.gyroOffsetZ   gyrOffsetZ  -500 500 1 "Offset Z"  "gyroOffsetZ" "config.gyrOffsetZ"
@@ -1602,26 +1613,20 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_button .note.cal.gyro.gyro_cal_res "Reset" "reset gyro calibration" gyro_cal_reset
 
   ttk::frame .note.aux
-	.note add .note.aux -text "Auxiliary"
+  .note add .note.aux -text "Auxiliary"
 
-  labelframe .note.aux.1 -padx 10 -pady 7
-  pack .note.aux.1 -side top -expand no -fill x
+    labelframe .note.aux.1 -padx 10 -pady 7
+    pack .note.aux.1 -side top -expand no -fill x
 
-    labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 7
-    pack .note.aux.1.rc -side left -expand yes -fill x
-      gui_check  .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-      gui_spin   .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+      labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 7
+      pack .note.aux.1.rc -side left -expand yes -fill x
+        gui_check  .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 
-    labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 7
-    pack .note.aux.1.altTC -side left -expand yes -fill x
+      labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 7
+      pack .note.aux.1.altTC -side left -expand yes -fill x
         gui_spin   .note.aux.1.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
         gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
-
-        #labelframe .note.aux.rcMisc -text "RC Misc" -padx 10 -pady 10
-    #pack .note.aux.rcMisc -side top -expand no -fill x
-
-      # not used any more
-      #gui_slider .note.aux.rcMisc.rcMid rcMid 1000 2000 1 "RC middle" "RC middle position" "config.rcMid: RC middle position: specifies the PWM time of the RC center position in us (default=1500)"      
 
     labelframe .note.aux.rcpin -text "Mode of Control Input (OFF/digital/analog)" -padx 10 -pady 7
     pack .note.aux.rcpin -side top -expand no -fill x
@@ -1630,7 +1635,7 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_spin  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 0 2 1       "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
       
     labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
-		pack .note.aux.monitor -side top -expand no -fill x
+      pack .note.aux.monitor -side top -expand no -fill x
       gui_monitor .note.aux.monitor.rcAux rcAux "RC Auxiliary" no bar
       gui_monitor .note.aux.monitor.rcAuxSW1 rcAuxSW1 "AuxSW1" no no
       gui_monitor .note.aux.monitor.rcAuxSW2 rcAuxSW2 "AuxSW2" no no
@@ -1641,121 +1646,116 @@ pack .note -fill both -expand yes -fill both -padx 2 -pady 3
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
 #      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
 
+
+frame .common -padx 1 -pady 1
+pack .common -side top -expand yes -fill y
       
-labelframe .monitor -text "Monitor"  -padx 10 -pady 7
-pack .monitor -side top -expand no -fill x
-setTooltip .monitor "Monitor Functions"
+  labelframe .common.monitor -text "Monitor"  -padx 10 -pady 7
+  pack .common.monitor -side top -expand no -fill x
+  setTooltip .common.monitor "Monitor Functions"
 
-	button .monitor.liveViewButtonOn -text "Live View ON" -width 13 -command {
-		live_view_on
-	}
-	pack .monitor.liveViewButtonOn -side left -expand no -fill x
+    button .common.monitor.liveViewButton -text "Live View" -width 13 -command {
+      live_view
+    }
+    pack .common.monitor.liveViewButton -side left -expand no -fill x
 
-	button .monitor.liveViewButtonOff -text "Live View OFF" -width 13 -command {
-		live_view_off
-	}
-	pack .monitor.liveViewButtonOff -side left -expand no -fill x
+  frame .common.chartview
+  pack .common.chartview -side top -expand no -fill x
+    labelframe .common.chartview.chart -text "Chart"
+    pack .common.chartview.chart -side top -expand no -fill both
 
+      canvas .common.chartview.chart.chart1 -relief raised -width 450 -height 100
+      pack .common.chartview.chart.chart1 -side top
+      .common.chartview.chart.chart1 create rec 1 1 450 100 -fill black
+      .common.chartview.chart.chart1 create line 0 50 450 50 -fill white
+      setTooltip .common.chartview.chart.chart1 "acc chart"
 
-frame .chartview
-pack .chartview -side top -expand no -fill x
-	labelframe .chartview.chart -text "Chart"
-	pack .chartview.chart -side top -expand no -fill both
+      frame .common.chartview.chart.fr1
+      pack .common.chartview.chart.fr1 -side left -expand yes -fill both
 
-		canvas .chartview.chart.chart1 -relief raised -width 450 -height 100
-		pack .chartview.chart.chart1 -side left
-		.chartview.chart.chart1 create rec 1 1 450 100 -fill black
-		.chartview.chart.chart1 create line 0 50 450 50 -fill white
-		setTooltip .chartview.chart.chart1 "acc chart"
+        button .common.chartview.chart.fr1.button -text "Start" -width 5 -relief raised  -background lightgrey -command {
+                draw_chart
+        }
+        pack .common.chartview.chart.fr1.button -side top -expand yes -fill both
+        setTooltip .common.chartview.chart.fr1.button "start/stop chart drawing"
 
-		frame .chartview.chart.fr1
-		pack .chartview.chart.fr1 -side left -expand yes -fill both
+        frame .common.chartview.chart.fr1.scale
+        pack .common.chartview.chart.fr1.scale -side top -expand no -fill x
 
-			button .chartview.chart.fr1.button -text "Start" -width 5 -relief raised -command {
-				draw_chart
-			}
-			pack .chartview.chart.fr1.button -side top -expand yes -fill both
-			setTooltip .chartview.chart.fr1.button "start/stop chart drawing"
+          scale .common.chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 100.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
+          pack .common.chartview.chart.fr1.scale.slider -side left -expand yes -fill x
+          setTooltip .common.chartview.chart.fr1.scale.slider "Y-Scale for the chart"
+          spinbox .common.chartview.chart.fr1.scale.spin -from 0.1 -to 100.0 -increment 0.1 -width 10 -textvariable CHART_SCALE -width 4
+          pack .common.chartview.chart.fr1.scale.spin -side left -expand no -fill x
 
-			frame .chartview.chart.fr1.scale
-			pack .chartview.chart.fr1.scale -side top -expand no -fill x
+          button .common.chartview.chart.fr1.scale.help -text "?" -width 1 -command {
+                show_help "Y-Scale for the chart"
+          }
+          pack .common.chartview.chart.fr1.scale.help -side right -expand no -fill none
 
-				scale .chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 100.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
-				pack .chartview.chart.fr1.scale.slider -side left -expand yes -fill x
-				setTooltip .chartview.chart.fr1.scale.slider "Y-Scale for the chart"
-        spinbox .chartview.chart.fr1.scale.spin -from 0.1 -to 100.0 -increment 0.1 -width 10 -textvariable CHART_SCALE -width 4
-			  pack .chartview.chart.fr1.scale.spin -side left -expand no -fill x
+  labelframe .common.device -text "Connection"
+  pack .common.device -side top -expand no -fill x
+  setTooltip .common.device "serial port selection"
 
-				button .chartview.chart.fr1.scale.help -text "?" -width 1 -command {
-					show_help "Y-Scale for the chart"
-				}
-				pack .chartview.chart.fr1.scale.help -side right -expand no -fill none
+    label .common.device.label -text "Port" -width 5
+    pack .common.device.label -side left -expand no -fill x
 
-labelframe .device -text "Connection"
-pack .device -side top -expand no -fill x
-setTooltip .device "serial port selection"
+    if {[catch {ttk::combobox .common.device.spin -textvariable device -state readonly -values $comports}]} {
+            spinbox .common.device.spin -values $comports -width 10  -textvariable device
+    }
+    pack .common.device.spin -side left -expand yes -fill x
 
-	label .device.label -text "Port" -width 5
-	pack .device.label -side left -expand no -fill x
+    button .common.device.connect -text "Connect" -width 9 -command {
+            connect_serial
+    }
+    pack .common.device.connect -side left -expand no -fill x
 
-	if {[catch {ttk::combobox .device.spin -textvariable device -state readonly -values $comports}]} {
-		spinbox .device.spin -values $comports -width 10  -textvariable device
-	}
-	pack .device.spin -side left -expand yes -fill x
-
-	button .device.connect -text "Connect" -width 9 -command {
-		connect_serial
-	}
-	pack .device.connect -side left -expand no -fill x
-
-	button .device.close -text "Close" -width 9 -command {
-		close_serial
-	}
-	pack .device.close -side left -expand no -fill x
-
- 
+    button .common.device.close -text "Close" -width 9 -command {
+            close_serial
+    }
+    pack .common.device.close -side left -expand no -fill x
 
 
-frame .bottom2
-pack .bottom2 -side top -expand no -fill x
+  frame .common.bottom
+  pack .common.bottom -side bottom -expand no -fill x
 
-	label .bottom2.rxlog -relief sunken -text ""
-	pack .bottom2.rxlog -side left -expand yes -fill x
-	setTooltip .bottom2.rxlog "receive messages from BruGi"
+    label .common.bottom.bruGiVersion -width 25 -text "Firmware: -----"
+    pack .common.bottom.bruGiVersion -side left -expand no -fill x
+    setTooltip .common.bottom.bruGiVersion "BruGi Firmware Version"
 
-	label .bottom2.txlog -relief sunken -width 25 -text ""
-	pack .bottom2.txlog -side left -expand no -fill x
-	setTooltip .bottom2.txlog "receive messages from BruGi"
+    label .common.bottom.version -text "Host: $tcl_platform(os)/$tcl_platform(osVersion)"
+    pack .common.bottom.version -side left -expand yes -fill x
+    setTooltip .common.bottom.version "Host System Version"
 
-frame .bottom1
-pack .bottom1 -side top -expand no -fill x
+  label .common.helptext -relief sunken -text "Tooltips"
+  pack .common.helptext -side bottom -expand no -fill x
+    
+  frame .common.bottom1
+  pack .common.bottom1 -side bottom -expand no -fill x
 
-	label .bottom1.bruGiStatus -width 12 -text "BruGi"
-	pack .bottom1.bruGiStatus -side left -expand no -fill x
-	setTooltip .bottom1.bruGiStatus "BruGi status"
+    label .common.bottom1.bruGiStatus -width 12 -text "BruGi"
+    pack .common.bottom1.bruGiStatus -side left -expand no -fill x
+    setTooltip .common.bottom1.bruGiStatus "BruGi status"
 
-	label .bottom1.message -text "no message"
-	pack .bottom1.message -side left -expand yes -fill x
-	setTooltip .bottom1.message "BruGi message window"
+    label .common.bottom1.message -text "no message"
+    pack .common.bottom1.message -side left -expand yes -fill x
+    setTooltip .common.bottom1.message "BruGi message window"
 
-	label .bottom1.linkStatus -width 10 -text "Link"
-	pack .bottom1.linkStatus -side left -expand no -fill x
-	setTooltip .bottom1.linkStatus "Link Status"
+    label .common.bottom1.linkStatus -width 10 -text "Link"
+    pack .common.bottom1.linkStatus -side left -expand no -fill x
+    setTooltip .common.bottom1.linkStatus "Link Status"
+    
+  frame .common.bottom2
+  pack .common.bottom2 -side bottom -expand no -fill x
 
-  
-label .helptext -relief sunken -text "Tooltips"
-pack .helptext -side top -expand yes -fill x
+    label .common.bottom2.rxlog -relief sunken -text "" -width 45
+    pack .common.bottom2.rxlog -side left -expand no -fill x
+    setTooltip .common.bottom2.rxlog "receive messages from BruGi"
 
-frame .bottom
-pack .bottom -side top -expand no -fill x
-
-	label .bottom.bruGiVersion -width 25 -text "Firmware: -----"
-	pack .bottom.bruGiVersion -side left -expand no -fill x
-	setTooltip .bottom.bruGiVersion "BruGi Firmware Version"
-
-	label .bottom.version -text "Host: $tcl_platform(os)/$tcl_platform(osVersion)"
-	pack .bottom.version -side left -expand yes -fill x
-	setTooltip .bottom.version "Host System Version"
+    label .common.bottom2.txlog -relief sunken -text "" -width 30
+    pack .common.bottom2.txlog -side right -expand no -fill x
+    setTooltip .common.bottom2.txlog "receive messages from BruGi"
+    
 
 # GUI end
 ##################################################################################### 
@@ -1763,10 +1763,9 @@ pack .bottom -side top -expand no -fill x
   
 ## Trace parameters to update on change
 foreach var [array names par] {
-	if {$var == "vers"} {
-	} elseif {! [string match "*,*" $var]} {
-		trace variable par($var) w send_parvar
-	}
+  if {! [string match "*,*" $var]} {
+    trace variable par($var) w send_parvar
+  }
 }
 
 ## Trace parameters to update on change
@@ -1774,18 +1773,30 @@ foreach var [array names traceVar] {
   trace variable traceVar($var) w update_traceDisplay
 }
 
+
+# call display update for all trace values
+proc init_traceDisplay {} {
+  global traceVar
+  global liveViewON
+  set liveViewON 0
+  foreach var [array names traceVar] {
+    update_traceDisplay traceVar($var) $var  w
+  }
+}
+
 # update display of traced variables
 proc update_traceDisplay {n1 n2 op} {
-	global traceVar
+  global traceVar
   global liveViewON
 
   if {$liveViewON == 1} {
     set bg_color_act "green"
     set bg_color_inact "yellow"
+    set bg_color_warn "red"
   } else {
     set bg_color_act "lightgrey"
     set bg_color_inact "lightgrey"
-  }
+    set bg_color_warn "lightgrey"  }
 
   # Pitch
   if {$n2 == "rcPitch"} {
@@ -1810,11 +1821,11 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "fpvModePitch"} {
     if {$traceVar($n2) == 1} {
-       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.sw lightgrey
-       gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.sw "$bg_color_act"
+       gui_monitor_update_color .note.pitchRC.monitor.rcPitch.sw lightgrey
+       gui_monitor_update_color .note.pitchRC.monitor.rcFpvPitch.sw "$bg_color_act"
     } else {
-       gui_monitor_update_status .note.pitchRC.monitor.rcPitch.sw "$bg_color_act"
-       gui_monitor_update_status .note.pitchRC.monitor.rcFpvPitch.sw lightgrey
+       gui_monitor_update_color .note.pitchRC.monitor.rcPitch.sw "$bg_color_act"
+       gui_monitor_update_color .note.pitchRC.monitor.rcFpvPitch.sw lightgrey
     }
   }
   
@@ -1841,11 +1852,11 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "fpvModeRoll"} {
     if {$traceVar($n2) == 1} {
-       gui_monitor_update_status .note.rollRC.monitor.rcRoll.sw lightgrey
-       gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.sw "$bg_color_act"
+       gui_monitor_update_color .note.rollRC.monitor.rcRoll.sw lightgrey
+       gui_monitor_update_color .note.rollRC.monitor.rcFpvRoll.sw "$bg_color_act"
     } else {
-       gui_monitor_update_status .note.rollRC.monitor.rcRoll.sw "$bg_color_act"
-       gui_monitor_update_status .note.rollRC.monitor.rcFpvRoll.sw lightgrey
+       gui_monitor_update_color .note.rollRC.monitor.rcRoll.sw "$bg_color_act"
+       gui_monitor_update_color .note.rollRC.monitor.rcFpvRoll.sw lightgrey
     }
   }
 
@@ -1862,10 +1873,38 @@ proc update_traceDisplay {n1 n2 op} {
   }
   if {$n2 == "rcAuxSW1"} {
     gui_monitor_update .note.aux.monitor.rcAuxSW1 $traceVar($n2)
+    if {$traceVar($n2) == 0} {
+      gui_monitor_update_color .note.aux.monitor.rcAuxSW1.value "$bg_color_inact"
+    } else {
+      gui_monitor_update_color .note.aux.monitor.rcAuxSW1.value "$bg_color_act"
+    }
   }
   if {$n2 == "rcAuxSW2"} {
     gui_monitor_update .note.aux.monitor.rcAuxSW2 $traceVar($n2)
+    if {$traceVar($n2) == 0} {
+      gui_monitor_update_color .note.aux.monitor.rcAuxSW2.value "$bg_color_inact"
+    } else {
+      gui_monitor_update_color .note.aux.monitor.rcAuxSW2.value "$bg_color_act"
+    }
   }
+
+  # MPU
+  if {$n2 == "mpuI2cErrors"} {
+    gui_monitor_update .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors $traceVar($n2)
+  }
+  if {$n2 == "mpuI2cErrors"} {
+    if {$traceVar($n2) == 0} {
+      gui_monitor_update_color .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors.value "$bg_color_act"
+    } else {
+      gui_monitor_update_color .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors.value "$bg_color_warn"
+    }
+  }
+  
+  if {$n2 == "mpuTemp"} {
+    gui_monitor_update .note.general.settings.sensor.set.mpuMonitor.mpuTemp $traceVar($n2)
+    gui_monitor_update_color .note.general.settings.sensor.set.mpuMonitor.mpuTemp.value "$bg_color_act"
+  }
+  
 }
     
 
@@ -1874,66 +1913,58 @@ proc update_traceDisplay {n1 n2 op} {
 #####################################################################################
 
 if {[lindex $argv 0] == "-b" || [lindex $argv 0] == "--help"} {
-	if {[lindex $argv 1] == ""} {
-		puts "[info script] -b firmware.bin"
-		exit 0
-	}
-	set FILE [lindex $argv 1]
+        if {[lindex $argv 1] == ""} {
+                puts "[info script] -b firmware.bin"
+                exit 0
+        }
+        set FILE [lindex $argv 1]
 
-	if {[string match "*.hex" $FILE]} {
-		exec objcopy -I ihex -O binary "$FILE" "$FILE.bin"
-		set FILE "$FILE.bin"
-	}
+        if {[string match "*.hex" $FILE]} {
+                exec objcopy -I ihex -O binary "$FILE" "$FILE.bin"
+                set FILE "$FILE.bin"
+        }
 
-	set scriptfile [open "[info script]" r]
-	set scriptdata [read $scriptfile]
-	close $scriptfile
+        set scriptfile [open "[info script]" r]
+        set scriptdata [read $scriptfile]
+        close $scriptfile
 
-	set scriptfile [open "[info script].new" w]
-	foreach line "[split $scriptdata "\n"]" {
-		if {[string match "set HEXDATA *" $line]} {
-			puts $scriptfile "set HEXDATA \"[ArduinoExportBIN $FILE]\""
-		} else {
-		        puts $scriptfile "$line"
-		}
-	}
-	close $scriptfile
-	exit 0
+        set scriptfile [open "[info script].new" w]
+        foreach line "[split $scriptdata "\n"]" {
+                if {[string match "set HEXDATA *" $line]} {
+                        puts $scriptfile "set HEXDATA \"[ArduinoExportBIN $FILE]\""
+                } else {
+                        puts $scriptfile "$line"
+                }
+        }
+        close $scriptfile
+        exit 0
 }
 
 
 proc show_help_about {} {
-	catch {destroy .help}
-	toplevel .help
-	wm title .help "About"
-	frame .help.f -highlightthickness 1 -borderwidth 1 -relief sunken
-	pack .help.f -expand yes -fill both
-	text .help.f.t -yscrollcommand ".help.f.scroll set" -setgrid true -width 80 -height 20 -wrap word -highlightthickness 0 -borderwidth 0
-	pack .help.f.t -side left -expand  yes -fill both
-	scrollbar .help.f.scroll -command ".help.f.t yview"
-	pack .help.f.scroll -side right -fill y
-	.help.f.t tag configure header -font "times 24 bold" -justify center
-	.help.f.t tag configure center -justify center -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
-	.help.f.t tag configure text -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
-	.help.f.t insert end "\n" text
-	.help.f.t insert end "Credits\n" center
-	.help.f.t insert end "Manual: By Graham Miller\n" center
-	.help.f.t insert end "Brushless Gimbal: By Ludwig Faerber\n" center
-	.help.f.t insert end "GUI: By Oliver Dippel\n" center
-	.help.f.t insert end "Software: By\n" center
-	.help.f.t insert end "Christian Winkler , Ludwig Faerber, Alois Hahn and Alexander Rehfeld\n" center
-	.help.f.t insert end "All rights reserved\n" center
+        catch {destroy .help}
+        toplevel .help
+        wm title .help "About"
+        frame .help.f -highlightthickness 1 -borderwidth 1 -relief sunken
+        pack .help.f -expand yes -fill both
+        text .help.f.t -yscrollcommand ".help.f.scroll set" -setgrid true -width 80 -height 20 -wrap word -highlightthickness 0 -borderwidth 0
+        pack .help.f.t -side left -expand  yes -fill both
+        scrollbar .help.f.scroll -command ".help.f.t yview"
+        pack .help.f.scroll -side right -fill y
+        .help.f.t tag configure header -font "times 24 bold" -justify center
+        .help.f.t tag configure center -justify center -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
+        .help.f.t tag configure text -spacing1 10p -spacing2 2p -lmargin1 12m -lmargin2 6m -rmargin 10m
+        .help.f.t insert end "\n" text
+        .help.f.t insert end "Credits\n" center
+        .help.f.t insert end "Manual: By Graham Miller\n" center
+        .help.f.t insert end "Brushless Gimbal: By Ludwig Faerber\n" center
+        .help.f.t insert end "GUI: By Oliver Dippel\n" center
+        .help.f.t insert end "Software: By\n" center
+        .help.f.t insert end "Christian Winkler , Ludwig Faerber, Alois Hahn and Alexander Rehfeld\n" center
+        .help.f.t insert end "All rights reserved\n" center
 
-	button .help.exit -text "Exit" -width 14 -command {
-		destroy .help
-	}
-	pack .help.exit -side bottom -expand no -fill x
+        button .help.exit -text "Exit" -width 14 -command {
+                destroy .help
+        }
+        pack .help.exit -side bottom -expand no -fill x
 }
-
-
-
-
-
-
-
-

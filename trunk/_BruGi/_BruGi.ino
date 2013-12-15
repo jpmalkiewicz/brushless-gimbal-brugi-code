@@ -31,8 +31,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r197"
-#define VERSION_EEPROM 13 // change this number when eeprom data structure has changed
+#define REVISION "r198"
+#define VERSION_EEPROM 14 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -75,7 +75,17 @@ void setup()
   
   CH2_PINMODE
   CH3_PINMODE
-  
+
+  // Start Serial Port
+  Serial.begin(115200);
+
+  // send Version Number and welcome message
+  printMessage(MSG_INFO, F("BruGi ready"));
+  printMessage(MSG_VERSION, F(""));
+
+  // Set Serial Protocol Commands
+  setSerialProtocol();
+
   // Init BL Controller
   initBlController();
   // Init Sinus Arrays
@@ -83,16 +93,7 @@ void setup()
   
   // switch off PWM Power
   motorPowerOff();
-  
-  // Start Serial Port
-  Serial.begin(115200);
-
-  // Set Serial Protocol Commands
-  setSerialProtocol();
-
-  // send Version Number
-  printMessage(MSG_VERSION, F(""));
-  
+    
   // Read Config, initialize if version does not match or CRC fails
   readEEPROM();
   if (config.versEEPROM != VERSION_EEPROM)
@@ -101,7 +102,7 @@ void setup()
     setDefaultParameters();
     writeEEPROM();
   }
-   
+  
   // Start I2C and Configure Frequency
   Wire.begin();
   TWSR = 0;                                  // no prescaler => prescaler = 1
@@ -111,32 +112,19 @@ void setup()
   // Initialize MPU 
   initResolutionDevider();
     
-  // Auto detect MPU address
-  mpu.setAddr(MPU6050_ADDRESS_AD0_HIGH);
-  mpu.initialize();
-  if(mpu.testConnection()) {
-    printMessage(MSG_INFO, F("MPU6050 ok (HIGH)"));
-  } else {
-    mpu.setAddr(MPU6050_ADDRESS_AD0_LOW);
-    mpu.initialize();
-    if(mpu.testConnection()) {
-      printMessage(MSG_INFO, F("MPU6050 ok (LOW)"));
-    } else {
-      printMessage(MSG_ERROR, F("MPU6050 not found on I2C"));
-      gimState = GIM_ERROR;
-    }
-  }
 
-  // Init MPU mode
-  initMPU();
-  
-  // Gyro Offset calibration
-  if (config.gyroCal) {
-    gyroCalibrateCmd();
+  // init I2C and MPU6050
+  if (initI2C()) {  
+    // Init IMU variables
+    initIMU();
+    // Gyro Offset calibration
+    if (config.gyroCal) {
+      gyroCalibrateCmd();
+    }
+  } else {
+    gimState = GIM_ERROR;
   }
   
-  // Init IMU variables
-  initIMU();
   // set sensor orientation
   initSensorOrientation();
   
@@ -148,8 +136,6 @@ void setup()
 
   // Init RC-Input
   initRCPins();
-  
-  printMessage(MSG_INFO, F("BruGi ready"));
 
   LEDPIN_OFF
   CH2_OFF
@@ -427,8 +413,9 @@ void loop()
       readRCAnalog(); // td = 354 us (if all 3 enabled, 118 us each analog channel)
       break;
     case 9:
-      // unused slot
-      break;
+      //   regular i2c test
+      mpu.testConnection();
+    break;
     case 10:    
       // regular ACC output
       pOutCnt++;

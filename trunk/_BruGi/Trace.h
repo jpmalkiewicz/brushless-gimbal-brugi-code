@@ -10,9 +10,10 @@ enum traceModeType {
  TRC_ACC,
  TRC_GYRO,
  TRC_PID_PITCH,
- TRC_PID_ROLL,   // last, sTrace
- TRC_OAC,        // replaces accOutput for the moment
- TRC_ALL
+ TRC_PID_ROLL,
+ TRC_MPU,
+ TRC_OAC=254,        // replaces accOutput for the moment
+ TRC_ALL=255
 };
 
 enum msgSeverity_t {
@@ -23,7 +24,7 @@ enum msgSeverity_t {
 };
 
 // index of last "slow Trace" element in traceModeType, others are fast types, just by convention 
-#define STRACE_IDX 7
+#define STRACE_IDX 8
 
 void printTrace(traceModeType traceMode);
 void printTrace_int(int32_t value);
