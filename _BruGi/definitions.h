@@ -75,7 +75,7 @@
 #define RC_TIMEOUT 100000
 
 // rc switch on/off threshold (as offset from MID_RC)
-#define RC_SW_THRESH 250
+#define RC_SW_THRESH 150
 
 // PPM Decoder
 #define RC_PPM_GUARD_TIME 4000

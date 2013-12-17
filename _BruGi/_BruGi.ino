@@ -31,8 +31,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r198"
-#define VERSION_EEPROM 14 // change this number when eeprom data structure has changed
+#define REVISION "r199"
+#define VERSION_EEPROM 15 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -267,19 +267,23 @@ void loop()
     //****************************
     // pitch PID
     //****************************
-    // td = 92 us
-    pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
-    // motor control
-    pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
+    if (fpvModeFreezePitch==false) {
+      // td = 92 us
+      pitchPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[PITCH], pitchAngleSet*1000, &pitchErrorSum, &pitchErrorOld, pitchPIDpar.Kp, pitchPIDpar.Ki, pitchPIDpar.Kd);
+      // motor control
+      pitchMotorDrive = pitchPIDVal * config.dirMotorPitch;
+    }
  
     //****************************
     // roll PID
     //****************************
-    // td = 92 us
-    rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
-    // motor control
-    rollMotorDrive = rollPIDVal * config.dirMotorRoll;
-
+    if (fpvModeFreezeRoll==false) {
+      // td = 92 us
+      rollPIDVal = ComputePID(DT_INT_MS, DT_INT_INV, angle[ROLL], rollAngleSet*1000, &rollErrorSum, &rollErrorOld, rollPIDpar.Kp, rollPIDpar.Ki, rollPIDpar.Kd);
+      // motor control
+      rollMotorDrive = rollPIDVal * config.dirMotorRoll;
+    }
+    
     // motor update t=6us (*)
     if (enableMotorUpdates)
     {
@@ -290,14 +294,14 @@ void loop()
     }
 
     // Evaluate RC-Signals, td = 120 us
-    if (fpvModePitch) {
+    if (fpvModePitch==true) {
       pitchAngleSet = utilLP3_float(qLPPitch, PitchPhiSet, rcLPFPitchFpv_tc);
     } else if(config.rcAbsolutePitch==1) {
       pitchAngleSet = utilLP3_float(qLPPitch, PitchPhiSet, rcLPFPitch_tc); // 63us
     } else {
       utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
     }
-    if (fpvModeRoll) {
+    if (fpvModeRoll==true) {
       rollAngleSet = utilLP3_float(qLPRoll, RollPhiSet, rcLPFRollFpv_tc);
     } else if(config.rcAbsoluteRoll==1) {
       rollAngleSet = utilLP3_float(qLPRoll, RollPhiSet, rcLPFRoll_tc);

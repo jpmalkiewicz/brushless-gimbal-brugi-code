@@ -9,7 +9,7 @@
 # 
 package require Tk
 
-set VERSION "2013-12-15 / for BruGi Firmware v50-r198 or higher"
+set VERSION "2013-12-17 / for BruGi Firmware v50-r199 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -374,9 +374,10 @@ set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd
             rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
             rcPinModeCH0 rcPinModeCH1 rcPinModeCH2 \
             rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
-            rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2
+            rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY \
+            fpvFreezePitch fpvFreezeRoll maxPWMfpvPitch maxPWMfpvRoll fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2 \
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
-  
+ 
 foreach var $params {
 	if {! [string match "*,*" $var]} {
 		set par($var) 0
@@ -410,6 +411,8 @@ set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
 set par(refVoltageBat,scale) 100.0
 set par(cutoffVoltage,scale) 100.0
+set par(maxPWMfpvPitch,scale) 2.5
+set par(maxPWMfpvRoll,scale) 2.5
 
 set CHART_SCALE 0.5
 set buffer ""
@@ -1466,8 +1469,8 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
  
           labelframe .note.general.settings.sensor.set.mpuMonitor
           pack .note.general.settings.sensor.set.mpuMonitor -side bottom -expand no -fill x
-            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors mpuI2cErrors "i2cErrors" no no
-            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuTemp mpuTemp "Temp" no no
+            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuI2cErrors mpuI2cErrors "I2C Errors" no no
+            gui_monitor .note.general.settings.sensor.set.mpuMonitor.mpuTemp mpuTemp "Temperature" no no
       
         frame .note.general.settings.sensor.img
           pack .note.general.settings.sensor.img -side left -expand no -fill none
@@ -1545,7 +1548,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -140 140 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
         gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
-      labelframe .note.pitchRC.set.fpv -text "FPV" -padx 10 -pady 10
+      labelframe .note.pitchRC.set.fpv -text "FPV Mix Mode" -padx 10 -pady 10
       pack .note.pitchRC.set.fpv -side top -expand no -fill x
 
         gui_check  .note.pitchRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
@@ -1553,6 +1556,12 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
         gui_slider .note.pitchRC.set.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.pitchRC.set.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+
+      labelframe .note.pitchRC.set.fpvFreeze -text "FPV Freeze Mode" -padx 10 -pady 10
+      pack .note.pitchRC.set.fpvFreeze -side top -expand no -fill x
+
+        gui_check  .note.pitchRC.set.fpvFreeze.fpvFreezePitch fpvFreezePitch  "FPV Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezePitch: this fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
+        gui_slider .note.pitchRC.set.fpvFreeze.maxPWMfpvPitch maxPWMfpvPitch 0 100 0.1 "motor PWM (%)" "alternate motor power in fpv freeze mode" "config.maxPWMfpvPitch: during fpv freeze mode, this power setting is used to increase torque"
 
     labelframe .note.pitchRC.monitor -text "RC Monitor"
     pack .note.pitchRC.monitor -side top -expand yes -fill both
@@ -1578,7 +1587,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
         gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
-      labelframe .note.rollRC.set.fpv -text "FPV" -padx 10 -pady 10
+      labelframe .note.rollRC.set.fpv -text "FPV Mix Mode" -padx 10 -pady 10
       pack .note.rollRC.set.fpv -side top -expand no -fill x
 
         gui_check  .note.rollRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
@@ -1586,6 +1595,12 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
         gui_slider .note.rollRC.set.fpv.fpvGain fpvGainRoll -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.rollRC.set.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
+
+      labelframe .note.rollRC.set.fpvFreeze -text "FPV Freeze Mode" -padx 10 -pady 10
+      pack .note.rollRC.set.fpvFreeze -side top -expand no -fill x
+
+        gui_check  .note.rollRC.set.fpvFreeze.fpvFreezeRoll fpvFreezeRoll  "FPV Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezeRoll: this fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
+        gui_slider .note.rollRC.set.fpvFreeze.maxPWMfpvRoll maxPWMfpvRoll 0 100 0.1 "motorPWM (%)" "alternate motor power in fpv freeze mode" "config.maxPWMfpvRoll: during fpv freeze mode, this power setting is used to increase torque"
 
     labelframe .note.rollRC.monitor -text "RC Monitor"
     pack .note.rollRC.monitor -side top -expand yes -fill both

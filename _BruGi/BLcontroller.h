@@ -255,10 +255,18 @@ void voltageCompensation () {
   }
   
   // 44us
-  maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
+  if (fpvModeFreezePitch==true) {
+    maxPWMmotorPitchScaled = config.maxPWMfpvPitch * pwmMotorScale;  // fpv freeze mode
+  } else {
+    maxPWMmotorPitchScaled = config.maxPWMmotorPitch * pwmMotorScale;
+  }
   maxPWMmotorPitchScaled = constrain(maxPWMmotorPitchScaled, 0, 255);
 
-  maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
+  if (fpvModeFreezeRoll==true) {
+    maxPWMmotorRollScaled = config.maxPWMfpvRoll * pwmMotorScale; // fpv freeze mode
+  } else {
+    maxPWMmotorRollScaled = config.maxPWMmotorRoll * pwmMotorScale;
+  }
   maxPWMmotorRollScaled = constrain(maxPWMmotorRollScaled, 0, 255);
   
 }
