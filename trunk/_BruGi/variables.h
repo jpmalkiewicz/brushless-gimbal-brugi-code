@@ -66,6 +66,13 @@ struct config_t
   bool enableACC;            // enable acc attitude update
   bool axisReverseZ;
   bool axisSwapXY;
+  
+  bool fpvFreezePitch;
+  bool fpvFreezeRoll;
+  
+  uint8_t maxPWMfpvPitch;    // motor PWM power in FPV freeze mode
+  uint8_t maxPWMfpvRoll;
+  
   int8_t fpvSwPitch;         // fpv switch pitch: -1=always on, 0=off, 1=auxSW1, 2=auxSW2 
   int8_t fpvSwRoll;          // fpv switch roll: -1=alwas on, 0=off, 1=auxSW1, 2=auxSW2 
   int8_t altSwAccTime;       // switch alternate Acc time: -1=always on, 0=off, 1=auxSW1, 2=auxSW2
@@ -138,6 +145,10 @@ void setDefaultParameters()
   config.enableACC=true;
   config.axisReverseZ=true;
   config.axisSwapXY=false;
+  config.fpvFreezePitch=false;
+  config.fpvFreezeRoll=false;
+  config.maxPWMfpvPitch=80;
+  config.maxPWMfpvRoll=80;
   config.fpvSwPitch=0;
   config.fpvSwRoll=0;
   config.altSwAccTime=0;
@@ -283,6 +294,10 @@ int stateCount = 0;
 // rc fpv mode
 bool fpvModePitch = false;
 bool fpvModeRoll = false;
+
+bool fpvModeFreezePitch = false;
+bool fpvModeFreezeRoll = false;
+
 // rc alternate ACC time
 bool altModeAccTime = false;
 

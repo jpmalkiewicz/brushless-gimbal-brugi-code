@@ -325,7 +325,7 @@ void evalRCChannelAbsolute(rcData_t* rcData, int8_t gain, int8_t rcMin, int8_t r
 
 
 void evaluateRCPitch() {
-  if (fpvModePitch) {
+  if (fpvModePitch==true) {
     evalRCChannelAbsolute(&rcData[RC_DATA_FPV_PITCH], config.fpvGainPitch, config.minRCPitch, config.maxRCPitch, config.rcMid);
   } else if(config.rcAbsolutePitch==1) {
     evalRCChannelAbsolute(&rcData[RC_DATA_PITCH], 100, config.minRCPitch, config.maxRCPitch, config.rcMid);
@@ -335,7 +335,7 @@ void evaluateRCPitch() {
 }
   
 void evaluateRCRoll() {
-  if (fpvModeRoll) {
+  if (fpvModeRoll==true) {
     evalRCChannelAbsolute(&rcData[RC_DATA_FPV_ROLL ], config.fpvGainRoll, config.minRCRoll , config.maxRCRoll,  config.rcMid);
   } else if(config.rcAbsoluteRoll==1) {
     evalRCChannelAbsolute(&rcData[RC_DATA_ROLL ], 100, config.minRCRoll , config.maxRCRoll,  config.rcMid);
@@ -377,7 +377,7 @@ void getSetpoint(float * setPoint, unsigned char rcChannel, unsigned char rcChan
 
 
 
-// auxiliary channel, decode switches
+// auxiliary channel, decode function switches
 void evalRCChannelAux(rcData_t* rcData, int16_t rcSwThresh, int16_t rcMid)
 {
   int16_t rx;
@@ -409,53 +409,50 @@ void evaluateRCAux()
   evalRCChannelAux(&rcData[RC_DATA_AUX], RC_SW_THRESH, config.rcMid);
 }
 
+
+// decode fpv switch selector
+bool decodeSWSel(int8_t configSelector) {
+
+  bool modeOn = false;
+
+    // fpv mode
+  switch (configSelector) {
+    case -1:
+      modeOn = true;
+      break;
+    case 0:
+      modeOn = false;
+      break;
+    case 1: // aux Switch 1
+      modeOn = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
+      break;
+    case 2:
+      modeOn = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
+      break;
+  }
+  return modeOn;
+}
+
+//******************************************
 // decode mode switches
+//******************************************
 void decodeModeSwitches() {
-  // fpv mode
-  switch (config.fpvSwPitch) {
-    case -1:
-      fpvModePitch = true;
-      break;
-    case 0:
-      fpvModePitch = false;
-      break;
-    case 1: // aux Switch 1
-      fpvModePitch = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
-      break;
-    case 2:
-      fpvModePitch = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
-      break;
-  }
-  switch (config.fpvSwRoll) {
-    case -1:
-      fpvModeRoll = true;
-      break;
-    case 0:
-      fpvModeRoll = false;
-      break;
-    case 1: // aux Switch 1
-      fpvModeRoll = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
-      break;
-    case 2:
-      fpvModeRoll = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
-      break;
-  }
+  
+  bool funcOn = false;
+  
+  // fpv pitch
+  funcOn = decodeSWSel(config.fpvSwPitch);
+  fpvModePitch = funcOn && (config.fpvFreezePitch==false);
+  fpvModeFreezePitch = funcOn && (config.fpvFreezePitch==true);
+  
+  // fpv roll
+  funcOn = decodeSWSel(config.fpvSwRoll);
+  fpvModeRoll = funcOn && (config.fpvFreezeRoll==false);
+  fpvModeFreezeRoll = funcOn && (config.fpvFreezeRoll==true);
 
-  switch (config.altSwAccTime) {
-    case -1:
-      altModeAccTime = true;
-      break;
-    case 0:
-      altModeAccTime = false;
-      break;
-    case 1: // aux Switch 1
-      altModeAccTime = (rcData[RC_DATA_AUX].rcAuxSwitch1) ? true : false;
-      break;
-    case 2:
-      altModeAccTime = (rcData[RC_DATA_AUX].rcAuxSwitch2) ? true : false;
-      break;
-  }
-
+  // alternate acc time
+  funcOn = decodeSWSel(config.altSwAccTime);
+  altModeAccTime = funcOn;
 
 }
 

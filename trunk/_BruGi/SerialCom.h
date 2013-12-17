@@ -111,6 +111,12 @@ const t_configDef PROGMEM configListPGM[] = {
   {"axisReverseZ",     BOOL,  &config.axisReverseZ,     &initSensorOrientation},
   {"axisSwapXY",       BOOL,  &config.axisSwapXY,       &initSensorOrientation},
   
+  {"fpvFreezePitch",   BOOL, &config.fpvFreezePitch,    NULL},
+  {"fpvFreezeRoll",    BOOL, &config.fpvFreezeRoll,     NULL},
+  
+  {"maxPWMfpvPitch",   UINT8, &config.maxPWMfpvPitch,   NULL},
+  {"maxPWMfpvRoll",    UINT8, &config.maxPWMfpvRoll,    NULL},
+
   {"fpvSwPitch",       INT8, &config.fpvSwPitch,        NULL},
   {"fpvSwRoll",        INT8, &config.fpvSwRoll,         NULL},
 

@@ -63,7 +63,7 @@ void printTrace(traceModeType traceMode)
       {
         printTrace_int(accADC[axis]);      
       }
-      printTrace_float(accMag); 
+      printTrace_int((int)accMag); 
       break;
 
     case TRC_PID_PITCH:
@@ -73,7 +73,7 @@ void printTrace(traceModeType traceMode)
       printTrace_int(angle[PITCH]);
       printTrace_int(pitchMotorDrive);
       printTrace_float((pitchAngleSet*1000-angle[PITCH])*0.001); // PID error
-      printTrace_float(pitchErrorSum);
+      printTrace_int(pitchErrorSum);
       break;
 
     case TRC_PID_ROLL:

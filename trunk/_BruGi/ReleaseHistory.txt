@@ -1,3 +1,10 @@
+17.12.2013
+Version 50 r199
+new feature (beta)
+* FPV freeze mode, this is for light weight gimabls. In this mode motor updates are stopped and the motor drive position is stopped
+  During this mode the PWM power can be set separately to increase torque.
+  Note: this mode does not work as expected when the motor direction is set to the wrong side, instead the gimbal hops to a wrong position in freeze mode.
+  
 15.12.2013
 Version 50 r198
 * added I2C error checks
