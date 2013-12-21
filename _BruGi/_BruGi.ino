@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r199"
+#define REVISION "r200"
 #define VERSION_EEPROM 15 // change this number when eeprom data structure has changed
 
 
@@ -112,7 +112,6 @@ void setup()
   // Initialize MPU 
   initResolutionDevider();
     
-
   // init I2C and MPU6050
   if (initI2C()) {  
     // Init IMU variables
@@ -474,6 +473,7 @@ void loop()
     // Evaluate Serial inputs 
     //****************************
     sCmd.readSerial();
+
 
     // worst-case finalize after
     //    1.67 ms (w/o RC)

@@ -1,3 +1,12 @@
+21.12.2013
+Version 50 r200
+
+bug fix
+* noise on RC input could crash controller, disabled isr re-enable in rc interrupt routines
+  (noise is coupled into rc lines from motor drive typically, mainly at higher supply voltage and/or wit low resist motors)
+
+* minor GUI improvements, save parameters are sorted now
+
 17.12.2013
 Version 50 r199
 new feature (beta)

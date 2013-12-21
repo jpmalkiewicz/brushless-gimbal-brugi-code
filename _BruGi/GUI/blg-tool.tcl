@@ -9,7 +9,7 @@
 # 
 package require Tk
 
-set VERSION "2013-12-17 / for BruGi Firmware v50-r199 or higher"
+set VERSION "2013-12-21 / for BruGi Firmware v50-r199 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -658,7 +658,10 @@ proc save_values2file {} {
 	set file [tk_getSaveFile -filetypes $types -parent . -initialfile blg-gimbal -defaultextension .txt]
 	if {$file != ""} {
 		set fp [open $file w]
-		foreach var [array names par] {
+
+    set names [array names par]
+    set names [lsort $names]
+		foreach var $names {
       if {! [string match "*,*" $var]} {
 				if {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
 					if {$par($var) == 1} {
@@ -1548,19 +1551,21 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_slider .note.pitchRC.set.rc.rcmax  maxRCPitch -140 140 1         "RC max"  "maximum RC Angle" "config.maxRCPitch: the amount or rotation your motor will make on that axis"
         gui_slider .note.pitchRC.set.rc.aop angleOffsetPitch -120 120 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetPitch: offset adjust for pitch zero position (deg)"
 
-      labelframe .note.pitchRC.set.fpv -text "FPV Mix Mode" -padx 10 -pady 10
+      labelframe .note.pitchRC.set.fpv -text "FPV Activation" -padx 10 -pady 10
       pack .note.pitchRC.set.fpv -side top -expand no -fill x
 
-        gui_check  .note.pitchRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.pitchRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.pitchRC.set.fpv.fpvGain fpvGainPitch -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-        gui_slider .note.pitchRC.set.fpv.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+        gui_check  .note.pitchRC.set.fpv.fpvFreezePitch fpvFreezePitch       "Mix/Freeze Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezePitch: the freeze fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
 
-      labelframe .note.pitchRC.set.fpvFreeze -text "FPV Freeze Mode" -padx 10 -pady 10
+      labelframe .note.pitchRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
+      pack .note.pitchRC.set.fpvMx -side top -expand no -fill x
+        gui_check  .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.pitchRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_slider .note.pitchRC.set.fpvMx.fpvGain fpvGainPitch -100 100.0 0.1     "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.pitchRC.set.fpvMx.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1  "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
+
+      labelframe .note.pitchRC.set.fpvFreeze -text "FPV Freeze Mode Parameters" -padx 10 -pady 10
       pack .note.pitchRC.set.fpvFreeze -side top -expand no -fill x
-
-        gui_check  .note.pitchRC.set.fpvFreeze.fpvFreezePitch fpvFreezePitch  "FPV Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezePitch: this fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
         gui_slider .note.pitchRC.set.fpvFreeze.maxPWMfpvPitch maxPWMfpvPitch 0 100 0.1 "motor PWM (%)" "alternate motor power in fpv freeze mode" "config.maxPWMfpvPitch: during fpv freeze mode, this power setting is used to increase torque"
 
     labelframe .note.pitchRC.monitor -text "RC Monitor"
@@ -1587,19 +1592,22 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
         gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
-      labelframe .note.rollRC.set.fpv -text "FPV Mix Mode" -padx 10 -pady 10
+      labelframe .note.rollRC.set.fpv -text "FPV Activation" -padx 10 -pady 10
       pack .note.rollRC.set.fpv -side top -expand no -fill x
 
-        gui_check  .note.rollRC.set.fpv.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.rollRC.set.fpv.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.rollRC.set.fpv.fpvGain fpvGainRoll -100 100.0 0.1 "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
-        gui_slider .note.rollRC.set.fpv.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
+        gui_check  .note.rollRC.set.fpv.fpvFreezeRoll fpvFreezeRoll        "Mix/Freeze Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezeRoll: the freeze fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
+      
+      labelframe .note.rollRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
+      pack .note.rollRC.set.fpvMx -side top -expand no -fill x
+        gui_check  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP         "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1  "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_slider .note.rollRC.set.fpvMx.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.rollRC.set.fpvMx.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
-      labelframe .note.rollRC.set.fpvFreeze -text "FPV Freeze Mode" -padx 10 -pady 10
+      labelframe .note.rollRC.set.fpvFreeze -text "FPV Freeze Mode Parameters" -padx 10 -pady 10
       pack .note.rollRC.set.fpvFreeze -side top -expand no -fill x
 
-        gui_check  .note.rollRC.set.fpvFreeze.fpvFreezeRoll fpvFreezeRoll  "FPV Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezeRoll: this fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
         gui_slider .note.rollRC.set.fpvFreeze.maxPWMfpvRoll maxPWMfpvRoll 0 100 0.1 "motorPWM (%)" "alternate motor power in fpv freeze mode" "config.maxPWMfpvRoll: during fpv freeze mode, this power setting is used to increase torque"
 
     labelframe .note.rollRC.monitor -text "RC Monitor"

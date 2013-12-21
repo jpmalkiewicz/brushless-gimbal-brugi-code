@@ -100,7 +100,6 @@ void intDecodePWM_Ch0()
 { 
   uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
   bool risingEdge = PCintPort::pinState==HIGH ? true : false;
-  sei(); // re-enable interrupts
   
   // PWM: 6 / 10 us (min/max)
   // PPM: 0.5 / 12 us (min/max)
@@ -129,7 +128,7 @@ void intDecodePWM_Ch1()
 { 
   uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
   bool risingEdge = PCintPort::pinState==HIGH ? true : false;
-  sei(); // re-enable interrupts
+  
 
 #ifdef RC_PIN_PPM_A1
   if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
@@ -156,7 +155,6 @@ void intDecodePWM_Ch2()
 { 
   uint32_t microsIsrEnter = PCintPort::microsIsrEnter;
   bool risingEdge = PCintPort::pinState==HIGH ? true : false;
-  sei(); // re-enable interrupts
   
 #ifdef RC_PIN_PPM_A0  
   if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {  {
