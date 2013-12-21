@@ -66,6 +66,7 @@ void MPU6050::initialize() {
     setFullScaleGyroRange(MPU6050_GYRO_FS_250);
     setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
     setSleepEnabled(false); // thanks to Jack Elston for pointing this one out!
+    i2cErrors = 0;
 }
 
 /** Verify the I2C connection.
