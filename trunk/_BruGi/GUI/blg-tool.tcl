@@ -13,6 +13,9 @@ package require Tk
 
 set VERSION "2013-12-26 / for BruGi Firmware v50 r199 or higher"
 
+# just activate a debug console
+#catch {console show}
+
 #####################################################################################
 # Big hexdata
 #####################################################################################
@@ -313,10 +316,10 @@ menu .menu.help -tearoff 0
 #	}
 	.menu.help add separator
 	.menu.help add command -label "Homepage" -command {
-		launchBrowser "http://brushlessgimbal.de/"
+		launchBrowser "http://code.google.com/p/brushless-gimbal/"
 	}
 	.menu.help add command -label "Documentation" -command {
-		launchBrowser "http://brushlessgimbal.de/brugi-v1/software/"
+		launchBrowser "http://code.google.com/p/brushless-gimbal/"
 	}
 	.menu.help add separator
 	.menu.help add command -label "About..." -command {
@@ -385,6 +388,7 @@ foreach var $params {
 		set par($var) 0
 		set par($var,scale) 1
 		set par($var,offset) 0
+    set par($var,comboboxOptions) {}
 	}
 }
 
@@ -415,6 +419,30 @@ set par(refVoltageBat,scale) 100.0
 set par(cutoffVoltage,scale) 100.0
 set par(maxPWMfpvPitch,scale) 2.5
 set par(maxPWMfpvRoll,scale) 2.5
+
+#
+# parameters with non-numeric values (as used by gui_combobox)
+#
+set par(fpvSwPitch,comboboxOptions) {"permanent On" "permanent Off" AuxSW1 AuxSW2}
+set par(fpvSwPitch,offset) 1
+set par(fpvSwRoll,comboboxOptions) {"permanent On" "permanent Off" AuxSW1 AuxSW2}
+set par(fpvSwRoll,offset) 1
+set par(altSwAccTime,comboboxOptions) {"permanent On" "permanent Off" AuxSW1 AuxSW2}
+set par(altSwAccTime,offset) 1
+
+set par(fpvFreezePitch,comboboxOptions) {Follow Freeze}
+set par(fpvFreezeRoll,comboboxOptions) {Follow Freeze}
+
+
+set par(rcModePPMPitch,comboboxOptions) {PWM "PPM Sum"}
+set par(rcModePPMRoll,comboboxOptions) {PWM "PPM Sum"}
+set par(rcModePPMFpvP,comboboxOptions) {PWM "PPM Sum"}
+set par(rcModePPMFpvR,comboboxOptions) {PWM "PPM Sum"}
+set par(rcModePPMAux,comboboxOptions) {PWM "PPM Sum"}
+
+set par(rcPinModeCH0,comboboxOptions) {"disabled" "digital PWM/PPM input" "analog input"}
+set par(rcPinModeCH1,comboboxOptions) {"disabled" "digital PWM input" "analog input"}
+set par(rcPinModeCH2,comboboxOptions) {"disabled" "digital PWM input" "analog input"}
 
 set CHART_SCALE 0.5
 set buffer ""
@@ -474,7 +502,7 @@ proc Serial_Init {ComPort ComRate} {
 		.common.bottom1.linkStatus configure -background red
 		.common.device.connect configure -text "Connect"
     set chart 0
-    .common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
+    .common.chartview.chart.fr1.button configure -text "Start Waveform View" -background lightgrey
 		return 0
 	}
 
@@ -500,7 +528,7 @@ proc close_serial {} {
   .common.bottom1.linkStatus configure -background red
   .common.bottom1.message configure -text "not connected"  -background lightgrey
   set chart 0
-  .common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
+  .common.chartview.chart.fr1.button configure -text "Start Waveform View" -background lightgrey
   .common.bottom1.bruGiStatus configure -background lightgrey
   .common.bottom.bruGiVersion configure -text "Firmware: -----"
   
@@ -552,13 +580,13 @@ proc draw_chart {} {
 		.common.bottom2.txlog configure -text "TX: par fTrace 0"
         	puts -nonewline $Serial "par fTrace 0\n"
 		flush $Serial
-		.common.chartview.chart.fr1.button configure -text "Start" -background lightgrey
+		.common.chartview.chart.fr1.button configure -text "Start Waveform View" -background lightgrey
 	} else {
 		set chart 1
 		.common.bottom2.txlog configure -text "TX: par fTrace 254"
         	puts -nonewline $Serial "par fTrace 254\n"
 		flush $Serial
-		.common.chartview.chart.fr1.button configure -text "Stop" -background green
+		.common.chartview.chart.fr1.button configure -text "Stop Waveform View" -background green
 	}
 }
 
@@ -576,14 +604,24 @@ proc send_parvar {n1 n2 op} {
 		if {$n2 == "dirMotorPitch" || $n2 == "dirMotorRoll"} {
 			if {$par($n2) == 1} {
 				.common.bottom2.txlog configure -text "TX: par $n2 -1"
-					puts -nonewline $Serial "par $n2 -1\n"
+				puts -nonewline $Serial "par $n2 -1\n"
 			} else {
 				.common.bottom2.txlog configure -text "TX: par $n2 1"
-					puts -nonewline $Serial "par $n2 1\n"
+				puts -nonewline $Serial "par $n2 1\n"
 			}
 		} else {
-			.common.bottom2.txlog configure -text "TX: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
-				puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
+			if {[llength $par($n2,comboboxOptions)] > 0} {
+        set idx [lsearch $par($n2,comboboxOptions) $par($n2)]
+        if {$idx >= 0} {
+          .common.bottom2.txlog configure -text "TX: par $n2 [expr $idx * $par($n2,scale) - $par($n2,offset)]"
+          puts -nonewline $Serial "par $n2 [expr $idx * $par($n2,scale) - $par($n2,offset)]\n"
+        } else {
+          .common.bottom2.txlog configure -text "TX: illegal comboboxOptions $n2 $par($n2)"
+        }
+      } else {
+        .common.bottom2.txlog configure -text "TX: par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]"
+        puts -nonewline $Serial "par $n2 [expr $par($n2) * $par($n2,scale) - $par($n2,offset)]\n"
+      }
 		}
 		flush $Serial
 		after 20
@@ -926,7 +964,20 @@ proc rd_chid {chid} {
 						set par($var) 0
 					}
 				} elseif {[info exists par($var,scale)]} {
-					set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
+          # par paramters
+          if {[llength $par($var,comboboxOptions)] > 0} {
+            # text
+            set idx [expr ($val + $par($var,offset)) / $par($var,scale)]
+            if {$idx >= 0} {
+              set parValue [lindex $par($var,comboboxOptions) $idx]
+              set par($var) $parValue
+            } else {
+              set par($var) "invalid combobox text"
+            }
+          } else {
+            # numeric
+            set par($var) [expr ($val + $par($var,offset)) / $par($var,scale)]
+          }
 				} else {
 					set enable_trace 1
 				}
@@ -1274,6 +1325,29 @@ proc gui_spin {wid variable min max step title tooltiptext helptext} {
 			pack $wid.frame.spin -side right -expand yes -fill x
 }
 
+proc gui_combobox {wid variable title tooltiptext helptext} {
+	global par
+  
+  set comboboxOptions $par($variable,comboboxOptions)
+  
+	frame $wid
+	pack $wid -side top -expand yes -fill x
+	setTooltip $wid "$tooltiptext"
+
+		label $wid.label -text "$title" -width 14 -anchor w
+		pack $wid.label -side left -expand no -fill x
+
+		frame $wid.frame
+		pack $wid.frame -side left -expand yes -fill x
+
+			eval button $wid.frame.help -text \"?\" -width 1 -command \{show_help \"$helptext\"\}
+			pack $wid.frame.help -side right -expand no -fill none
+      
+      ttk::combobox $wid.frame.spin -textvariable par($variable) -state readonly -values $comboboxOptions
+			pack $wid.frame.spin -side right -expand yes -fill x
+}
+
+
 proc gui_check {wid variable title title2 tooltiptext helptext} {
 	global par
 	frame $wid
@@ -1514,9 +1588,9 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
     labelframe .note.pitch.hw -text "Motor" -padx 10 -pady 10
     pack .note.pitch.hw -side top -expand no -fill x
 
-      gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberPitch: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
-      gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "reverse" "Motor-Direction" "config.Direction: this is for reversing your motor if it is rotating in the wrong direction"
-      gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorPitch: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
+      gui_radio .note.pitch.hw.number motorNumberPitch "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberPitch: this is the motor output port for pitch"
+      gui_check .note.pitch.hw.dir   dirMotorPitch            "Direction"     "reverse" "Motor-Direction" "config.dirMotorPitch: reverse motor direction, care should be taken to set the proper motor direction, otherwise the PID controller may show unexpected behaviour"
+      gui_slider .note.pitch.hw.maxpwm maxPWMmotorPitch 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorPitch: motor power setting"
 
   ttk::frame .note.roll
   .note add .note.roll -text "PID Roll"
@@ -1531,9 +1605,9 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
     labelframe .note.roll.hw -text "Motor" -padx 10 -pady 10
     pack .note.roll.hw -side top -expand no -fill x
 
-      gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberRoll: if you find that the wrong motor is connected you can just change the 0 to the 1 and this will avoid unplugging your motors"
-      gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "reverse" "Motor-Direction" "config.dirMotorRoll: this is for reversing your motor if it is rotating in the wrong direction"
-      gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorRoll: control of motor power, minimize the MAX PWM setting as much as possible this will help to stop vibrations in the motor as well"
+      gui_radio .note.roll.hw.number motorNumberRoll "{Motor-1 1} {Motor-2 2}" "Port-Number"  "Output-Port-Number" "config.motorNumberRoll: this is the motor output port for roll"
+      gui_check .note.roll.hw.dir   dirMotorRoll            "Direction"     "reverse" "Motor-Direction" "config.dirMotorRoll: reverse motor direction, care should be taken to set the proper motor direction, otherwise the PID controller may show unexpected behaviour"
+      gui_slider .note.roll.hw.maxpwm maxPWMmotorRoll 0 100 0.1 "max PWM (%)" "maximum Motor-PWM" "config.maxPWMmotorRoll: motor power setting"
 
   ttk::frame .note.pitchRC
   .note add .note.pitchRC -text "RC Pitch"
@@ -1543,10 +1617,9 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
       labelframe .note.pitchRC.set.rc -text "RC" -padx 10 -pady 10
       pack .note.pitchRC.set.rc -side left -expand yes -fill both
-
-        gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
+        gui_combobox .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch      "RC PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
         gui_spin   .note.pitchRC.set.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+        gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal position follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
         gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
         gui_slider .note.pitchRC.set.rc.rcLPF  rcLPFPitch 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
         gui_slider .note.pitchRC.set.rc.rcmin  minRCPitch -140 140 1         "RC min"  "minimum RC Angle" "config.minRCPitch: the amount or rotation your motor will make on that axis"
@@ -1555,14 +1628,13 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
       labelframe .note.pitchRC.set.fpv -text "FPV Activation" -padx 10 -pady 10
       pack .note.pitchRC.set.fpv -side top -expand no -fill x
+        gui_combobox .note.pitchRC.set.fpv.fpvSw fpvSwPitch                  "FPV Switch" "select FPV control switch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_combobox .note.pitchRC.set.fpv.fpvFreezePitch fpvFreezePitch     "FPV Mode"   "select FPV mode" "config.fpvFreezePitch: select between theses modes, Follow and Freeze. In Follow mode the camera position follows the FPV RC channel coming from the flight control. The Freeze mode can be used for light weigth gimbals. During thos mode the control loop is stopped and the motor drive is frozen at the current position"
 
-        gui_spin   .note.pitchRC.set.fpv.fpvSw  fpvSwPitch -1 2 1            "SW FPV"  "fpvSwPitch" "config.fpvSwPitch: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_check  .note.pitchRC.set.fpv.fpvFreezePitch fpvFreezePitch       "Mix/Freeze Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezePitch: the freeze fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
-
-      labelframe .note.pitchRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
+      labelframe .note.pitchRC.set.fpvMx -text "FPV Follow Mode Parameters" -padx 10 -pady 10
       pack .note.pitchRC.set.fpvMx -side top -expand no -fill x
-        gui_check  .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
-        gui_spin   .note.pitchRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_combobox .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP            "PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
+        gui_spin   .note.pitchRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1       "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_slider .note.pitchRC.set.fpvMx.fpvGain fpvGainPitch -100 100.0 0.1     "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.pitchRC.set.fpvMx.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1  "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
 
@@ -1584,26 +1656,24 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
       labelframe .note.rollRC.set.rc -text "RC" -padx 10 -pady 10
       pack .note.rollRC.set.rc -side left -expand yes -fill both
-
-        gui_check  .note.rollRC.set.rc.rcModePPMRoll rcModePPMRoll        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.rollRC.set.rc.rcChannelRoll rcChannelRoll 0 16 1 "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
+        gui_combobox .note.rollRC.set.rc.rcModePPMRoll rcModePPMRoll       "RC PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.rc.rcChannelRoll rcChannelRoll 0 16 1  "RC Channel #"  "rcChannelRoll" "config.rcChannelRoll: RC channel number for RC roll, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_check  .note.rollRC.set.rc.rcAbsolute rcAbsoluteRoll           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal position follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
         gui_slider .note.rollRC.set.rc.rcGain rcGainRoll -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
         gui_slider .note.rollRC.set.rc.rcLPF  rcLPFRoll 0.1 20 0.1         "RC Low Pass" "RC low pass filter" "config.rcLPF: RC low pass filter in Absolute mode: specifies speed of gimbal movement (sec)"
-        gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -50 50 1         "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
-        gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1         "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
-        gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1    "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
+        gui_slider .note.rollRC.set.rc.rcmin  minRCRoll -50 50 1           "RC min"  "minimum RC Angle" "config.minRCRoll: the amount or rotation your motor will make on that axis"
+        gui_slider .note.rollRC.set.rc.rcmax  maxRCRoll -50 50 1           "RC max"  "maximum RC Angle" "config.maxRCRoll: the amount or rotation your motor will make on that axis"
+        gui_slider .note.rollRC.set.rc.aop angleOffsetRoll -50 50 0.1      "Zero Offset" "Zero Offset" "config.angleOffsetRoll: offset adjust for roll zero position (deg)"
 
       labelframe .note.rollRC.set.fpv -text "FPV Activation" -padx 10 -pady 10
       pack .note.rollRC.set.fpv -side top -expand no -fill x
-
-        gui_spin   .note.rollRC.set.fpv.fpvSw  fpvSwRoll -1 2 1            "SW FPV"  "fpvSwRoll" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_check  .note.rollRC.set.fpv.fpvFreezeRoll fpvFreezeRoll        "Mix/Freeze Mode" "Freeze" "motor updates are stopped during FPV mode" "config.fpvFreezeRoll: the freeze fpv mode can be used for light weigth gimbals. During fpv the control loop is stopped an the motor drive is frozen at the current position"
+        gui_combobox .note.rollRC.set.fpv.fpvSw  fpvSwRoll                "FPV Switch" "select FPV control switch" "config.fpvSwRoll: RC Switch for FPV mode, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_combobox .note.rollRC.set.fpv.fpvFreezePitch fpvFreezeRoll    "FPV Mode"   "select FPV mode" "config.fpvFreezePitch: select between theses modes, Follow and Freeze. In Follow Mode the camera position follows the FPV RC channel coming from the flight control. The Freeze Mode can be used for light weight gimbals. During thos mode the control loop is stopped and the motor drive is frozen at the current position"
       
-      labelframe .note.rollRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
+      labelframe .note.rollRC.set.fpvMx -text "FPV Follow Mode Parameters" -padx 10 -pady 10
       pack .note.rollRC.set.fpvMx -side top -expand no -fill x
-        gui_check  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvR         "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvR 0 16 1  "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_combobox  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvR        "PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvR 0 16 1    "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_slider .note.rollRC.set.fpvMx.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.rollRC.set.fpvMx.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
@@ -1645,19 +1715,19 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
       labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 7
       pack .note.aux.1.rc -side left -expand yes -fill x
-        gui_check  .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_combobox .note.aux.1.rc.rcModePPMPAux rcModePPMAux         "RC PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin     .note.aux.1.rc.rcChannelAux  rcChannelAux 0 16 1  "RC Channel #"  "rcChannelAux" "config.rcChannelAux: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
 
       labelframe .note.aux.1.altTC -text "Alternate ACC Time Constant" -padx 10 -pady 7
       pack .note.aux.1.altTC -side left -expand yes -fill x
-        gui_spin   .note.aux.1.altTC.altSwAccTime  altSwAccTime -1 2 1  "SW accTime"  "altSwAccTime" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
-        gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "accTime 2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
+        gui_combobox   .note.aux.1.altTC.altSwAccTime  altSwAccTime   "ACC Time2 Switch" "select control switch for alternate ACC time" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
+        gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "ACC Time2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
 
-    labelframe .note.aux.rcpin -text "Mode of Control Input (OFF/digital/analog)" -padx 10 -pady 7
+    labelframe .note.aux.rcpin -text "Mode of Control Inputs" -padx 10 -pady 7
     pack .note.aux.rcpin -side top -expand no -fill x
-      gui_spin  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 0 2 1       "Input 1 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
-      gui_spin  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 0 2 1       "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
-      gui_spin  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 0 2 1       "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
+      gui_combobox  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 "Input 1 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
+      gui_combobox  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
+      gui_combobox  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
       
     labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
       pack .note.aux.monitor -side top -expand no -fill x
@@ -1686,35 +1756,35 @@ pack .common -side top -expand yes -fill y
 
   frame .common.chartview
   pack .common.chartview -side top -expand no -fill x
-    labelframe .common.chartview.chart -text "Chart"
+    labelframe .common.chartview.chart -text "Waveform"
     pack .common.chartview.chart -side top -expand no -fill both
 
       canvas .common.chartview.chart.chart1 -relief raised -width 450 -height 100
       pack .common.chartview.chart.chart1 -side top
       .common.chartview.chart.chart1 create rec 1 1 450 100 -fill black
       .common.chartview.chart.chart1 create line 0 50 450 50 -fill white
-      setTooltip .common.chartview.chart.chart1 "acc chart"
+      setTooltip .common.chartview.chart.chart1 "waveform view"
 
       frame .common.chartview.chart.fr1
       pack .common.chartview.chart.fr1 -side left -expand yes -fill both
 
-        button .common.chartview.chart.fr1.button -text "Start" -width 5 -relief raised  -background lightgrey -command {
+        button .common.chartview.chart.fr1.button -text "Start Waveform View" -width 5 -relief raised  -background lightgrey -command {
                 draw_chart
         }
         pack .common.chartview.chart.fr1.button -side top -expand yes -fill both
-        setTooltip .common.chartview.chart.fr1.button "start/stop chart drawing"
+        setTooltip .common.chartview.chart.fr1.button "start/stop waveform view"
 
         frame .common.chartview.chart.fr1.scale
         pack .common.chartview.chart.fr1.scale -side top -expand no -fill x
 
           scale .common.chartview.chart.fr1.scale.slider -orient horizontal -from 0.1 -to 100.0 -showvalue 0 -resolution 0.1 -variable CHART_SCALE
           pack .common.chartview.chart.fr1.scale.slider -side left -expand yes -fill x
-          setTooltip .common.chartview.chart.fr1.scale.slider "Y-Scale for the chart"
+          setTooltip .common.chartview.chart.fr1.scale.slider "Y-Scale for waveform view"
           spinbox .common.chartview.chart.fr1.scale.spin -from 0.1 -to 100.0 -increment 0.1 -width 10 -textvariable CHART_SCALE -width 4
           pack .common.chartview.chart.fr1.scale.spin -side left -expand no -fill x
 
           button .common.chartview.chart.fr1.scale.help -text "?" -width 1 -command {
-                show_help "Y-Scale for the chart"
+                show_help "Y-Scale for waveform view"
           }
           pack .common.chartview.chart.fr1.scale.help -side right -expand no -fill none
 
