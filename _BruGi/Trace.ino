@@ -30,8 +30,8 @@ void printTrace(traceModeType traceMode)
     case TRC_AUX:
       // *******  AUX  *********
       Serial.print(F(" AUX"));
-      printTrace_int(fpvModePitch);
-      printTrace_int(fpvModeRoll);
+      printTrace_int(fpvModePitch || fpvModeFreezePitch);
+      printTrace_int(fpvModeRoll || fpvModeFreezeRoll);
       printTrace_int(altModeAccTime);
       break;
       
