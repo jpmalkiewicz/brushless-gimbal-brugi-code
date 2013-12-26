@@ -6,10 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # any later version. see <http://www.gnu.org/licenses/>
-# 
+#
+# enhancements by Alois Hahn
+#
 package require Tk
 
-set VERSION "2013-12-21 / for BruGi Firmware v50-r199 or higher"
+set VERSION "2013-12-26 / for BruGi Firmware v50 r199 or higher"
 
 #####################################################################################
 # Big hexdata
@@ -1542,7 +1544,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       labelframe .note.pitchRC.set.rc -text "RC" -padx 10 -pady 10
       pack .note.pitchRC.set.rc -side left -expand yes -fill both
 
-        gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_check  .note.pitchRC.set.rc.rcModePPMPitch rcModePPMPitch        "RC PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
         gui_spin   .note.pitchRC.set.rc.rcChannelPitch rcChannelPitch 0 16 1 "RC Channel #"  "rcChannelPitch" "config.rcChannelPitch: RC channel number for RC pitch, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_check  .note.pitchRC.set.rc.rcAbsolute rcAbsolutePitch           "RC Abs/Prop" "Absolute" "Absolute or Incremental RC control" "config.rcAbsolute: Absolute or Incremental RC control, Absolute: gimbal postion follows RC transmitters directly, Proportional: RC controls the gimbal speed, thus in RC stick in center position (1500us) gimbal stops moving, where as the gimbal starts moving if stick is moved"
         gui_slider .note.pitchRC.set.rc.rcGain rcGainPitch -200 200.0 0.1    "RC Gain" "RC gain" "config.rcGain: RC Gain in Proportional mode: specifies the gain of the RC channel, larger values increas the speed of the gimbal movement"
@@ -1559,7 +1561,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
       labelframe .note.pitchRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
       pack .note.pitchRC.set.fpvMx -side top -expand no -fill x
-        gui_check  .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_check  .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP          "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
         gui_spin   .note.pitchRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1   "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_slider .note.pitchRC.set.fpvMx.fpvGain fpvGainPitch -100 100.0 0.1     "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.pitchRC.set.fpvMx.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1  "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
@@ -1600,8 +1602,8 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       
       labelframe .note.rollRC.set.fpvMx -text "FPV Mix Mode Parameters" -padx 10 -pady 10
       pack .note.rollRC.set.fpvMx -side top -expand no -fill x
-        gui_check  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP         "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
-        gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1  "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
+        gui_check  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvR         "PPM/PWM" "PPM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
+        gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvR 0 16 1  "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
         gui_slider .note.rollRC.set.fpvMx.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.rollRC.set.fpvMx.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
