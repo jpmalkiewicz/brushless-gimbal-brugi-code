@@ -1,3 +1,8 @@
+29.12.2013
+Version 50 r203
+no functional changes
+* removed some development code (trace options) to reduce codes size by 720 bytes, on some boards code size was exceeded.
+
 26.12.2013
 Version 50 r202
 * GUI bugfix at fpv roll setting 

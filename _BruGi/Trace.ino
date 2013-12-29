@@ -1,5 +1,7 @@
 #include "Trace.h"
 
+// undef TRACE_EXTRA to reduce code size by ~720 bytes
+//#define TRACE_EXTRA
 
 void printTrace(traceModeType traceMode)
 {
@@ -34,7 +36,8 @@ void printTrace(traceModeType traceMode)
       printTrace_int(fpvModeRoll || fpvModeFreezeRoll);
       printTrace_int(altModeAccTime);
       break;
-      
+    
+#ifdef TRACE_EXTRA
     case TRC_IMU:
       // *******  IMU  *********
       Serial.print(F(" IMU"));
@@ -85,6 +88,7 @@ void printTrace(traceModeType traceMode)
       printTrace_float((rollAngleSet*1000-angle[ROLL])*0.001); // PID error
       printTrace_int(rollErrorSum);
       break;
+#endif
 
     case TRC_MPU:
       // *******  Main Status  *********
