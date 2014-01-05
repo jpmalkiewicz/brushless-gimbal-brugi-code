@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r203"
+#define REVISION "r204"
 #define VERSION_EEPROM 15 // change this number when eeprom data structure has changed
 
 
@@ -387,9 +387,6 @@ void loop()
       // handle mode switches
       decodeModeSwitches();  // td = 4 us
       
-      // lpf avoids jerking during offset config
-      updateLPFangleOffset(); // td = 65 us
-           
       break;
     case 5:
       // RC Pitch function
@@ -435,7 +432,7 @@ void loop()
       if (tOutCnt == (LOOPUPDATE_FREQ/10/TRACE_OUT_FREQ))
       {
         tOutCntSub++;
-        if (tOutCntSub > STRACE_IDX) {
+        if (tOutCntSub >= TRC_LAST_IDX) {
           tOutCntSub = 1;
         }
 
