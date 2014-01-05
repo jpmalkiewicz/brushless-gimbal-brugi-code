@@ -53,8 +53,8 @@ const t_configDef PROGMEM configListPGM[] = {
   {"gyroRollKd",       INT32, &config.gyroRollKd,       &initPIDs},
   {"accTimeConstant",  INT16, &config.accTimeConstant,  &initIMUtc},
   
-  {"angleOffsetPitch", INT16, &config.angleOffsetPitch, NULL},
-  {"angleOffsetRoll",  INT16, &config.angleOffsetRoll,  NULL},
+  {"angleOffsetPitch", INT16, &config.angleOffsetPitch, &updateAngleOffset},
+  {"angleOffsetRoll",  INT16, &config.angleOffsetRoll,  &updateAngleOffset},
   
   {"dirMotorPitch",    INT8,  &config.dirMotorPitch,    NULL},
   {"dirMotorRoll",     INT8,  &config.dirMotorRoll,     NULL},
@@ -299,7 +299,7 @@ void readEEPROM()
     updateAllParameters();
   } else {
     // crc failed intialize directly here, as readEEPROM is void
-    printMessage(MSG_WARNING, F("EEPROM CRC failed, initialize to default"));
+    //printMessage(MSG_WARNING, F("EEPROM CRC failed, initialize to default"));
     setDefaultParameters();
     writeEEPROM();
   }
@@ -350,7 +350,7 @@ void printVersionString()
 
 void printHelpUsage()
 {
-  Serial.println(F("List of commands:"));
+  Serial.println(F("commands:"));
   Serial.println(F(""));
   Serial.println(F("sd   # set defaults"));
   Serial.println(F("we   # write config to eeprom"));
@@ -358,11 +358,11 @@ void printHelpUsage()
   Serial.println(F("gc   # calibrate gyro"));
   Serial.println(F("ac   # calibrate acc"));
   Serial.println(F("sbv  # save battery voltage"));
-  Serial.println(F("par <parName> <parValue> # general parameter read/set command"));
+  Serial.println(F("par <parName> <parValue> # parameter read/set command"));
   Serial.println(F(" e.g."));
-  Serial.println(F("   par                   # list all config parameters"));
-  Serial.println(F("   par gyroPitchKi       # list gyroPitchKi"));
-  Serial.println(F("   par gyroPitchKi 12000 # set gyroPitchKi to 12000"));
+  Serial.println(F("   par"));
+  Serial.println(F("   par gyroPitchKi"));
+  Serial.println(F("   par gyroPitchKi 12000"));
   Serial.println(F(""));
   Serial.println(F("he  # print help"));
   Serial.println(F(""));
@@ -372,7 +372,7 @@ void unrecognized(const char *command)
 {
   Serial.print(F("'"));
   Serial.print(command);
-  Serial.println(F("' unrecognized command, type HE for help ..."));
+  Serial.println(F("' bad command, type HE for help ..."));
 }
 
 

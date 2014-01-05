@@ -138,6 +138,16 @@
 #define CH3_OFF                    digitalWrite(7, LOW);
 #define CH3_ON                     digitalWrite(7, HIGH);
 
+
+// just for debugging 
+
+// trace minimum to save code space
+//#define TRACE_EXTRA
+// maximum code size depends on bootloader 
+//   Arduino Uno: 32256 bytes
+//   Arduino Pro or Pro Mini: 30720 bytes
+//   Arduino Mini w/ ATmega328: 28672 bytes.
+
 // enable stack and heapsize check (use just for debugging)
 //#define STACKHEAPCHECK_ENABLE
 

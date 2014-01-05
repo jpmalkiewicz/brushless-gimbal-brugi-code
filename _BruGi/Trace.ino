@@ -1,8 +1,5 @@
 #include "Trace.h"
 
-// undef TRACE_EXTRA to reduce code size by ~720 bytes
-//#define TRACE_EXTRA
-
 void printTrace(traceModeType traceMode)
 {
  
@@ -37,6 +34,13 @@ void printTrace(traceModeType traceMode)
       printTrace_int(altModeAccTime);
       break;
     
+    case TRC_MPU:
+      // *******  Main Status  *********
+      Serial.print(F(" MPU"));
+      printTrace_int(mpu.readRealTemperature());
+      printTrace_int(mpu.i2cErrors);
+      break;
+
 #ifdef TRACE_EXTRA
     case TRC_IMU:
       // *******  IMU  *********
@@ -90,18 +94,12 @@ void printTrace(traceModeType traceMode)
       break;
 #endif
 
-    case TRC_MPU:
-      // *******  Main Status  *********
-      Serial.print(F(" MPU"));
-      printTrace_int(mpu.readRealTemperature());
-      printTrace_int(mpu.i2cErrors);
-      break;
 
     case TRC_OAC:
       // *******  OAC mode 2 (replaces oac/acc mode)  *********
       Serial.print(F(" ACC2"));
-      printTrace_float(angle[PITCH]);
-      printTrace_float(angle[ROLL]);
+      printTrace_int(angle[PITCH]);
+      printTrace_int(angle[ROLL]);
       break;
             
     default:
@@ -119,8 +117,9 @@ void printTrace_int(int32_t value)
 
 void printTrace_float(float value)
 {
+  float v = value * 1000;
   Serial.print(F(" "));
-  Serial.print(value, 4);
+  Serial.print((int32_t)v);
 }
 
 

@@ -137,12 +137,10 @@ void initIMUtc() {
   setACCtc(config.accTimeConstant);
 }
 
-// lpf avoids jerking during offset config
-void updateLPFangleOffset() {
-   utilLP_float(&angleOffsetPitch_f, (int32_t)config.angleOffsetPitch * 10, DT_FLOAT*10.0 / 1.0); // 1.0 sec
-   utilLP_float(&angleOffsetRoll_f, (int32_t)config.angleOffsetRoll * 10, DT_FLOAT*10.0 / 1.0);
-   angleOffsetPitch = angleOffsetPitch_f;
-   angleOffsetRoll = angleOffsetRoll_f;
+// update angle offest
+void updateAngleOffset() {
+   angleOffsetPitch = (int32_t)config.angleOffsetPitch * 10; //angleOffsetPitch_f;
+   angleOffsetRoll = (int32_t)config.angleOffsetRoll * 10; //angleOffsetRoll_f;
  }
 
 void initIMU() {
