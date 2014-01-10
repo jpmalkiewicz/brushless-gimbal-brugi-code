@@ -1,4 +1,9 @@
 5.1.2014
+Version 50 r207
+no functional change in Brugi
+* GUI Bugfix at "Save Config to File", ticket#19, https://sourceforge.net/p/brushless-gimbal-brugi/tickets/19/#3d3a
+
+5.1.2014
 Version 50 r204
 no functional changes
 * further code size reduction (28578 bytes) to fit into Arduino Mini w/ ATmega328 boards with max code size = 28672 bytes

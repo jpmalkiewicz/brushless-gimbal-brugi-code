@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2013-12-26 / for BruGi Firmware v50 r199 or higher"
+set VERSION "2013-01-10 / for BruGi Firmware v50 r199 or higher"
 
 # just activate a debug console
 #catch {console show}
@@ -703,15 +703,25 @@ proc save_values2file {} {
     set names [lsort $names]
 		foreach var $names {
       if {! [string match "*,*" $var]} {
-				if {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
-					if {$par($var) == 1} {
-					        puts -nonewline $fp "par $var -1\n"
-					} else {
-					        puts -nonewline $fp "par $var 1\n"
-					}
-				} else {
-				        puts -nonewline $fp "par $var [expr $par($var) * $par($var,scale) - $par($var,offset)]\n"
-				}
+        if {[llength $par($var,comboboxOptions)] > 0} {
+          set idx [lsearch $par($var,comboboxOptions) $par($var)]
+          if {$idx >= 0} {
+            puts "$var $par($var) $par($var,scale) $par($var,offset)\n"
+            puts -nonewline $fp "par $var [expr $idx * $par($var,scale) - $par($var,offset)]\n"
+          } else {
+            .common.bottom1.message configure -text "error: illegal comboboxOption $var $par($var)" -background red
+          }
+        } else {
+          if {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
+            if {$par($var) == 1} {
+              puts -nonewline $fp "par $var -1\n"
+            } else {
+              puts -nonewline $fp "par $var 1\n"
+            }
+          } else {
+            puts -nonewline $fp "par $var [expr $par($var) * $par($var,scale) - $par($var,offset)]\n"
+          }
+        }
 			}
 		}
 		close $fp
