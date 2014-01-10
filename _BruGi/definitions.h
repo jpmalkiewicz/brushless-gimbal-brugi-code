@@ -144,9 +144,9 @@
 // trace minimum to save code space
 //#define TRACE_EXTRA
 // maximum code size depends on bootloader 
-//   Arduino Uno: 32256 bytes
-//   Arduino Pro or Pro Mini: 30720 bytes
-//   Arduino Mini w/ ATmega328: 28672 bytes.
+//   Arduino Uno: 32256 bytes (0x7e00)
+//   Arduino Pro or Pro Mini: 30720 bytes (0x7800)
+//   Arduino Mini w/ ATmega328: 28672 bytes (0x7000)
 
 // enable stack and heapsize check (use just for debugging)
 //#define STACKHEAPCHECK_ENABLE
