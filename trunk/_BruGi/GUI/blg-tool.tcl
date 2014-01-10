@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2013-01-10 / for BruGi Firmware v50 r199 or higher"
+set VERSION "2014-01-10 / for BruGi Firmware v50 r199 or higher"
 
 # just activate a debug console
 #catch {console show}
