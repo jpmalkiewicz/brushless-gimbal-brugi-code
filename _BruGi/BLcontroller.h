@@ -237,6 +237,7 @@ ISR( TIMER1_OVF_vect )
 void voltageCompensation () {
   int uBatValue;
   float pwmMotorScale;
+  static bool cutOffActive = false;
   
   // measure uBat, 190 us
   uBatValue = analogRead(ADC_VCC_PIN); // 118 us
@@ -244,11 +245,17 @@ void voltageCompensation () {
   utilLP_float(&voltageBat, uBatValue_f, LOWPASS_K_FLOAT(0.1)); // tau = 1 sec
    
   if (config.motorPowerScale) {
+    uint16_t cutOffVoltage = config.cutoffVoltage;
+    if (cutOffActive) {
+      cutOffVoltage +=  cutOffVoltage >> 4; // 1/16 = 6,25% hysteresis
+    }
     // calculate scale factor for motor power (70us)
-    if (voltageBat*100 > config.cutoffVoltage) {  // switch off if battery voltage below cutoff
+    if (voltageBat*100 > cutOffVoltage) {  // switch off if battery voltage below cutoff
       pwmMotorScale = (config.refVoltageBat * 0.01)/voltageBat;
+      cutOffActive = false;
     } else {
       pwmMotorScale = 0;
+      cutOffActive = true;
     }
   } else {
     pwmMotorScale = 1.0;
