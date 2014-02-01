@@ -34,6 +34,8 @@ typedef union {
 
 t_configUnion configUnion;
 
+void readEEPROM();
+
 //******************************************************************************
 //
 // list of all config parameters
@@ -45,6 +47,8 @@ t_configUnion configUnion;
 //
 //******************************************************************************
 const t_configDef PROGMEM configListPGM[] = {
+  {"configSet",        UINT8, &config.configSet,        &readEEPROM}, // select another EEPROM set
+  
   {"gyroPitchKp",      INT32, &config.gyroPitchKp,      &initPIDs},
   {"gyroPitchKi",      INT32, &config.gyroPitchKi,      &initPIDs},
   {"gyroPitchKd",      INT32, &config.gyroPitchKd,      &initPIDs},
@@ -249,7 +253,6 @@ void parameterMod() {
 }
 //************************************************************************************
 
-
 //******************************************************************************
 // set config to default
 //*****************************************************************************
@@ -271,10 +274,44 @@ void setDefaultParametersAndUpdate() {
 }
 
 //******************************************************************************
-// write EEPROM into config 
+// write current config set number into EEPROM 
+//*****************************************************************************
+void writeConfigSetNumberToEEPROM(uint8_t configSet)
+{
+  // write current config set number to EEPROM
+  EEPROM_writeAnything(0, configSet);
+}
+
+//******************************************************************************
+// write current config set number into EEPROM 
+//*****************************************************************************
+uint8_t readConfigSetNumberFromEEPROM()
+{
+  uint8_t configSet;
+  
+  // read current config set number
+  EEPROM_readAnything(0, configSet);
+  if (configSet > NUM_EEPROM_CONFIG_SETS) {
+    configSet = 0;
+  }
+  return configSet;
+}
+
+//******************************************************************************
+// write config into EEPROM
 //*****************************************************************************
 void writeEEPROM()
 {
+  const uint16_t configBlockSize = sizeof(config);
+  uint8_t configSet = config.configSet;
+  uint16_t configBlockAddr;
+
+  // write current config set number to EEPROM
+  writeConfigSetNumberToEEPROM(configSet);
+  
+  // eeprom address of the selected config set
+  configBlockAddr = sizeof(configSet) + configSet*configBlockSize;
+    
   traceModeType oldfTrace = config.fTrace;
   traceModeType oldsTrace = config.sTrace;
   
@@ -282,7 +319,7 @@ void writeEEPROM()
   config.sTrace = TRC_OFF;    
   
   config.crc8 = crcSlow((crc *)&config, sizeof(config)-1); // set proper CRC 
-  EEPROM_writeAnything(0, config);
+  EEPROM_writeAnything(configBlockAddr, config);
   
   config.fTrace = oldfTrace;
   config.sTrace = oldsTrace;
@@ -293,7 +330,18 @@ void writeEEPROM()
 //*****************************************************************************
 void readEEPROM()
 {
-  EEPROM_readAnything(0, config); 
+  const uint16_t configBlockSize = sizeof(config);
+  uint8_t configSet = config.configSet;
+  uint16_t configBlockAddr;
+
+  if (configSet > NUM_EEPROM_CONFIG_SETS) {
+    configSet = 0;
+  }
+  
+  // eeprom address of the selected config set
+  configBlockAddr = sizeof(configSet) + configSet*configBlockSize;
+  
+  EEPROM_readAnything(configBlockAddr, config); 
   if (config.crc8 == crcSlow((crc *)&config, sizeof(config)-1))
   { 
     updateAllParameters();
@@ -303,6 +351,11 @@ void readEEPROM()
     setDefaultParameters();
     writeEEPROM();
   }
+  
+  // write current config set number to EEPROM
+  writeConfigSetNumberToEEPROM(configSet);  
+  config.configSet = configSet;
+  
 }
 
 //******************************************************************************
@@ -358,6 +411,7 @@ void printHelpUsage()
   Serial.println(F("gc   # calibrate gyro"));
   Serial.println(F("ac   # calibrate acc"));
   Serial.println(F("sbv  # save battery voltage"));
+  Serial.println(F("sc <n> # select config num"));  
   Serial.println(F("par <parName> <parValue> # parameter read/set command"));
   Serial.println(F(" e.g."));
   Serial.println(F("   par"));
