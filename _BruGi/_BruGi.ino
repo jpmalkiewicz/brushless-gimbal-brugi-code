@@ -31,8 +31,8 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r208"
-#define VERSION_EEPROM 15 // change this number when eeprom data structure has changed
+#define REVISION "r210"
+#define VERSION_EEPROM 16 // change this number when eeprom data structure has changed
 
 
 /*************************/
@@ -95,6 +95,7 @@ void setup()
   motorPowerOff();
     
   // Read Config, initialize if version does not match or CRC fails
+  config.configSet = readConfigSetNumberFromEEPROM(); // get set number from EEPROM
   readEEPROM();
   if (config.versEEPROM != VERSION_EEPROM)
   {

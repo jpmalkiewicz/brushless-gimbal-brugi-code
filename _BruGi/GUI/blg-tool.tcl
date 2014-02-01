@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2014-02-01 / for BruGi Firmware v50 r199 or higher"
+set VERSION "2014-02-01 / for BruGi Firmware v50 r210 or higher"
 
 # just activate a debug console
 #catch {console show}
@@ -373,7 +373,7 @@ set Serial 0
 set LastValX 0
 set LastValY 0
 set chart 0
-set params "gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll \
+set params "configSet gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi gyroRollKd accTimeConstant angleOffsetPitch angleOffsetRoll \
             dirMotorPitch dirMotorRoll motorNumberPitch motorNumberRoll maxPWMmotorPitch maxPWMmotorRoll refVoltageBat cutoffVoltage motorPowerScale \
             rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll \
             rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
@@ -1582,6 +1582,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       frame .note.general.buttons.line2
       pack .note.general.buttons.line2 -side top -expand no -fill x
 
+        gui_spin .note.general.buttons.line2.configSet   configSet   0 3 1 "Param Set"  "Parameter Set Number" "select a specific parameter set in EEPROM"
         gui_button .note.general.buttons.line2.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
         gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 

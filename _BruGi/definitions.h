@@ -48,6 +48,8 @@
 #define UBAT_R2 2200.0
 #define UBAT_SCALE ( (UBAT_R1 + UBAT_R2) / UBAT_R2 )
 
+// max number of configuration sets in EEPROM
+#define NUM_EEPROM_CONFIG_SETS 4
 
 // RC data size and channel assigment
 #define RC_DATA_SIZE  5
