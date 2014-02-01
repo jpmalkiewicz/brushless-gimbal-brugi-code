@@ -1,6 +1,6 @@
 
 /*****************************************************************************************************************************
-Brushless Gimbal Controller Software by Christian Winkler and Alois Hahn (C) 2013
+Brushless Gimbal Controller Software by Christian Winkler and Alois Hahn (C) 2014
 
 Brushless Gimbal Controller Hardware and Software support 
 by Ludwig Fäerber, Alexander Rehfeld and Martin Eckart
@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r207"
+#define REVISION "r208"
 #define VERSION_EEPROM 15 // change this number when eeprom data structure has changed
 
 

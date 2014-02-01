@@ -122,7 +122,7 @@ char accCalibration() {
   int16_t minAcc[3] = {INT_MAX, INT_MAX, INT_MAX};
   int16_t maxAcc[3] = {INT_MIN, INT_MIN, INT_MIN};
   
-  float fp_accOffset[3] = {0,};
+  float fp_accOffset[3] = {0,0,0};
 
   // wait 0.5 seconds
   delayT1(500);

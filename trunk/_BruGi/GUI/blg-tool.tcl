@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2014-01-10 / for BruGi Firmware v50 r199 or higher"
+set VERSION "2014-02-01 / for BruGi Firmware v50 r199 or higher"
 
 # just activate a debug console
 #catch {console show}
@@ -1702,9 +1702,9 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
     labelframe .note.cal.acc -text "ACC Sensor" -padx 10 -pady 10
     pack .note.cal.acc -side top -expand no -fill x
-      gui_spin .note.cal.acc.accOffsetX     accOffsetX  -500 500 1 "Offset X"  "accOffsetX" "config.accOffsetX"
-      gui_spin .note.cal.acc.accOffsetY     accOffsetY  -500 500 1 "Offset Y"  "accOffsetY" "config.accOffsetY"
-      gui_spin .note.cal.acc.accOffsetZ     accOffsetZ  -500 500 1 "Offset Z"  "accOffsetZ" "config.accOffsetZ"
+      gui_spin .note.cal.acc.accOffsetX     accOffsetX  -2000 2000 1 "Offset X"  "accOffsetX" "config.accOffsetX"
+      gui_spin .note.cal.acc.accOffsetY     accOffsetY  -2000 2000 1 "Offset Y"  "accOffsetY" "config.accOffsetY"
+      gui_spin .note.cal.acc.accOffsetZ     accOffsetZ  -2000 2000 1 "Offset Z"  "accOffsetZ" "config.accOffsetZ"
       gui_button .note.cal.acc.acc_cal "ACC Calibration" "ACC calibration" acc_cal
       gui_button .note.cal.acc.acc_cal_res "Reset" "reset acc calibration" acc_cal_reset
 
