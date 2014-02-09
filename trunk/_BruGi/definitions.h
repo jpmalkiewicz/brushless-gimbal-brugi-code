@@ -1,6 +1,28 @@
 /*************************/
-/* Definitions           */
+/* user definitions      */
 /*************************/
+
+// max number of configuration sets in EEPROM
+#define NUM_EEPROM_CONFIG_SETS 3
+
+// add code to support manual control pannel with push button and leds (see ControlPanel.ino)
+#define USE_CONTROL_PANEL
+
+// do no generate help text to reduce code space
+#define MINIMIZE_TEXT
+
+// trace minimum to save code space
+//#define TRACE_EXTRA
+// maximum code size depends on bootloader 
+//   Arduino Uno: 32256 bytes (0x7e00)
+//   Arduino Pro or Pro Mini: 30720 bytes (0x7800)
+//   Arduino Mini w/ ATmega328: 28672 bytes (0x7000)
+
+
+/*************************/
+/* internal definitions  */
+/*************************/
+
 // MPU Address Settings
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // default for InvenSense evaluation board
 #define MPU6050_ADDRESS_AD0_HIGH    0x69 // Drotek MPU breakout board
@@ -47,9 +69,6 @@
 #define UBAT_R1 10000.0
 #define UBAT_R2 2200.0
 #define UBAT_SCALE ( (UBAT_R1 + UBAT_R2) / UBAT_R2 )
-
-// max number of configuration sets in EEPROM
-#define NUM_EEPROM_CONFIG_SETS 4
 
 // RC data size and channel assigment
 #define RC_DATA_SIZE  5
@@ -126,29 +145,53 @@
 #endif
 
 
-#define LEDPIN_PINMODE             pinMode (8, OUTPUT);
-#define LEDPIN_SWITCH              digitalWrite(8,!bitRead(PORTB,0));
-#define LEDPIN_OFF                 digitalWrite(8, LOW);
-#define LEDPIN_ON                  digitalWrite(8, HIGH);
 
-// note: execution time for CH2_ON/CH2_OFF = 4 us
-#define CH2_PINMODE                pinMode (4, OUTPUT);
-#define CH2_OFF                    digitalWrite(4, LOW);
-#define CH2_ON                     digitalWrite(4, HIGH);
 
-#define CH3_PINMODE                pinMode (7, OUTPUT);
-#define CH3_OFF                    digitalWrite(7, LOW);
-#define CH3_ON                     digitalWrite(7, HIGH);
+/*************************/
+/* user pin definitions  */
+/*************************/
+
+// standard LED (not on all boards)
+#define LEDPIN                     8
+#define LEDPIN_PINMODE             pinMode (LEDPIN, OUTPUT);
+#define LEDPIN_OFF                 digitalWrite(LEDPIN, LOW);
+#define LEDPIN_ON                  digitalWrite(LEDPIN, HIGH);
+
+#ifdef USE_CONTROL_PANEL
+  // manual control panel elements
+  // push button
+  #define PB_PIN               12   // CH4/MISO
+  // status leds
+  #define ST_LED0              4    // CH2
+  #define ST_LED1              7    // CH3
+  
+  // set pin output
+  #define SET_LED( pin, x )    ((x==0) ? digitalWrite(pin, LOW) : digitalWrite(pin, HIGH))
+
+  // note: execution time for CH2_ON/CH2_OFF = 4 us
+  #define CH2_PINMODE
+  #define CH2_OFF
+  #define CH2_ON
+  
+  #define CH3_PINMODE
+  #define CH3_OFF
+  #define CH3_ON
+
+#else
+  // this is used just for debugging and profiling
+  // note: execution time for CH2_ON/CH2_OFF = 4 us
+  #define CH2_PINMODE                pinMode (4, OUTPUT);
+  #define CH2_OFF                    digitalWrite(4, LOW);
+  #define CH2_ON                     digitalWrite(4, HIGH);
+  
+  #define CH3_PINMODE                pinMode (7, OUTPUT);
+  #define CH3_OFF                    digitalWrite(7, LOW);
+  #define CH3_ON                     digitalWrite(7, HIGH);
+#endif
 
 
 // just for debugging 
 
-// trace minimum to save code space
-//#define TRACE_EXTRA
-// maximum code size depends on bootloader 
-//   Arduino Uno: 32256 bytes (0x7e00)
-//   Arduino Pro or Pro Mini: 30720 bytes (0x7800)
-//   Arduino Mini w/ ATmega328: 28672 bytes (0x7000)
 
 // enable stack and heapsize check (use just for debugging)
 //#define STACKHEAPCHECK_ENABLE

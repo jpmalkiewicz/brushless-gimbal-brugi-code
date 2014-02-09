@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2014-02-01 / for BruGi Firmware v50 r210 or higher"
+set VERSION "2014-02-09 / for BruGi Firmware v50 r210 or higher"
 
 # just activate a debug console
 #catch {console show}
@@ -394,6 +394,7 @@ foreach var $params {
 
 set enable_trace 1
 
+
 set par(gyroPitchKp,scale) 1000.0
 set par(gyroPitchKi,scale) 1000.0
 set par(gyroPitchKd,scale) 1000.0
@@ -419,6 +420,8 @@ set par(refVoltageBat,scale) 100.0
 set par(cutoffVoltage,scale) 100.0
 set par(maxPWMfpvPitch,scale) 2.5
 set par(maxPWMfpvRoll,scale) 2.5
+
+set par(configSet,offset) 1
 
 #
 # parameters with non-numeric values (as used by gui_combobox)
@@ -1582,7 +1585,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       frame .note.general.buttons.line2
       pack .note.general.buttons.line2 -side top -expand no -fill x
 
-        gui_spin .note.general.buttons.line2.configSet   configSet   0 3 1 "Param Set"  "Parameter Set Number" "select a specific parameter set in EEPROM"
+        gui_spin .note.general.buttons.line2.configSet   configSet   1 3 1 "Param Set"  "Parameter Set Number" "select a specific parameter set in EEPROM"
         gui_button .note.general.buttons.line2.load_from_file "Load from File" "load values from file into board and gui" load_values_from_file
         gui_button .note.general.buttons.line2.save2file "Save to File" "save values from gui into file" save_values2file
 
@@ -1646,7 +1649,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       pack .note.pitchRC.set.fpvMx -side top -expand no -fill x
         gui_combobox .note.pitchRC.set.fpvMx.rcModePPMFpv rcModePPMFpvP            "PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch1, A1=Ch2, A0=Ch3"
         gui_spin   .note.pitchRC.set.fpvMx.rcChannelFpv rcChannelFpvP 0 16 1       "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvPitch: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_slider .note.pitchRC.set.fpvMx.fpvGain fpvGainPitch -100 100.0 0.1     "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.pitchRC.set.fpvMx.fpvGain fpvGainPitch -120 120.0 0.1     "FPV gain" "FPV gain" "config.fpvGainPitch: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.pitchRC.set.fpvMx.rcLPFPitchFpv rcLPFPitchFpv 0.1 20 0.1  "FPV Low Pass" "FPV low pass filter" "config.rcLPFPitchFpv: RC low pass filter constant(sec)"
 
       labelframe .note.pitchRC.set.fpvFreeze -text "FPV Freeze Mode Parameters" -padx 10 -pady 10
@@ -1685,7 +1688,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       pack .note.rollRC.set.fpvMx -side top -expand no -fill x
         gui_combobox  .note.rollRC.set.fpvMx.rcModePPMFpv rcModePPMFpvR        "PPM/PWM" "Mode of RC input, PPM sum oder single PWM RC inputs on A1/A2" "config.rcModePPM: PPM sum oder single PWM RC inputs on A0/A1/A2: PPM sum input on A2 or single RC PWM inputs on A2=Ch0, A1=Ch1, A0=Ch3"
         gui_spin   .note.rollRC.set.fpvMx.rcChannelFpv rcChannelFpvR 0 16 1    "RC Channel #"  "rcChannelFPV" "config.rcChannelFpvRoll: RC channel number for RC Aux Switch auxSW1/auxSW2, legal values 1..16 in PPM mode, 1..3 in PWM mode, 0=OFF (disabled)"
-        gui_slider .note.rollRC.set.fpvMx.fpvGain fpvGainRoll -100 100.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
+        gui_slider .note.rollRC.set.fpvMx.fpvGain fpvGainRoll -120 120.0 0.1   "FPV gain" "FPV gain" "config.fpvGainRoll: Gain of FPV channel: specifies the gain of the FPV channel, change sign to reverse direction"
         gui_slider .note.rollRC.set.fpvMx.rcLPFRollFpv rcLPFRollFpv 0.1 20 0.1 "FPV Low Pass" "FPV low pass filter" "config.rcLPFRollFpv: RC low pass filter constant(sec)"
 
       labelframe .note.rollRC.set.fpvFreeze -text "FPV Freeze Mode Parameters" -padx 10 -pady 10
@@ -1736,7 +1739,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
 
     labelframe .note.aux.rcpin -text "Mode of Control Inputs" -padx 10 -pady 7
     pack .note.aux.rcpin -side top -expand no -fill x
-      gui_combobox  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 "Input 1 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
+      gui_combobox  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 "Input 1 (A2)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
       gui_combobox  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
       gui_combobox  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
       
@@ -1748,10 +1751,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
       
     labelframe .note.aux.debug -text "Debug (just for development purposes)" -padx 10 -pady 7
     pack .note.aux.debug -side top -expand no -fill x
-
       gui_spin .note.aux.debug.sTrace     sTrace    0 9 1 "Trace Mode (slow)"  "sTrace" "config.sTrace"
-#      gui_spin .note.aux.debug.fTrace     fTrace    0 9 1 "Trace Mode (fast)"  "fTrace" "config.fTrace"
-
 
 frame .common -padx 1 -pady 1
 pack .common -side top -expand yes -fill y

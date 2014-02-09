@@ -1,3 +1,20 @@
+9.2.2014
+new feature:
+* manual control panel with push button and two leds can be used to select between several parameter sets in EEPROM
+ (see definitions.h and ControlPanel.ino)
+* new #define to minimize code space
+  #define MINIMIZE_TEXT
+
+1.2.2014
+Version 50 r210
+new feature:
+multiple parameters sets are stored in EEPROM. Still experimental, parameter set selection just in GUI, RC control to be done.
+
+1.2.2014
+Version 50 r209
+low battery voltage cutoff uses hysteresis now. Avoids on/off oscillations when battery is at low condition.
+Hysteresis is a fixed percentage (6%) of the cutoff voltage.
+
 5.1.2014
 Version 50 r207
 no functional change in Brugi
