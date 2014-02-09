@@ -291,7 +291,7 @@ uint8_t readConfigSetNumberFromEEPROM()
   
   // read current config set number
   EEPROM_readAnything(0, configSet);
-  if (configSet > NUM_EEPROM_CONFIG_SETS) {
+  if (configSet >= NUM_EEPROM_CONFIG_SETS) {
     configSet = 0;
   }
   return configSet;
@@ -334,7 +334,7 @@ void readEEPROM()
   uint8_t configSet = config.configSet;
   uint16_t configBlockAddr;
 
-  if (configSet > NUM_EEPROM_CONFIG_SETS) {
+  if (configSet >= NUM_EEPROM_CONFIG_SETS) {
     configSet = 0;
   }
   
@@ -403,6 +403,9 @@ void printVersionString()
 
 void printHelpUsage()
 {
+#ifdef MINIMIZE_TEXT
+  Serial.println(F("see Readme.txt"));
+#else
   Serial.println(F("commands:"));
   Serial.println(F(""));
   Serial.println(F("sd   # set defaults"));
@@ -420,15 +423,16 @@ void printHelpUsage()
   Serial.println(F(""));
   Serial.println(F("he  # print help"));
   Serial.println(F(""));
+#endif
 }
 
 void unrecognized(const char *command) 
 {
   Serial.print(F("'"));
   Serial.print(command);
-  Serial.println(F("' bad command, type HE for help ..."));
+  Serial.println(F("' bad command"));
+  printHelpUsage();
 }
-
 
 void setSerialProtocol()
 {

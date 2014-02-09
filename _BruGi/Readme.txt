@@ -17,12 +17,15 @@ re   # restore config from eeprom
 gc   # calibrate gyro
 ac   # calibrate acc
 sbv  # save battery voltage
+sc <n> # select specific eeprom config set <n>
+  
 par <parName> <parValue> # general parameter read/set command
  e.g.
    par                   # list all config parameters
    par gyroPitchKi       # list gyroPitchKi
    par gyroPitchKi 12000 # set gyroPitchKi to 12000
 
+ver # print firmware version string
 he  # print help
 
 
@@ -35,9 +38,6 @@ e.g. "BruGi version 49 r190"
  Config Parameters (list with "par")
 ######################################
 
-vers 49
-  firmware version
-  
 gyroPitchKp/gyroRollKp
   pid controller P-value
   
@@ -210,3 +210,17 @@ accOffsetZ
   acc offset values, they are set  at acc calibration (ac command).
   Acc calibration should be done for at least to sensor positions.
   e.g. for vertical (90 deg) and for horizontal (0 deg). 
+  
+rcPinModeCH0
+rcPinModeCH1
+rcPinModeCH2
+  mode of input A2(CH0), A1(CH1), A0(CH2)
+  0 ... disable
+  1 ... RC input
+  2 ... analog input
+  
+configSet
+  active config set in EEPROM.
+  select between several config sets stored in EEPROM.
+  valid range 0..2
+ 

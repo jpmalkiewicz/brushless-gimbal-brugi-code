@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r210"
+#define REVISION "r211"
 #define VERSION_EEPROM 16 // change this number when eeprom data structure has changed
 
 
@@ -71,6 +71,8 @@ void setup()
   heapCheck();
 #endif
 
+  initControlPanelPins();
+  
   LEDPIN_PINMODE
   
   CH2_PINMODE
@@ -388,6 +390,9 @@ void loop()
       // handle mode switches
       decodeModeSwitches();  // td = 4 us
       
+      // handle manual control panel
+      handleControlPanel();
+      
       break;
     case 5:
       // RC Pitch function
@@ -416,7 +421,7 @@ void loop()
     case 9:
       //   regular i2c test
       mpu.testConnection();
-    break;
+      break;
     case 10:    
       // regular ACC output
       pOutCnt++;
