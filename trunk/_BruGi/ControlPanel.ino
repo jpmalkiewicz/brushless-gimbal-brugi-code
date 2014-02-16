@@ -115,6 +115,8 @@ void handleControlPanel() {
         pbStateCount = 0;
         // confirm selected parameterset
         readEEPROM();
+        // restart with new parameter set, because loop timing is broken due to readEEPROM execution time 
+        asm volatile (" jmp 0"); 
       }
     }
     break;
