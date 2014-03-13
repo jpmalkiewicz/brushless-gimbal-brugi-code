@@ -31,7 +31,7 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r211"
+#define REVISION "r212"
 #define VERSION_EEPROM 16 // change this number when eeprom data structure has changed
 
 
@@ -301,14 +301,14 @@ void loop()
     } else if(config.rcAbsolutePitch==1) {
       pitchAngleSet = utilLP3_float(qLPPitch, PitchPhiSet, rcLPFPitch_tc); // 63us
     } else {
-      utilLP_float(&pitchAngleSet, PitchPhiSet, 0.01);
+      pitchAngleSet = utilLP3_float(qLPPitch, PitchPhiSet, LOWPASS_K_FLOAT(0.03));
     }
     if (fpvModeRoll==true) {
       rollAngleSet = utilLP3_float(qLPRoll, RollPhiSet, rcLPFRollFpv_tc);
     } else if(config.rcAbsoluteRoll==1) {
       rollAngleSet = utilLP3_float(qLPRoll, RollPhiSet, rcLPFRoll_tc);
     } else {
-      utilLP_float(&rollAngleSet, RollPhiSet, 0.01);
+      rollAngleSet = utilLP3_float(qLPRoll, RollPhiSet, LOWPASS_K_FLOAT(0.03));
     }
     
     // tElapsed = 1.250 ms

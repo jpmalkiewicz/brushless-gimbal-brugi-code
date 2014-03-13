@@ -1,4 +1,10 @@
+13.3.2014
+Version 50 r212
+* fixed low pass filter time constant in RC relative/prop mode.
+  due to wrong time constant, camera control was delayed to much, at stick middle camera stopped after delay
+
 9.2.2014
+Version 50 r211
 new feature:
 * manual control panel with push button and two leds can be used to select between several parameter sets in EEPROM
  (see definitions.h and ControlPanel.ino)

@@ -345,8 +345,6 @@ void evaluateRCRoll() {
 // derive RC setpoint
 void getSetpoint(float * setPoint, unsigned char rcChannel, unsigned char rcChannelFpv, bool fpvMode, bool rcAbsolute, int8_t maxRC, int8_t minRC) {
 
-  const float hystVal = 0.3;
-  
   if (fpvMode) {
     if (rcData[rcChannelFpv].valid) {
       *setPoint = rcData[rcChannelFpv].setpoint;
