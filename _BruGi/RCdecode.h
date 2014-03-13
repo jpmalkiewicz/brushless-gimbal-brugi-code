@@ -157,7 +157,7 @@ void intDecodePWM_Ch2()
   bool risingEdge = PCintPort::pinState==HIGH ? true : false;
   
 #ifdef RC_PIN_PPM_A0  
-  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {  {
+  if (config.rcModePPMPitch || config.rcModePPMRoll || config.rcModePPMAux || config.rcModePPMFpvPitch || config.rcModePPMFpvRoll) {
     if (risingEdge) intDecodePPM(microsIsrEnter);
   } else {
 #endif  
