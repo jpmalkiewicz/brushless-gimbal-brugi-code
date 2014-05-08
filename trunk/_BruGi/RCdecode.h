@@ -88,6 +88,18 @@ inline void intDecodePPM( uint32_t microsIsrEnter )
     }
     channel_idx++;
   }
+  
+  // PPM passtrough channels
+  if (config.rcChannelPt0 == channel_idx) {
+    digitalWrite(RC_PIN_CH1, HIGH);
+  } else if (config.rcChannelPt0 == (channel_idx - 1)) {
+    digitalWrite(RC_PIN_CH1, LOW);
+  }
+  if (config.rcChannelPt1 == channel_idx) {
+    digitalWrite(RC_PIN_CH2, HIGH);
+  } else if (config.rcChannelPt1 == (channel_idx - 1)) {
+    digitalWrite(RC_PIN_CH2, LOW);
+  }
 
 }
 
@@ -212,40 +224,48 @@ void initRCPins()
  
     switch (config.rcPinModeCH0) {
       case 0: // OFF
-        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        pinMode(RC_PIN_CH0, INPUT);
         break;
       case 1: // digital RC PWM/PPM
-        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        pinMode(RC_PIN_CH0, INPUT);
         PCintPort::attachInterrupt(RC_PIN_CH0, &intDecodePWM_Ch0, CHANGE);
         break;
       case 2: // analog
-        pinMode(RC_PIN_CH0, INPUT); digitalWrite(RC_PIN_CH0, HIGH);
+        pinMode(RC_PIN_CH0, INPUT);
         break;
     }
  
     switch (config.rcPinModeCH1) {
       case 0: // OFF
-        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        pinMode(RC_PIN_CH1, INPUT);
         break;
       case 1: // digital RC PWM
-        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        pinMode(RC_PIN_CH1, INPUT);
         PCintPort::attachInterrupt(RC_PIN_CH1, &intDecodePWM_Ch1, CHANGE);
         break;
       case 2: // analog
-        pinMode(RC_PIN_CH1, INPUT); digitalWrite(RC_PIN_CH1, HIGH);
+        pinMode(RC_PIN_CH1, INPUT); 
+        break;
+      case 3: // digital PWM output
+        pinMode(RC_PIN_CH1, OUTPUT);
+        digitalWrite(RC_PIN_CH1, LOW);
         break;
     }
  
     switch (config.rcPinModeCH2) {
       case 0: // OFF
-        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        pinMode(RC_PIN_CH2, INPUT);
         break;
       case 1: // digital RC PWM
-        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        pinMode(RC_PIN_CH2, INPUT);
         PCintPort::attachInterrupt(RC_PIN_CH2, &intDecodePWM_Ch2, CHANGE);
         break;
       case 2: // analog
-        pinMode(RC_PIN_CH2, INPUT); digitalWrite(RC_PIN_CH2, HIGH);
+        pinMode(RC_PIN_CH2, INPUT);
+        break;
+      case 3: // digital PWM output
+        pinMode(RC_PIN_CH2, OUTPUT);
+        digitalWrite(RC_PIN_CH2, LOW);
         break;
     }
     

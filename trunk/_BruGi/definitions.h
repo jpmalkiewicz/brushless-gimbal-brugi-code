@@ -5,8 +5,8 @@
 // max number of configuration sets in EEPROM
 #define NUM_EEPROM_CONFIG_SETS 3
 
-// add code to support manual control pannel with push button and leds (see ControlPanel.ino)
-#define USE_CONTROL_PANEL
+// add code to support manual control panel with push button and leds (see ControlPanel.ino)
+//#define USE_CONTROL_PANEL
 
 // do no generate help text to reduce code space
 #define MINIMIZE_TEXT
@@ -17,6 +17,7 @@
 //   Arduino Uno: 32256 bytes (0x7e00)
 //   Arduino Pro or Pro Mini: 30720 bytes (0x7800)
 //   Arduino Mini w/ ATmega328: 28672 bytes (0x7000)
+// for further reduction USE_CONTROL_PANEL can be diabled (~550 bytes)
 
 
 /*************************/

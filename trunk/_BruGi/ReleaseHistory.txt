@@ -1,8 +1,25 @@
+8.5.2014
+Version 50 r216
+* added PPM passtrough channels
+  PPM channels can be output as PWM on A0/A1, e.g. for NEX RC Shutter or RC servo  
+Notes: 
+  EEPROM is initialized, save configuration to file before upgrade to this version
+  control panel code is disabled per default now, keeps code space below limits for all hardware variants (config.h: #define USE_CONTROL_PANEL) 
+
 13.3.2014
-Version 50 r212
+Version 50 r215
+fixed typo in RCdecode.h code, appeared only when RC_PIN_PPM_A0 was defined
+   
+13.3.2014
+Version 50 r214
 * fixed low pass filter time constant in RC relative/prop mode.
   due to wrong time constant, camera control was delayed to much, at stick middle camera stopped after delay
 
+16.2.2014
+Version 50 r213
+bug fix at manual control panel: 
+   restart program when EEPROM parameter set is changed, because loop timing is broken due to readEEPROM execution time
+   
 9.2.2014
 Version 50 r211
 new feature:

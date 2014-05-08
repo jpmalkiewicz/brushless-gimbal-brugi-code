@@ -128,6 +128,10 @@ rcChannelFpvR
   in PWM mode: channel numbers 0...2 refer to the input channel 1...3
                note: if PPM is used, PWM channel 1 is not available for PWM
 
+rcChannelPt0
+rcChannelPt1
+  selects the PPM channel to be output as PWM on either A2 or A1 (see rcPinModeCH1/rcPinModeCH2)
+               
 fpvGainPitch
 fpvGainRoll
   gain of FPV (first person view) channel.
@@ -216,8 +220,9 @@ rcPinModeCH1
 rcPinModeCH2
   mode of input A2(CH0), A1(CH1), A0(CH2)
   0 ... disable
-  1 ... RC input
+  1 ... RC pwm input (on A2(Ch0) either ppm or pwm)
   2 ... analog input
+  3 ... RC pwm output (pass trough of PPM channels rcChannelPt0/rcChannelPt1), no valid in A2(CH0) as this is the PPM input
   
 configSet
   active config set in EEPROM.

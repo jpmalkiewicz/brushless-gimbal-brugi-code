@@ -11,7 +11,7 @@
 #
 package require Tk
 
-set VERSION "2014-02-09 / for BruGi Firmware v50 r210 or higher"
+set VERSION "2014-05-08 / for BruGi Firmware v50 r216 or higher"
 
 # just activate a debug console
 #catch {console show}
@@ -378,14 +378,14 @@ set params "configSet gyroPitchKp gyroPitchKi gyroPitchKd gyroRollKp gyroRollKi 
             rcAbsolutePitch rcAbsoluteRoll maxRCPitch maxRCRoll minRCPitch minRCRoll rcGainPitch rcGainRoll rcLPFPitch rcLPFRoll \
             rcModePPMPitch rcModePPMRoll rcModePPMAux rcModePPMFpvP rcModePPMFpvR \
             rcPinModeCH0 rcPinModeCH1 rcPinModeCH2 \
-            rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
+            rcChannelPitch rcChannelRoll rcChannelAux rcChannelFpvP rcChannelFpvR rcChannelPt0 rcChannelPt1 fpvGainPitch fpvGainRoll rcLPFPitchFpv rcLPFRollFpv \
             rcMid fTrace sTrace enableGyro enableACC axisReverseZ axisSwapXY \
             fpvFreezePitch fpvFreezeRoll maxPWMfpvPitch maxPWMfpvRoll fpvSwPitch fpvSwRoll altSwAccTime accTimeConstant2 \
             gyroCal gyrOffsetX gyrOffsetY gyrOffsetZ accOffsetX accOffsetY accOffsetZ"
  
 foreach var $params {
 	if {! [string match "*,*" $var]} {
-		set par($var) 0
+    set par($var) 0
 		set par($var,scale) 1
 		set par($var,offset) 0
     set par($var,comboboxOptions) {}
@@ -414,6 +414,8 @@ set par(rcChannelRoll,offset) 1
 set par(rcChannelAux,offset) 1
 set par(rcChannelFpvP,offset) 1
 set par(rcChannelFpvR,offset) 1
+set par(rcChannelPt0,offset) 1
+set par(rcChannelPt1,offset) 1
 set par(motorNumberPitch,offset) 1
 set par(motorNumberRoll,offset) 1
 set par(refVoltageBat,scale) 100.0
@@ -436,16 +438,34 @@ set par(altSwAccTime,offset) 1
 set par(fpvFreezePitch,comboboxOptions) {Follow Freeze}
 set par(fpvFreezeRoll,comboboxOptions) {Follow Freeze}
 
-
 set par(rcModePPMPitch,comboboxOptions) {PWM "PPM Sum"}
 set par(rcModePPMRoll,comboboxOptions) {PWM "PPM Sum"}
 set par(rcModePPMFpvP,comboboxOptions) {PWM "PPM Sum"}
 set par(rcModePPMFpvR,comboboxOptions) {PWM "PPM Sum"}
 set par(rcModePPMAux,comboboxOptions) {PWM "PPM Sum"}
 
-set par(rcPinModeCH0,comboboxOptions) {"disabled" "digital PWM/PPM input" "analog input"}
-set par(rcPinModeCH1,comboboxOptions) {"disabled" "digital PWM input" "analog input"}
-set par(rcPinModeCH2,comboboxOptions) {"disabled" "digital PWM input" "analog input"}
+set par(rcPinModeCH0,comboboxOptions) {"disabled" "PWM (ch1) or PPM input" "analog input (ch1)"}
+set par(rcPinModeCH1,comboboxOptions) {"disabled" "PWM (ch2) input" "analog input (ch2)" "PWM output (Out0)"}
+set par(rcPinModeCH2,comboboxOptions) {"disabled" "PWM (ch3) input" "analog input (ch3)" "PWM output (Out1)"}
+
+# initialize combobox values (strings)
+set par(fpvSwPitch) [lindex $par(fpvSwPitch,comboboxOptions) 0]
+set par(fpvSwRoll) [lindex $par(fpvSwRoll,comboboxOptions) 0]
+set par(altSwAccTime) [lindex $par(altSwAccTime,comboboxOptions) 0]
+set par(fpvFreezePitch) [lindex $par(fpvFreezePitch,comboboxOptions) 0]
+set par(fpvFreezeRoll) [lindex $par(fpvFreezeRoll,comboboxOptions) 0]
+set par(rcModePPMPitch) [lindex $par(rcModePPMPitch,comboboxOptions) 0]
+set par(rcModePPMRoll) [lindex $par(rcModePPMRoll,comboboxOptions) 0]
+set par(rcModePPMFpvP) [lindex $par(rcModePPMFpvP,comboboxOptions) 0]
+set par(rcModePPMFpvR) [lindex $par(rcModePPMFpvR,comboboxOptions) 0]
+set par(rcModePPMAux) [lindex $par(rcModePPMAux,comboboxOptions) 0]
+set par(rcPinModeCH0) [lindex $par(rcPinModeCH0,comboboxOptions) 0]
+set par(rcPinModeCH1) [lindex $par(rcPinModeCH1,comboboxOptions) 0]
+set par(rcPinModeCH2) [lindex $par(rcPinModeCH2,comboboxOptions) 0]
+
+
+
+
 
 set CHART_SCALE 0.5
 set buffer ""
@@ -709,21 +729,18 @@ proc save_values2file {} {
         if {[llength $par($var,comboboxOptions)] > 0} {
           set idx [lsearch $par($var,comboboxOptions) $par($var)]
           if {$idx >= 0} {
-            puts "$var $par($var) $par($var,scale) $par($var,offset)\n"
             puts -nonewline $fp "par $var [expr $idx * $par($var,scale) - $par($var,offset)]\n"
           } else {
             .common.bottom1.message configure -text "error: illegal comboboxOption $var $par($var)" -background red
           }
-        } else {
-          if {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
-            if {$par($var) == 1} {
-              puts -nonewline $fp "par $var -1\n"
-            } else {
-              puts -nonewline $fp "par $var 1\n"
-            }
+        } elseif {$var == "dirMotorPitch" || $var == "dirMotorRoll"} {
+          if {$par($var) == 1} {
+            puts -nonewline $fp "par $var -1\n"
           } else {
-            puts -nonewline $fp "par $var [expr $par($var) * $par($var,scale) - $par($var,offset)]\n"
+            puts -nonewline $fp "par $var 1\n"
           }
+        } else {
+          puts -nonewline $fp "par $var [expr $par($var) * $par($var,scale) - $par($var,offset)]\n"
         }
 			}
 		}
@@ -1724,7 +1741,7 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
   ttk::frame .note.aux
   .note add .note.aux -text "Auxiliary"
 
-    labelframe .note.aux.1 -padx 10 -pady 7
+    labelframe .note.aux.1 -padx 5 -pady 5
     pack .note.aux.1 -side top -expand no -fill x
 
       labelframe .note.aux.1.rc -text "RC Auxiliary Switch Channel" -padx 10 -pady 7
@@ -1737,12 +1754,20 @@ pack .note -fill both -side left -expand no -fill both -padx 2 -pady 3
         gui_combobox   .note.aux.1.altTC.altSwAccTime  altSwAccTime   "ACC Time2 Switch" "select control switch for alternate ACC time" "config.altSwAccTime: RC Switch for alternate ACC time constant, legal values -1=always on, 0=off, 1=auxSW1, 2=auxSW2"
         gui_slider .note.aux.1.altTC.accTimeConstant2  accTimeConstant2 1 20 0.1  "ACC Time2"  "accTimeConstant2" "config.accTimeConstant2: alternate value for ACC Time Constant, activated by wwitch function altSwAccTime"
 
-    labelframe .note.aux.rcpin -text "Mode of Control Inputs" -padx 10 -pady 7
-    pack .note.aux.rcpin -side top -expand no -fill x
-      gui_combobox  .note.aux.rcpin.rcPinModeCH0 rcPinModeCH0 "Input 1 (A2)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH0: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
-      gui_combobox  .note.aux.rcpin.rcPinModeCH1 rcPinModeCH1 "Input 2 (A1)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH1: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A1"
-      gui_combobox  .note.aux.rcpin.rcPinModeCH2 rcPinModeCH2 "Input 3 (A0)" "Set Control Input Mode OFF/Digital/Analog" "config.rcPinModeCH2: Set Control Input OFF/Digital/Analog: 0=Off, 1=RC digital PWM mode, 2=analog input A0"
-      
+    labelframe .note.aux.2 -padx 5 -pady 5
+    pack .note.aux.2 -side top -expand no -fill x
+    
+      labelframe .note.aux.2.rcpin -text "Mode of RC/Analog Ports" -padx 10 -pady 7
+      pack .note.aux.2.rcpin -side left -expand no -fill x
+        gui_combobox  .note.aux.2.rcpin.rcPinModeCH0 rcPinModeCH0 "Port A2" "Control Port Mode OFF/Digital-In/Analog-In" "config.rcPinModeCH0: Set Control Input OFF/Digital-In/Analog: 0=Off, 1=RC digital PWM/PPM mode, 2=analog input A2"
+        gui_combobox  .note.aux.2.rcpin.rcPinModeCH1 rcPinModeCH1 "Port A1" "Control Port Mode OFF/Digital-In/Analog-In/Digital-Out" "config.rcPinModeCH1: Set Control Input OFF/Digital-In/Analog/Digital-Out: 0=Off, 1=RC digital PWM in (ch2), 2=analog input A1, 3=digital PWM ouput (Out0)"
+        gui_combobox  .note.aux.2.rcpin.rcPinModeCH2 rcPinModeCH2 "Port A0" "Control Port Mode OFF/Digital-In/Analog-In/Digital-Out" "config.rcPinModeCH2: Set Control Input OFF/Digital-In/Analog/Digital-Out: 0=Off, 1=RC digital PWM in (ch3), 2=analog input A0, 3=digital PWM ouput (Out1)"
+
+      labelframe .note.aux.2.rcpt -text "RC Pass Trough Channels" -padx 10 -pady 7
+      pack .note.aux.2.rcpt -side left -expand no -fill x
+        gui_spin      .note.aux.2.rcpt.rcChannelPt0  rcChannelPt0 0 16 1  "Out0 PPM ch#"  "rcChannelPt0" "config.rcChannelPt0: PPM RC channel number for RC Pass Trough on Out0, legal values 1..16, 0=OFF (disabled)"
+        gui_spin      .note.aux.2.rcpt.rcChannelPt1  rcChannelPt1 0 16 1  "Out1 PPM ch#"  "rcChannelPt1" "config.rcChannelPt1: PPM RC channel number for RC Pass Trough on Out1, legal values 1..16, 0=OFF (disabled)"
+        
     labelframe .note.aux.monitor -text "RC Monitor" -padx 10 -pady 7
       pack .note.aux.monitor -side top -expand no -fill x
       gui_monitor .note.aux.monitor.rcAux rcAux "RC Auxiliary" no bar

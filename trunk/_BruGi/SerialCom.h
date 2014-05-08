@@ -85,7 +85,7 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcModePPMPitch",   BOOL,  &config.rcModePPMPitch,   &initRCPins},
   {"rcModePPMRoll",    BOOL,  &config.rcModePPMRoll,    &initRCPins},
   {"rcModePPMAux",     BOOL,  &config.rcModePPMAux,     &initRCPins},
-  {"rcModePPMFpvP",    BOOL,  &config.rcModePPMFpvPitch, &initRCPins},
+  {"rcModePPMFpvP",    BOOL,  &config.rcModePPMFpvPitch,&initRCPins},
   {"rcModePPMFpvR",    BOOL,  &config.rcModePPMFpvRoll, &initRCPins},
   
   {"rcPinModeCH0",     UINT8, &config.rcPinModeCH0,     &initRCPins},
@@ -95,8 +95,11 @@ const t_configDef PROGMEM configListPGM[] = {
   {"rcChannelPitch",   INT8,  &config.rcChannelPitch,   &initRCPins},
   {"rcChannelRoll",    INT8,  &config.rcChannelRoll,    &initRCPins},
   {"rcChannelAux",     INT8,  &config.rcChannelAux,     &initRCPins},
-  {"rcChannelFpvP",    INT8,  &config.rcChannelFpvPitch, &initRCPins},
-  {"rcChannelFpvR",    INT8,  &config.rcChannelFpvRoll,  &initRCPins},
+  {"rcChannelFpvP",    INT8,  &config.rcChannelFpvPitch,&initRCPins},
+  {"rcChannelFpvR",    INT8,  &config.rcChannelFpvRoll, &initRCPins},
+
+  {"rcChannelPt0",     INT8,  &config.rcChannelPt0,     NULL},
+  {"rcChannelPt1",     INT8,  &config.rcChannelPt1,     NULL},
 
   {"fpvGainPitch",     INT8,  &config.fpvGainPitch,     NULL},
   {"fpvGainRoll",      INT8,  &config.fpvGainRoll,      NULL},
