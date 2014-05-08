@@ -52,6 +52,10 @@ struct config_t
   int8_t rcChannelFpvPitch;  // input channel for fpv channel pitch
   int8_t rcChannelFpvRoll;   // input channel for fpv channel roll
   
+  int8_t rcChannelPt0;      // rc channel for passthrough output 0 
+  int8_t rcChannelPt1;      // rc channel for passthrough output 1
+  
+  
   int8_t fpvGainPitch;       // gain of FPV channel pitch
   int8_t fpvGainRoll;        // gain of FPV channel roll
   
@@ -133,6 +137,8 @@ void setDefaultParameters()
   config.rcChannelAux = -1;
   config.rcChannelFpvPitch = -1;
   config.rcChannelFpvRoll = -1;
+  config.rcChannelPt0 = -1;
+  config.rcChannelPt1 = -1;
   config.fpvGainPitch = 0;
   config.fpvGainRoll = 0;
   config.rcPinModeCH0 = 1;      // 1 = use digital control
