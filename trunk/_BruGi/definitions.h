@@ -1,3 +1,11 @@
+#ifndef _DEFINITIONS_H
+#define _DEFINITIONS_H
+
+#include <Arduino.h>
+
+#define _INLINE_		__attribute__( ( always_inline ) ) inline
+#define _NO_INLINE_		__attribute__( ( noinline ) )
+
 /*************************/
 /* user definitions      */
 /*************************/
@@ -18,7 +26,6 @@
 //   Arduino Pro or Pro Mini: 30720 bytes (0x7800)
 //   Arduino Mini w/ ATmega328: 28672 bytes (0x7000)
 // for further reduction USE_CONTROL_PANEL can be diabled (~550 bytes)
-
 
 /*************************/
 /* internal definitions  */
@@ -191,9 +198,31 @@
 #endif
 
 
+//
+// Fast Digital Output
+//
+// set port=1
+inline void FastPort_Set_1(uint8_t pin)
+{
+  volatile uint8_t *pport = portOutputRegister(digitalPinToPort(pin));
+  uint8_t val = *pport;
+  *pport = val | digitalPinToBitMask(pin);
+}
+
+// port=0
+inline void FastPort_Set_0(uint8_t pin)
+{
+  volatile uint8_t *pport = portOutputRegister(digitalPinToPort(pin));
+  uint8_t val = *pport;
+  *pport = val & ~digitalPinToBitMask(pin);
+}
+
+
 // just for debugging 
 
 
 // enable stack and heapsize check (use just for debugging)
 //#define STACKHEAPCHECK_ENABLE
 
+
+#endif // _DEFINITIONS_H
