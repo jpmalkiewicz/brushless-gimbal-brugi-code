@@ -129,7 +129,7 @@ void initSensorOrientation() {
   }
 }
 
-void setACCtc (int16_t accTimeConstant) {
+_NO_INLINE_ void setACCtc (int16_t accTimeConstant) {
   AccComplFilterConst = (float)DT_FLOAT/(accTimeConstant + DT_FLOAT);
 }
 
@@ -138,7 +138,7 @@ void initIMUtc() {
 }
 
 // update angle offest
-void updateAngleOffset() {
+_NO_INLINE_ void updateAngleOffset() {
    angleOffsetPitch = (int32_t)config.angleOffsetPitch * 10; //angleOffsetPitch_f;
    angleOffsetRoll = (int32_t)config.angleOffsetRoll * 10; //angleOffsetRoll_f;
  }

@@ -1,3 +1,10 @@
+16.5.2014
+Version 50 r217
+bug fix
+ * angleOffsetPitch/angleOffsetRoll was not updated at power up eeprom read (ticket #23 Pitch Zero Offset is not used after reboot)
+minor improvement
+  * use faster digital output at ppm passthrough  
+
 8.5.2014
 Version 50 r216
 * added PPM passtrough channels

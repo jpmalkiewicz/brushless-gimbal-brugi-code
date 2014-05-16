@@ -50,7 +50,7 @@ inline void decodePWM( uint32_t microsIsrEnter, bool risingEdge, rcData_t* rcDat
 inline void intDecodePPM( uint32_t microsIsrEnter )
 { 
 
-  static int32_t microsPPMLastEdge = 0;
+  static uint32_t microsPPMLastEdge = 0;
   uint16_t pulseInPPM;
 
   static char channel_idx = 0;
@@ -91,14 +91,14 @@ inline void intDecodePPM( uint32_t microsIsrEnter )
   
   // PPM passtrough channels
   if (config.rcChannelPt0 == channel_idx) {
-    digitalWrite(RC_PIN_CH1, HIGH);
+    FastPort_Set_1(RC_PIN_CH1);
   } else if (config.rcChannelPt0 == (channel_idx - 1)) {
-    digitalWrite(RC_PIN_CH1, LOW);
+    FastPort_Set_0(RC_PIN_CH1);
   }
   if (config.rcChannelPt1 == channel_idx) {
-    digitalWrite(RC_PIN_CH2, HIGH);
+    FastPort_Set_1(RC_PIN_CH2);
   } else if (config.rcChannelPt1 == (channel_idx - 1)) {
-    digitalWrite(RC_PIN_CH2, LOW);
+    FastPort_Set_0(RC_PIN_CH2);
   }
 
 }

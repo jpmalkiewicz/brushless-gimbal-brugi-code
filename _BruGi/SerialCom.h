@@ -264,6 +264,7 @@ void updateAllParameters() {
   initPIDs();
   initIMU();
   initSensorOrientation();
+  updateAngleOffset();
   initRCPins();
   initRC();
 }
