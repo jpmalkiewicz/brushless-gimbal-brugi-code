@@ -27,11 +27,12 @@ Anyhow, if you start to commercialize our work, please read on http://code.googl
 // Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
 *****************************************************************************************************************************/
 
-/* Note: software has been tested with Arduino Version 1.5.4 */
+/* V218 Software has been tested with Arduino Version 1.6.9 */
+/* V217 Software has been tested with Arduino Version 1.5.4 */
 
 #define VERSION_STATUS B // A = Alpha; B = Beta , N = Normal Release
 #define VERSION "v50"
-#define REVISION "r217"
+#define REVISION "r218"
 #define VERSION_EEPROM 17 // change this number when eeprom data structure has changed
 
 
@@ -84,7 +85,7 @@ void setup()
   // send Version Number and welcome message
   printMessage(MSG_INFO, F("BruGi ready"));
   printMessage(MSG_VERSION, F(""));
-
+  
   // Set Serial Protocol Commands
   setSerialProtocol();
 
@@ -123,6 +124,7 @@ void setup()
     if (config.gyroCal) {
       gyroCalibrateCmd();
     }
+    //printMessage(MSG_INFO, F(MPU6050.dev_addr));
   } else {
     gimState = GIM_ERROR;
   }

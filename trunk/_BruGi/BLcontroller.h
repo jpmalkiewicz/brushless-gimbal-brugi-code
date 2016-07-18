@@ -1,4 +1,5 @@
 #include "definitions.h"
+extern void TIMER0_isr_emulation (void);
 
 /*
 https://sites.google.com/site/qeewiki/books/avr-guide/timers-on-the-atmega328

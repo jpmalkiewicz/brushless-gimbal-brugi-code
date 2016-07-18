@@ -1,3 +1,12 @@
+18.07.2016
+Version 50 r218
+Maintenace
+    * Ported code from Arduino IDE 1.5.4 to 1.6.9 [Ticket #14 'InitIMU' was not delcared in the scope]
+minor improvement
+    * Added MPU6050 I2C Address in Version String
+    * Added Folder /GUI/SampleConfig/
+
+
 16.5.2014
 Version 50 r217
 bug fix

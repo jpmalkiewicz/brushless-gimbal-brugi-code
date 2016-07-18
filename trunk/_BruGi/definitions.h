@@ -34,7 +34,7 @@
 // MPU Address Settings
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // default for InvenSense evaluation board
 #define MPU6050_ADDRESS_AD0_HIGH    0x69 // Drotek MPU breakout board
-#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_HIGH
+#define MPU6050_DEFAULT_ADDRESS     MPU6050_ADDRESS_AD0_LOW
 
 
 // Define Brushless PWM Mode, uncomment ONE setting

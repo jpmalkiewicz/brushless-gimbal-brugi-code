@@ -35,6 +35,10 @@ typedef union {
 t_configUnion configUnion;
 
 void readEEPROM();
+extern void initIMUtc();
+extern _NO_INLINE_ void updateAngleOffset();
+extern void initSensorOrientation();
+extern void initIMU();
 
 //******************************************************************************
 //
