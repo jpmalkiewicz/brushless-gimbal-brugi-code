@@ -1,4 +1,5 @@
 #include "Trace.h"
+#include "MPU6050.h"
 
 void printTrace(traceModeType traceMode)
 {
@@ -144,7 +145,10 @@ void printMessage(msgSeverity_t msgSeverity, const __FlashStringHelper * msg) {
       Serial.print(F("BruGi "));
       Serial.print(VERSION);
       Serial.print(F(" "));
-      Serial.println(F(REVISION));
+      Serial.print(F(REVISION));
+      Serial.print(F(" MPU 0x"));
+      String s = String(MPU6050_DEFAULT_ADDRESS, HEX);
+      Serial.println(s);
       break;
   }
 }

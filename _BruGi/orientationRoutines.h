@@ -1,4 +1,5 @@
 #include <limits.h>
+extern void initMPU();
 
 /*************************/
 /* MPU6050 Routines      */
